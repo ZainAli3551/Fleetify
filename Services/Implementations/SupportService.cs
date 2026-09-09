@@ -14,11 +14,13 @@ namespace Fleetify.Services.Implementations
     {
         private readonly FleetifyDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IGeminiService _geminiService;
 
-        public SupportService(FleetifyDbContext context, INotificationService notificationService)
+        public SupportService(FleetifyDbContext context, INotificationService notificationService, IGeminiService geminiService)
         {
             _context = context;
             _notificationService = notificationService;
+            _geminiService = geminiService;
         }
 
         public async Task<SupportConversation> GetOrCreateConversationAsync(string sessionToken, string? email = null, string? name = null, int? userId = null)
@@ -97,120 +99,169 @@ namespace Fleetify.Services.Implementations
             _context.SupportMessages.Add(userMsg);
             conversation.UpdatedAt = DateTime.UtcNow;
 
-            // 2. Generate AI Bot response
-            string botReplyText;
-            string cleanText = userMessage.ToLower().Trim();
-
-            // A. Check for Order Tracking (e.g. FLT-2026-XXXXXX or contains 'FLT-')
+            // 2. Prepare Live Database Context for AI (e.g. order tracking, active customer shipments)
+            string? liveContext = null;
             var trackingMatch = Regex.Match(userMessage.ToUpper(), @"FLT-\d{4}-\d+");
-            if (trackingMatch.Success || cleanText.Contains("flt-") || cleanText.Contains("track"))
+            if (trackingMatch.Success)
             {
-                string trackingNumber = trackingMatch.Success ? trackingMatch.Value : string.Empty;
-                if (!string.IsNullOrEmpty(trackingNumber))
+                string trackingNumber = trackingMatch.Value;
+                var order = await _context.DeliveryRequests
+                    .Include(d => d.Assignment)
+                        .ThenInclude(a => a!.Driver)
+                    .FirstOrDefaultAsync(d => d.TrackingNumber == trackingNumber);
+
+                if (order != null)
                 {
-                    var order = await _context.DeliveryRequests
-                        .Include(d => d.Assignment)
-                            .ThenInclude(a => a!.Driver)
-                        .FirstOrDefaultAsync(d => d.TrackingNumber == trackingNumber);
+                    string driverInfo = order.Assignment?.Driver != null
+                        ? $"{order.Assignment.Driver.FullName} (Phone: {order.Assignment.Driver.PhoneNumber})"
+                        : "Awaiting Driver Dispatch";
 
-                    if (order != null)
-                    {
-                        string driverInfo = order.Assignment?.Driver != null
-                            ? $"{order.Assignment.Driver.FullName} ({order.Assignment.Driver.PhoneNumber})"
-                            : "Awaiting Driver Dispatch";
-
-                        botReplyText = $"📦 **Shipment Found: {order.TrackingNumber}**\n" +
-                                       $"• **Current Status:** {order.RequestedStatus}\n" +
-                                       $"• **Route:** {order.PickupLocation} ➔ {order.DropoffLocation}\n" +
-                                       $"• **Assigned Driver:** {driverInfo}\n" +
-                                       $"• **Estimated Fare:** ${order.EstimatedCost:F2}\n" +
-                                       $"• **Vehicle Required:** {order.VehicleType}";
-                    }
-                    else
-                    {
-                        botReplyText = $"🔍 I searched our database for tracking code **{trackingNumber}**, but could not locate an active order. Please verify the code or ask for Administrator assistance.";
-                    }
+                    liveContext = $"Database Record for Tracking Code '{trackingNumber}':\n" +
+                                  $"• Current Status: {order.RequestedStatus}\n" +
+                                  $"• Route: {order.PickupLocation} -> {order.DropoffLocation}\n" +
+                                  $"• Assigned Driver: {driverInfo}\n" +
+                                  $"• Estimated Fare: ${order.EstimatedCost:F2}\n" +
+                                  $"• Vehicle Type: {order.VehicleType}\n" +
+                                  $"• Created At: {order.RequestDate:yyyy-MM-dd HH:mm} UTC";
                 }
                 else
                 {
-                    botReplyText = "📦 To track a delivery, please provide your **Tracking Number** (e.g., `FLT-2026-302107`). I will pull up the live status immediately!";
+                    liveContext = $"Database search for tracking code '{trackingNumber}' returned NO MATCHING ORDER.";
                 }
             }
-            // B. Check for Escalation / Human Agent ("Bara Masla" / Need Admin)
-            else if (cleanText.Contains("admin") || cleanText.Contains("human") || cleanText.Contains("agent") ||
-                     cleanText.Contains("person") || cleanText.Contains("representative") || cleanText.Contains("operator") ||
-                     cleanText.Contains("shikayat") || cleanText.Contains("complaint") || cleanText.Contains("damaged") ||
-                     cleanText.Contains("broken") || cleanText.Contains("refund") || cleanText.Contains("lost") ||
-                     cleanText.Contains("urgent") || cleanText.Contains("fraud") || cleanText.Contains("kharab"))
+            else if (conversation.UserID.HasValue)
             {
-                conversation.Status = "NeedsAdmin";
-                conversation.Subject = $"Escalated: {Truncate(userMessage, 40)}";
+                var recentOrder = await _context.DeliveryRequests
+                    .Where(d => d.UserID == conversation.UserID.Value)
+                    .OrderByDescending(d => d.RequestDate)
+                    .FirstOrDefaultAsync();
 
-                // Notify Administrators
-                var admins = await _context.Admins.ToListAsync();
-                foreach (var admin in admins)
+                if (recentOrder != null)
                 {
-                    await _notificationService.CreateNotificationAsync(
-                        "Admin",
-                        admin.UserID,
-                        "Support Ticket Escalated",
-                        $"Customer {conversation.UserName} requires human assistance for: '{Truncate(userMessage, 60)}'.",
-                        conversation.ConversationID
-                    );
+                    liveContext = $"User's Most Recent Shipment Record: Tracking {recentOrder.TrackingNumber}, Status: {recentOrder.RequestedStatus}, Route: {recentOrder.PickupLocation} -> {recentOrder.DropoffLocation}, Cost: ${recentOrder.EstimatedCost:F2}";
+                }
+            }
+
+            // 3. Attempt to generate response using Google Gemini Generative AI
+            string? geminiReply = null;
+            if (_geminiService.IsConfigured)
+            {
+                geminiReply = await _geminiService.GenerateReplyAsync(userMessage, conversation.Messages.ToList(), liveContext);
+            }
+
+            string botReplyText;
+
+            if (!string.IsNullOrWhiteSpace(geminiReply))
+            {
+                // Check if Gemini detected a need for human administrator escalation
+                if (geminiReply.Contains("[ESCALATE_TO_ADMIN]", StringComparison.OrdinalIgnoreCase))
+                {
+                    geminiReply = geminiReply.Replace("[ESCALATE_TO_ADMIN]", "").Trim();
+                    await EscalateToAdminAsync(conversationId, "Inquiry flagged for human admin intervention");
                 }
 
-                botReplyText = "🚨 **Connecting with Fleetify Administrator...**\n\n" +
-                               "I have flagged this ticket for **Human Administrator Intervention**. An admin has been notified and will review this chat thread and intervene directly here shortly. You can continue sending details below.";
+                botReplyText = geminiReply;
             }
-            // C. Cost Estimation & Rates
-            else if (cleanText.Contains("cost") || cleanText.Contains("price") || cleanText.Contains("rate") ||
-                     cleanText.Contains("fare") || cleanText.Contains("calculate") || cleanText.Contains("kitna") ||
-                     cleanText.Contains("pricing"))
-            {
-                botReplyText = "💰 **How Fleetify AI Calculates Delivery Cost:**\n" +
-                               "• **Base Booking Fare:** $10.00\n" +
-                               "• **Distance Charge:** $0.75 - $1.25 per kilometer\n" +
-                               "• **Parcel Weight:** $0.50 - $0.75 per kg\n" +
-                               "• **Vehicle Selection:** Bike ($5), Van ($15), Truck ($35)\n" +
-                               "• **Priority:** Standard (1.0x) or Express Priority (1.35x)\n\n" +
-                               "You can get an instant, live price quote on our **Customer Booking Portal**!";
-            }
-            // D. Fleet Vehicles & Capacities
-            else if (cleanText.Contains("vehicle") || cleanText.Contains("bike") || cleanText.Contains("van") ||
-                     cleanText.Contains("truck") || cleanText.Contains("capacity") || cleanText.Contains("wazan") ||
-                     cleanText.Contains("gaari"))
-            {
-                botReplyText = "🚚 **Fleetify Vehicle Types & Capacity Limits:**\n" +
-                               "• 🏍️ **Motorbike:** Up to 35 kg (Best for letters, legal documents, small parcels)\n" +
-                               "• 🚐 **Delivery Van:** Up to 1,500 kg (Cartons, appliances, mid-sized shipments)\n" +
-                               "• 🚛 **Heavy Truck:** Up to 4,500 kg (Industrial goods, pallets & heavy bulk freight)";
-            }
-            // E. How to Book
-            else if (cleanText.Contains("book") || cleanText.Contains("kaise") || cleanText.Contains("order") ||
-                     cleanText.Contains("send") || cleanText.Contains("deliver"))
-            {
-                botReplyText = "📋 **Steps to Book a Delivery:**\n" +
-                               "1. Sign in to your Customer Account.\n" +
-                               "2. Go to **Customer Dashboard ➔ New Delivery Booking**.\n" +
-                               "3. Enter pickup & drop-off locations, parcel weight, and vehicle.\n" +
-                               "4. View the instant AI cost calculation and confirm booking.\n" +
-                               "5. Once submitted, our Admin team assigns a nearby driver and vehicle!";
-            }
-            // F. Greetings
-            else if (cleanText.Contains("hello") || cleanText.Contains("hi") || cleanText.Contains("hey") ||
-                     cleanText.Contains("salam") || cleanText.Contains("aoa"))
-            {
-                botReplyText = "👋 Hello! I am here to help. You can ask me:\n" +
-                               "• *\"Track FLT-2026-XXXXXX\"* to check order status\n" +
-                               "• *\"How is price calculated?\"*\n" +
-                               "• *\"What is the capacity of a Van or Truck?\"*\n" +
-                               "• *\"Talk to Admin\"* if you need human agent support.";
-            }
-            // G. Fallback
             else
             {
-                botReplyText = "🤖 I'm Fleetify's AI assistant. I can help answer common questions about tracking, rates, and fleet bookings.\n\n" +
-                               "If you have a complex inquiry or need special help, type **'Talk to Admin'** or click below, and an administrator will personally assist you!";
+                // Deterministic Rule-Based Fallback
+                string cleanText = userMessage.ToLower().Trim();
+
+                // A. Check for Order Tracking
+                if (trackingMatch.Success || cleanText.Contains("flt-") || cleanText.Contains("track"))
+                {
+                    string trackingNumber = trackingMatch.Success ? trackingMatch.Value : string.Empty;
+                    if (!string.IsNullOrEmpty(trackingNumber))
+                    {
+                        var order = await _context.DeliveryRequests
+                            .Include(d => d.Assignment)
+                                .ThenInclude(a => a!.Driver)
+                            .FirstOrDefaultAsync(d => d.TrackingNumber == trackingNumber);
+
+                        if (order != null)
+                        {
+                            string driverInfo = order.Assignment?.Driver != null
+                                ? $"{order.Assignment.Driver.FullName} ({order.Assignment.Driver.PhoneNumber})"
+                                : "Awaiting Driver Dispatch";
+
+                            botReplyText = $"📦 **Shipment Found: {order.TrackingNumber}**\n" +
+                                           $"• **Current Status:** {order.RequestedStatus}\n" +
+                                           $"• **Route:** {order.PickupLocation} ➔ {order.DropoffLocation}\n" +
+                                           $"• **Assigned Driver:** {driverInfo}\n" +
+                                           $"• **Estimated Fare:** ${order.EstimatedCost:F2}\n" +
+                                           $"• **Vehicle Required:** {order.VehicleType}";
+                        }
+                        else
+                        {
+                            botReplyText = $"🔍 I searched our database for tracking code **{trackingNumber}**, but could not locate an active order. Please verify the code or ask for Administrator assistance.";
+                        }
+                    }
+                    else
+                    {
+                        botReplyText = "📦 To track a delivery, please provide your **Tracking Number** (e.g., `FLT-2026-302107`). I will pull up the live status immediately!";
+                    }
+                }
+                // B. Check for Escalation / Human Agent
+                else if (cleanText.Contains("admin") || cleanText.Contains("human") || cleanText.Contains("agent") ||
+                         cleanText.Contains("person") || cleanText.Contains("representative") || cleanText.Contains("operator") ||
+                         cleanText.Contains("shikayat") || cleanText.Contains("complaint") || cleanText.Contains("damaged") ||
+                         cleanText.Contains("broken") || cleanText.Contains("refund") || cleanText.Contains("lost") ||
+                         cleanText.Contains("urgent") || cleanText.Contains("fraud") || cleanText.Contains("kharab"))
+                {
+                    await EscalateToAdminAsync(conversationId, userMessage);
+                    botReplyText = "🚨 **Connecting with Fleetify Administrator...**\n\n" +
+                                   "I have flagged this ticket for **Human Administrator Intervention**. An admin has been notified and will review this chat thread and intervene directly here shortly. You can continue sending details below.";
+                }
+                // C. Cost Estimation & Rates
+                else if (cleanText.Contains("cost") || cleanText.Contains("price") || cleanText.Contains("rate") ||
+                         cleanText.Contains("fare") || cleanText.Contains("calculate") || cleanText.Contains("kitna") ||
+                         cleanText.Contains("pricing"))
+                {
+                    botReplyText = "💰 **How Fleetify AI Calculates Delivery Cost:**\n" +
+                                   "• **Base Booking Fare:** $10.00\n" +
+                                   "• **Distance Charge:** $0.75 - $1.25 per kilometer\n" +
+                                   "• **Parcel Weight:** $0.50 - $0.75 per kg\n" +
+                                   "• **Vehicle Selection:** Bike ($5), Van ($15), Truck ($35)\n" +
+                                   "• **Priority:** Standard (1.0x) or Express Priority (1.35x)\n\n" +
+                                   "You can get an instant, live price quote on our **Customer Booking Portal**!";
+                }
+                // D. Fleet Vehicles & Capacities
+                else if (cleanText.Contains("vehicle") || cleanText.Contains("bike") || cleanText.Contains("van") ||
+                         cleanText.Contains("truck") || cleanText.Contains("capacity") || cleanText.Contains("wazan") ||
+                         cleanText.Contains("gaari"))
+                {
+                    botReplyText = "🚚 **Fleetify Vehicle Types & Capacity Limits:**\n" +
+                                   "• 🏍️ **Motorbike:** Up to 35 kg (Best for letters, legal documents, small parcels)\n" +
+                                   "• 🚐 **Delivery Van:** Up to 1,500 kg (Cartons, appliances, mid-sized shipments)\n" +
+                                   "• 🚛 **Heavy Truck:** Up to 4,500 kg (Industrial goods, pallets & heavy bulk freight)";
+                }
+                // E. How to Book
+                else if (cleanText.Contains("book") || cleanText.Contains("kaise") || cleanText.Contains("order") ||
+                         cleanText.Contains("send") || cleanText.Contains("deliver"))
+                {
+                    botReplyText = "📋 **Steps to Book a Delivery:**\n" +
+                                   "1. Sign in to your Customer Account.\n" +
+                                   "2. Go to **Customer Dashboard ➔ New Delivery Booking**.\n" +
+                                   "3. Enter pickup & drop-off locations, parcel weight, and vehicle.\n" +
+                                   "4. View the instant AI cost calculation and confirm booking.\n" +
+                                   "5. Once submitted, our Admin team assigns a nearby driver and vehicle!";
+                }
+                // F. Greetings
+                else if (cleanText.Contains("hello") || cleanText.Contains("hi") || cleanText.Contains("hey") ||
+                         cleanText.Contains("salam") || cleanText.Contains("aoa"))
+                {
+                    botReplyText = "👋 Hello! I am here to help. You can ask me:\n" +
+                                   "• *\"Track FLT-2026-XXXXXX\"* to check order status\n" +
+                                   "• *\"How is price calculated?\"*\n" +
+                                   "• *\"What is the capacity of a Van or Truck?\"*\n" +
+                                   "• *\"Talk to Admin\"* if you need human agent support.";
+                }
+                // G. Fallback
+                else
+                {
+                    botReplyText = "🤖 I'm Fleetify's AI assistant. I can help answer common questions about tracking, rates, and fleet bookings.\n\n" +
+                                   "If you have a complex inquiry or need special help, type **'Talk to Admin'** or click below, and an administrator will personally assist you!";
+                }
             }
 
             var botMsg = new SupportMessage
