@@ -1,0 +1,197 @@
+@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Fleetify</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="~/images/favicon.png" />
+    <!-- Site CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-light-blue font-sans">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom shadow-xs py-2">
+            <div class="container-fluid px-lg-5">
+                <a class="navbar-brand d-flex align-items-center py-1" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/fleetify-logo.png" alt="Fleetify" class="brand-logo" />
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var role = User.FindFirstValue(ClaimTypes.Role) ?? "Customer";
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-lg-1">
+                            @if (role == "Admin")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active fw-semibold text-primary bg-primary-subtle" : "text-secondary")" asp-controller="Admin" asp-action="Index">Overview</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill @(ViewContext.RouteData.Values["action"]?.ToString() == "Drivers" ? "active fw-semibold text-primary bg-primary-subtle" : "text-secondary")" asp-controller="Admin" asp-action="Drivers">Drivers</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill @(ViewContext.RouteData.Values["action"]?.ToString() == "Vehicles" ? "active fw-semibold text-primary bg-primary-subtle" : "text-secondary")" asp-controller="Admin" asp-action="Vehicles">Vehicles</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill @(ViewContext.RouteData.Values["action"]?.ToString() == "Assignments" ? "active fw-semibold text-primary bg-primary-subtle" : "text-secondary")" asp-controller="Admin" asp-action="Assignments">Assignments</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill @(ViewContext.RouteData.Values["action"]?.ToString() == "Maintenance" ? "active fw-semibold text-primary bg-primary-subtle" : "text-secondary")" asp-controller="Admin" asp-action="Maintenance">
+                                        <i class="bi bi-cpu-fill text-warning me-1"></i>AI Maintenance
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill @(ViewContext.RouteData.Values["action"]?.ToString() == "Support" ? "active fw-semibold text-primary bg-primary-subtle" : "text-secondary")" asp-controller="Admin" asp-action="Support">
+                                        <i class="bi bi-headset me-1 text-primary"></i>Support Desk
+                                    </a>
+                                </li>
+                            }
+                            else if (role == "Driver")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill active fw-semibold text-primary bg-primary-subtle" asp-controller="Driver" asp-action="Index">My Deliveries</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link px-3 py-2 rounded-pill active fw-semibold text-primary bg-primary-subtle" asp-controller="Customer" asp-action="Index">Book & Track</a>
+                                </li>
+                            }
+                        </ul>
+
+                        <div class="d-flex align-items-center gap-3 ms-auto">
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
+                                <i class="bi bi-person-badge me-1 text-primary"></i>@role
+                            </span>
+                            <span class="text-secondary small fw-medium">Welcome, <strong class="text-dark">@User.Identity.Name</strong></span>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
+                            <li class="nav-item">
+                                <a class="nav-link text-secondary" asp-controller="Account" asp-action="SelectRole">Select Role</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-outline-primary btn-sm rounded-pill px-3" asp-controller="Account" asp-action="Login">Sign In</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary btn-sm rounded-pill px-3 text-white" asp-controller="Account" asp-action="Register">Sign Up</a>
+                            </li>
+                        </ul>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Alerts / Flash Messages -->
+    <div class="container-fluid px-lg-5 pt-3">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-xs" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-xs" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show rounded-3 shadow-xs" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>@TempData["InfoMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+    </div>
+
+    <main role="main" class="pb-5">
+        @RenderBody()
+    </main>
+
+
+    <!-- Floating AI & Live Support Chatbot Widget -->
+    <button id="supportChatTrigger" type="button" class="btn btn-primary support-chat-trigger" title="Fleetify AI Support & Live Chat">
+        <i class="bi bi-chat-dots-fill fs-4 text-white"></i>
+    </button>
+
+    <!-- Chat Window Modal -->
+    <div id="supportChatModal" class="support-chat-modal bg-white border d-none">
+        <!-- Header -->
+        <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <img src="~/images/fleetify-logo-white-bg.png" alt="Fleetify" style="height: 28px; border-radius: 4px;" />
+                <div>
+                    <h6 class="mb-0 fw-bold">Fleetify Support</h6>
+                    <small id="supportChatStatus" class="badge bg-info text-white rounded-pill px-2 py-0" style="font-size: 0.7rem;">
+                        <i class="bi bi-robot me-1"></i>AI Online
+                    </small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <button id="supportChatEscalate" type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-0" style="font-size: 0.75rem;" title="Talk to Human Admin">
+                    <i class="bi bi-person-fill me-1"></i>Talk to Admin
+                </button>
+                <button id="supportChatClose" type="button" class="btn btn-sm text-white" aria-label="Close">
+                    <i class="bi bi-x-lg fs-6"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Action Chips -->
+        <div class="px-3 py-2 bg-light border-bottom d-flex gap-1 overflow-auto">
+            <span class="support-quick-chip" data-query="Track delivery"><i class="bi bi-box-seam me-1"></i>Track</span>
+            <span class="support-quick-chip" data-query="How is cost calculated?"><i class="bi bi-calculator me-1"></i>Pricing</span>
+            <span class="support-quick-chip" data-query="What are vehicle capacities?"><i class="bi bi-truck me-1"></i>Fleet</span>
+            <span class="support-quick-chip" data-query="Talk to Admin"><i class="bi bi-headset me-1"></i>Human Help</span>
+        </div>
+
+        <!-- Messages Container -->
+        <div id="supportChatMessages" class="p-3 flex-grow-1 overflow-auto bg-light-blue" style="max-height: 350px;">
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-2 border-top bg-white d-flex align-items-center gap-2">
+            <input id="supportChatInput" type="text" class="form-control form-control-sm rounded-pill px-3" placeholder="Type question or tracking #..." autocomplete="off" />
+            <button id="supportChatSend" type="button" class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Send message">
+                <i class="bi bi-send-fill" style="font-size: 0.85rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Custom site JS -->
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Support Chat JS -->
+    <script src="~/js/support-chat.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

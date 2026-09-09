@@ -1,0 +1,290 @@
+@model Fleetify.Models.ViewModels.AdminSupportDashboardViewModel
+@{
+    ViewData["Title"] = "Hybrid Support Desk";
+    var active = Model.ActiveConversation;
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-headset text-primary me-2"></i>Hybrid Support Desk
+            </h2>
+            <p class="text-secondary small mb-0">AI Chatbot triage with live Administrator manual takeover & intervention</p>
+        </div>
+        <div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fs-6">
+                <i class="bi bi-robot me-1"></i> AI Active • Instant Escalation
+            </span>
+        </div>
+    </div>
+
+    <!-- Secondary Navigation Menu -->
+    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Overview</a>
+        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
+        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
+        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
+        <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
+        <a asp-action="Support" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">
+            Support Desk 
+            @if (Model.NeedsAdminCount > 0)
+            {
+                <span class="badge bg-danger rounded-pill ms-1">@Model.NeedsAdminCount</span>
+            }
+        </a>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
+                <span class="text-secondary small">Total Support Tickets</span>
+                <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalTickets</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
+                <span class="text-secondary small">Automated by AI Bot</span>
+                <h3 class="fw-bold text-info mt-1 mb-0">@Model.BotHandledCount</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white border-start border-danger border-4">
+                <span class="text-danger fw-semibold small">Requires Admin Intervention</span>
+                <h3 class="fw-bold text-danger mt-1 mb-0">@Model.NeedsAdminCount</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
+                <span class="text-secondary small">Resolved & Closed</span>
+                <h3 class="fw-bold text-success mt-1 mb-0">@Model.ResolvedCount</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Split Pane: Tickets on Left, Active Conversation on Right -->
+    <div class="row g-4">
+        <!-- Left: Conversations List -->
+        <div class="col-lg-5 col-xl-4">
+            <div class="card border-0 shadow-xs rounded-4 bg-white h-100 d-flex flex-column">
+                <!-- Filter Pills -->
+                <div class="p-3 border-bottom">
+                    <div class="d-flex flex-wrap gap-1">
+                        <a asp-action="Support" asp-route-statusFilter="All" class="btn btn-sm rounded-pill @(Model.CurrentFilter == "All" ? "btn-primary" : "btn-light text-secondary")">
+                            All (@Model.TotalTickets)
+                        </a>
+                        <a asp-action="Support" asp-route-statusFilter="NeedsAdmin" class="btn btn-sm rounded-pill @(Model.CurrentFilter == "NeedsAdmin" ? "btn-danger" : "btn-light text-secondary")">
+                            Needs Admin (@Model.NeedsAdminCount)
+                        </a>
+                        <a asp-action="Support" asp-route-statusFilter="BotHandled" class="btn btn-sm rounded-pill @(Model.CurrentFilter == "BotHandled" ? "btn-info text-white" : "btn-light text-secondary")">
+                            AI Handled (@Model.BotHandledCount)
+                        </a>
+                        <a asp-action="Support" asp-route-statusFilter="Resolved" class="btn btn-sm rounded-pill @(Model.CurrentFilter == "Resolved" ? "btn-success" : "btn-light text-secondary")">
+                            Resolved (@Model.ResolvedCount)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tickets Scrollable List -->
+                <div class="list-group list-group-flush overflow-auto" style="max-height: 560px;">
+                    @if (!Model.Conversations.Any())
+                    {
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-chat-square-dots fs-2 text-secondary mb-2 d-block"></i>
+                            <p class="mb-0 small">No support tickets found under this filter.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var conv in Model.Conversations)
+                        {
+                            var isSelected = active?.ConversationID == conv.ConversationID;
+                            var lastMsg = conv.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
+
+                            <a asp-action="Support" asp-route-statusFilter="@Model.CurrentFilter" asp-route-conversationId="@conv.ConversationID" 
+                               class="list-group-item list-group-item-action p-3 border-bottom @(isSelected ? "bg-primary-subtle border-start border-primary border-4" : "")">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold mb-0 text-dark">
+                                        <i class="bi bi-person-circle me-1 text-secondary"></i>@conv.UserName
+                                    </h6>
+                                    <small class="text-muted">@conv.UpdatedAt.ToString("HH:mm")</small>
+                                </div>
+                                <p class="small text-secondary mb-2 fw-medium text-truncate">@conv.Subject</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted text-truncate" style="max-width: 180px;">
+                                        @(lastMsg != null ? lastMsg.MessageText : "New inquiry started")
+                                    </small>
+                                    @if (conv.Status == "NeedsAdmin")
+                                    {
+                                        <span class="badge bg-danger rounded-pill px-2 py-1">Needs Admin</span>
+                                    }
+                                    else if (conv.Status == "InProgress")
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-1">In Progress</span>
+                                    }
+                                    else if (conv.Status == "Resolved" || conv.Status == "Closed")
+                                    {
+                                        <span class="badge bg-success rounded-pill px-2 py-1">Resolved</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-white rounded-pill px-2 py-1">Bot Handled</span>
+                                    }
+                                </div>
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Active Chat Conversation & Admin Intervention Box -->
+        <div class="col-lg-7 col-xl-8">
+            <div class="card border-0 shadow-xs rounded-4 bg-white h-100 d-flex flex-column">
+                @if (active == null)
+                {
+                    <div class="p-5 text-center text-muted my-auto">
+                        <i class="bi bi-chat-left-text fs-1 text-secondary mb-3 d-block"></i>
+                        <h5>No Conversation Selected</h5>
+                        <p class="small text-secondary">Select a support ticket from the left panel to inspect the AI conversation and intervene.</p>
+                    </div>
+                }
+                else
+                {
+                    <!-- Conversation Header -->
+                    <div class="p-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1 text-dark">
+                                <i class="bi bi-ticket-detailed text-primary me-2"></i>Ticket #@active.ConversationID: @active.Subject
+                            </h5>
+                            <div class="d-flex flex-wrap gap-2 small text-secondary">
+                                <span><i class="bi bi-person me-1"></i><strong>@active.UserName</strong> (@active.UserEmail)</span>
+                                <span>•</span>
+                                <span><i class="bi bi-clock me-1"></i>Started: @active.CreatedAt.ToString("MMM dd, HH:mm")</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            @if (active.Status == "NeedsAdmin")
+                            {
+                                <span class="badge bg-danger rounded-pill px-3 py-2">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Action Required
+                                </span>
+                            }
+                            else if (active.Status == "Resolved")
+                            {
+                                <span class="badge bg-success rounded-pill px-3 py-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Resolved
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info text-white rounded-pill px-3 py-2">
+                                    <i class="bi bi-robot me-1"></i>@active.Status
+                                </span>
+                            }
+
+                            @if (active.Status != "Resolved")
+                            {
+                                <form asp-action="ResolveTicket" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="conversationId" value="@active.ConversationID" />
+                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                        <i class="bi bi-check2-circle me-1"></i>Mark Resolved
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Chat Transcript Body -->
+                    <div class="p-4 flex-grow-1 overflow-auto bg-light-blue" style="max-height: 420px; min-height: 320px;" id="adminChatContainer">
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var msg in active.Messages.OrderBy(m => m.SentAt))
+                            {
+                                if (msg.SenderType == "User")
+                                {
+                                    <!-- User Bubble -->
+                                    <div class="d-flex flex-column align-items-start" style="max-width: 80%;">
+                                        <div class="small text-muted mb-1">
+                                            <i class="bi bi-person-fill me-1"></i>@msg.SenderName
+                                            <span class="ms-2">@msg.SentAt.ToString("HH:mm")</span>
+                                        </div>
+                                        <div class="p-3 bg-white text-dark rounded-4 shadow-xs border">
+                                            @Html.Raw(Html.Encode(msg.MessageText).Replace("\n", "<br/>"))
+                                        </div>
+                                    </div>
+                                }
+                                else if (msg.SenderType == "Bot")
+                                {
+                                    <!-- AI Bot Bubble -->
+                                    <div class="d-flex flex-column align-items-start" style="max-width: 85%;">
+                                        <div class="small text-info mb-1">
+                                            <i class="bi bi-robot me-1"></i>@msg.SenderName (Automated AI)
+                                            <span class="ms-2 text-muted">@msg.SentAt.ToString("HH:mm")</span>
+                                        </div>
+                                        <div class="p-3 bg-info-subtle text-dark rounded-4 border border-info-subtle">
+                                            @Html.Raw(Html.Encode(msg.MessageText).Replace("\n", "<br/>"))
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Admin Intervening Bubble -->
+                                    <div class="d-flex flex-column align-items-end ms-auto" style="max-width: 80%;">
+                                        <div class="small text-primary mb-1 text-end">
+                                            <i class="bi bi-shield-check me-1"></i>@msg.SenderName
+                                            <span class="ms-2 text-muted">@msg.SentAt.ToString("HH:mm")</span>
+                                        </div>
+                                        <div class="p-3 bg-primary text-white rounded-4 shadow-xs">
+                                            @Html.Raw(Html.Encode(msg.MessageText).Replace("\n", "<br/>"))
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Admin Reply Box -->
+                    <div class="p-3 border-top bg-white rounded-bottom-4">
+                        <form asp-action="SupportReply" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="conversationId" value="@active.ConversationID" />
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    <i class="bi bi-chat-dots-fill text-primary me-1"></i>Manual Administrator Intervention:
+                                </label>
+                                <textarea name="replyMessage" class="form-control rounded-3" rows="3" 
+                                          placeholder="Type your official administrative reply to the customer here..." required></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="resolve" value="true" id="chkResolve">
+                                    <label class="form-check-label small text-secondary" for="chkResolve">
+                                        Mark ticket as <strong>Resolved</strong> with this response
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-xs">
+                                    <i class="bi bi-send-fill me-1"></i> Send Reply as Admin
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto scroll chat to bottom
+        const container = document.getElementById('adminChatContainer');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+}

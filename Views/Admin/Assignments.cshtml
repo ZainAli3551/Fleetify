@@ -1,0 +1,153 @@
+@model List<Fleetify.Models.Entities.DeliveryRequest>
+@{
+    ViewData["Title"] = "Delivery Assignments";
+    var drivers = ViewBag.Drivers as List<Fleetify.Models.Entities.Driver> ?? new();
+    var vehicles = ViewBag.Vehicles as List<Fleetify.Models.Entities.Vehicle> ?? new();
+    var existingAssignments = ViewBag.Assignments as List<Fleetify.Models.Entities.Assignment> ?? new();
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Delivery Assignments</h2>
+            <p class="text-secondary small mb-0">Allocate pending customer requests to available drivers and vehicles (Figure 7)</p>
+        </div>
+    </div>
+
+    <!-- Secondary Navigation Menu -->
+    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Overview</a>
+        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
+        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
+        <a asp-action="Assignments" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">Assignments</a>
+        <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
+    </div>
+
+    <!-- Pending Requests Requiring Assignment -->
+    <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
+        <h5 class="fw-semibold text-dark mb-3">
+            <i class="bi bi-hourglass-split text-warning me-2"></i>Pending Requests Needing Allocation
+        </h5>
+
+        @if (Model.Any(r => r.RequestedStatus == "Pending"))
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-secondary">
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Customer</th>
+                            <th>Pickup &rarr; Destination</th>
+                            <th>Details</th>
+                            <th>Est. Fare</th>
+                            <th class="text-end">Assign Flow</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @foreach (var req in Model.Where(r => r.RequestedStatus == "Pending"))
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary font-mono">@req.TrackingNumber</td>
+                                <td>@(req.User?.FullName ?? "Customer")</td>
+                                <td>
+                                    <div><i class="bi bi-geo-alt-fill text-muted me-1"></i>@req.PickupLocation</div>
+                                    <div><i class="bi bi-flag-fill text-danger me-1"></i>@req.DropoffLocation</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@req.VehicleType</span>
+                                    <span class="text-muted">(@req.ParcelWeight kg - @req.ParcelDescription)</span>
+                                </td>
+                                <td class="fw-bold text-dark">$@req.EstimatedCost.ToString("F2")</td>
+                                <td class="text-end">
+                                    <form asp-action="AssignDelivery" method="post" class="d-inline-flex gap-2 align-items-center justify-content-end">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="requestId" value="@req.RequestID" />
+
+                                        <select name="driverId" required class="form-select form-select-sm rounded-pill" style="max-width: 160px;">
+                                            <option value="">-- Choose Driver --</option>
+                                            @foreach (var d in drivers)
+                                            {
+                                                <option value="@d.UserID">@d.FullName (@d.AvailabilityStatus)</option>
+                                            }
+                                        </select>
+
+                                        <select name="vehicleId" required class="form-select form-select-sm rounded-pill" style="max-width: 170px;">
+                                            <option value="">-- Choose Vehicle --</option>
+                                            @foreach (var v in vehicles)
+                                            {
+                                                <option value="@v.VehicleID">@v.VehicleNumber (@v.VehicleType)</option>
+                                            }
+                                        </select>
+
+                                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 text-white">
+                                            Assign
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border text-center text-muted mb-0 py-4">
+                <i class="bi bi-check-circle text-success fs-4 d-block mb-1"></i>
+                All pending delivery requests have been successfully allocated to drivers!
+            </div>
+        }
+    </div>
+
+    <!-- Active & Recent Allocations -->
+    <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
+        <h5 class="fw-semibold text-dark mb-3">All Active &amp; Historical Assignments</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-secondary">
+                    <tr>
+                        <th>Assignment ID</th>
+                        <th>Tracking #</th>
+                        <th>Assigned Driver</th>
+                        <th>Assigned Vehicle</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @foreach (var a in existingAssignments)
+                    {
+                        <tr>
+                            <td class="fw-bold">#ASN-@a.AssignmentID.ToString("D4")</td>
+                            <td class="fw-semibold text-primary font-mono">@(a.DeliveryRequest?.TrackingNumber ?? "N/A")</td>
+                            <td>@(a.Driver?.FullName ?? "Unknown")</td>
+                            <td>
+                                <span class="font-mono fw-semibold">@(a.Vehicle?.VehicleNumber ?? "N/A")</span>
+                                <span class="text-muted small">(@(a.Vehicle?.VehicleType ?? ""))</span>
+                            </td>
+                            <td>@a.AssignedDate.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>
+                                @if (a.AssignmentStatus == "Completed")
+                                {
+                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Completed</span>
+                                }
+                                else if (a.AssignmentStatus == "Accepted" || a.AssignmentStatus == "In-Progress")
+                                {
+                                    <span class="badge bg-info-subtle text-info rounded-pill px-3 py-1">In-Progress</span>
+                                }
+                                else if (a.AssignmentStatus == "Rejected")
+                                {
+                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">Rejected</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">Pending Driver</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

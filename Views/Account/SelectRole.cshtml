@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Select Role";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center text-center mb-5">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold text-dark mb-2">Fleetify</h1>
+            <p class="text-secondary fs-5">Delivery &amp; Transport Management System</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        <!-- Customer Card -->
+        <div class="col-md-4 col-lg-3">
+            <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="text-decoration-none">
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4">
+                    <div class="role-icon-wrapper mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-person fs-2"></i>
+                    </div>
+                    <h4 class="fw-semibold text-dark mb-2">Customer</h4>
+                    <p class="text-muted small mb-0">Send packages and track deliveries</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Admin Card -->
+        <div class="col-md-4 col-lg-3">
+            <a asp-controller="Account" asp-action="Login" asp-route-role="Admin" class="text-decoration-none">
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4">
+                    <div class="role-icon-wrapper mx-auto mb-3 bg-indigo-subtle text-indigo rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-shield-lock fs-2"></i>
+                    </div>
+                    <h4 class="fw-semibold text-dark mb-2">Admin</h4>
+                    <p class="text-muted small mb-0">Manage operations and users</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Driver Card -->
+        <div class="col-md-4 col-lg-3">
+            <a asp-controller="Account" asp-action="Login" asp-route-role="Driver" class="text-decoration-none">
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4">
+                    <div class="role-icon-wrapper mx-auto mb-3 bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-truck fs-2"></i>
+                    </div>
+                    <h4 class="fw-semibold text-dark mb-2">Driver</h4>
+                    <p class="text-muted small mb-0">Deliver packages to customers</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

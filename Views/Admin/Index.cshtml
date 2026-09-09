@@ -1,0 +1,304 @@
+@model Fleetify.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Admin Header (Figure 21) -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Fleetify Admin</h2>
+            <p class="text-secondary small mb-0">Centralized Digital Fleet &amp; Transport Management Overview</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Assignments" class="btn btn-outline-primary rounded-pill px-3 py-2 small">
+                <i class="bi bi-person-check-fill me-1"></i>Assign Deliveries
+            </a>
+            <a asp-action="Maintenance" class="btn btn-primary rounded-pill px-3 py-2 small text-white">
+                <i class="bi bi-cpu me-1"></i>Predictive Maintenance
+            </a>
+        </div>
+    </div>
+
+    <!-- Secondary Navigation Menu (Figure 21) -->
+    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">Overview</a>
+        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
+        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
+        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
+        <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
+    </div>
+
+    <!-- 4 KPI Cards (Figure 21) -->
+    <div class="row g-3 mb-4">
+        <!-- Total Users -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Total Users</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalUsers.ToString("N0")</h3>
+                        <span class="badge bg-success-subtle text-success rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+12% this month
+                        </span>
+                    </div>
+                    <div class="kpi-icon bg-primary-subtle text-primary rounded-circle p-3">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Drivers -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Active Drivers</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.ActiveDrivers</h3>
+                        <span class="badge bg-info-subtle text-info rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+18.5% this month
+                        </span>
+                    </div>
+                    <div class="kpi-icon bg-warning-subtle text-warning rounded-circle p-3">
+                        <i class="bi bi-truck fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Deliveries -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Total Deliveries</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalDeliveries.ToString("N0")</h3>
+                        <span class="badge bg-success-subtle text-success rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+14% this month
+                        </span>
+                    </div>
+                    <div class="kpi-icon bg-success-subtle text-success rounded-circle p-3">
+                        <i class="bi bi-box-seam-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Revenue</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">$@Model.Revenue.ToString("N0")</h3>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+23% this month
+                        </span>
+                    </div>
+                    <div class="kpi-icon bg-purple-subtle text-purple rounded-circle p-3">
+                        <i class="bi bi-currency-dollar fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row (Figure 21: Revenue Trend & Weekly Deliveries) -->
+    <div class="row g-4 mb-4">
+        <!-- Revenue Trend Line Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xs rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-semibold text-dark mb-0">Revenue Trend</h5>
+                    <span class="text-secondary small">USD ($)</span>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Deliveries Bar Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xs rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-semibold text-dark mb-0">Weekly Deliveries</h5>
+                    <span class="text-secondary small">Completed Packages</span>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="weeklyDeliveriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Status Pills (Figure 21) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="rounded-circle bg-success-subtle text-success p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-check-circle fs-4"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small">Completed Today</span>
+                    <h4 class="fw-bold text-dark mb-0">@Model.CompletedToday</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="rounded-circle bg-warning-subtle text-warning p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-arrow-repeat fs-4"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small">In Transit</span>
+                    <h4 class="fw-bold text-dark mb-0">@Model.InTransitCount</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="rounded-circle bg-danger-subtle text-danger p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-clock-history fs-4"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small">Pending Assignment</span>
+                    <h4 class="fw-bold text-dark mb-0">@Model.PendingCount</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Deliveries Table -->
+    <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-semibold text-dark mb-0">Recent Fleet Deliveries</h5>
+            <a asp-action="Assignments" class="text-primary text-decoration-none small fw-semibold">View All Deliveries &rarr;</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-secondary">
+                    <tr>
+                        <th>Tracking ID</th>
+                        <th>Customer</th>
+                        <th>Pickup &rarr; Destination</th>
+                        <th>Type / Weight</th>
+                        <th>Driver</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @if (Model.RecentDeliveries.Any())
+                    {
+                        foreach (var d in Model.RecentDeliveries)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-primary">@d.TrackingNumber</td>
+                                <td>@(d.User?.FullName ?? "Walk-in")</td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 200px;">
+                                        <i class="bi bi-geo-alt-fill text-muted me-1"></i>@d.PickupLocation
+                                        <br />
+                                        <i class="bi bi-flag-fill text-danger me-1"></i>@d.DropoffLocation
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@d.VehicleType</span>
+                                    <span class="text-muted">(@d.ParcelWeight kg)</span>
+                                </td>
+                                <td>@(d.Assignment?.Driver?.FullName ?? "<span class='text-muted'>Unassigned</span>")</td>
+                                <td class="fw-bold text-dark">$@d.EstimatedCost.ToString("F2")</td>
+                                <td>
+                                    @if (d.RequestedStatus == "Delivered")
+                                    {
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Delivered</span>
+                                    }
+                                    else if (d.RequestedStatus == "In-Transit" || d.RequestedStatus == "Assigned")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">In-Transit</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">Pending</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No recent deliveries recorded.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Revenue Trend Line Chart (Matching Figure 21)
+            const ctxRev = document.getElementById('revenueTrendChart').getContext('2d');
+            new Chart(ctxRev, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Monthly Revenue ($)',
+                        data: [2500, 5000, 7200, 6800, 9500, 11500, 14500],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#2563eb',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: v => '$' + v }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Weekly Deliveries Bar Chart (Matching Figure 21)
+            const ctxDel = document.getElementById('weeklyDeliveriesChart').getContext('2d');
+            new Chart(ctxDel, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Deliveries',
+                        data: [45, 55, 65, 50, 80, 38, 24],
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+    </script>
+}

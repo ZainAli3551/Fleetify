@@ -1,0 +1,196 @@
+/* Fleetify Custom Modern Styling */
+:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg-light-blue: #f8fafc;
+    --card-border-radius: 1rem;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--bg-light-blue);
+    color: #1e293b;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.shadow-xs {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.font-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.x-small {
+    font-size: 0.75rem;
+}
+
+/* Subtle Color Backgrounds */
+.bg-light-blue {
+    background-color: #f4f6fb;
+}
+
+.bg-purple-subtle {
+    background-color: #f5f3ff;
+}
+
+.text-purple {
+    color: #7c3aed;
+}
+
+.bg-indigo-subtle {
+    background-color: #e0e7ff;
+}
+
+.text-indigo {
+    color: #4338ca;
+}
+
+/* Role Selection Cards */
+.role-card {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+}
+
+.role-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.15) !important;
+}
+
+.role-icon-wrapper {
+    width: 68px;
+    height: 68px;
+}
+
+.auth-icon-wrapper {
+    width: 60px;
+    height: 60px;
+}
+
+.auth-card {
+    background: #ffffff;
+}
+
+/* Sub-navigation link hover */
+.hover-primary:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Form Controls Polish */
+.form-control:focus, .form-select:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.12);
+}
+
+/* Table styling */
+.table > :not(caption) > * > * {
+    padding: 0.9rem 0.75rem;
+}
+
+/* Step Circles */
+.timeline-step {
+    flex: 1;
+}
+
+.timeline-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 21px;
+    left: calc(12.5% + 21px);
+    width: 25%;
+    height: 2px;
+    background-color: #e2e8f0;
+    z-index: 0;
+}
+
+/* Brand Logo Styling */
+.brand-logo {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    vertical-align: middle;
+}
+
+.navbar-brand:hover .brand-logo {
+    transform: scale(1.06);
+}
+
+/* Floating AI Support Chat Widget */
+.support-chat-trigger {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1050;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border: none;
+}
+
+.support-chat-trigger:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+}
+
+.support-chat-modal {
+    position: fixed;
+    bottom: 92px;
+    right: 24px;
+    width: 390px;
+    max-width: calc(100vw - 32px);
+    height: 540px;
+    max-height: calc(100vh - 120px);
+    z-index: 1060;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+    animation: chatSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: auto;
+}
+
+.support-chat-modal button {
+    cursor: pointer;
+}
+
+@keyframes chatSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.support-quick-chip {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 1rem;
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.support-quick-chip:hover {
+    background: #bae6fd;
+    color: #0284c7;
+}
+

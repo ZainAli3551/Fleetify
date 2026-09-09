@@ -1,0 +1,151 @@
+@model List<Fleetify.Models.Entities.MaintenanceAlert>
+@{
+    ViewData["Title"] = "AI Predictive Maintenance";
+    var vehicles = ViewBag.Vehicles as List<Fleetify.Models.Entities.Vehicle> ?? new();
+}
+
+<div class="container-fluid px-lg-5 py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-cpu-fill text-primary me-2"></i>AI Predictive Maintenance
+            </h2>
+            <p class="text-secondary small mb-0">Algorithmic vehicle usage and mileage interval analysis to preemptively detect breakdowns</p>
+        </div>
+        <form asp-action="RunMaintenanceDiagnostic" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 text-white shadow-xs">
+                <i class="bi bi-gear-wide-connected me-2"></i>Run Fleet AI Diagnostic
+            </button>
+        </form>
+    </div>
+
+    <!-- Secondary Navigation Menu -->
+    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Overview</a>
+        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
+        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
+        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
+        <a asp-action="Maintenance" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">AI Maintenance</a>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
+                <span class="text-secondary small">Total Fleet Size</span>
+                <h3 class="fw-bold text-dark mt-1 mb-0">@vehicles.Count</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
+                <span class="text-secondary small">Active Alerts</span>
+                <h3 class="fw-bold text-warning mt-1 mb-0">@Model.Count(a => a.AlertStatus != "Resolved")</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
+                <span class="text-secondary small">Critical Overhauls</span>
+                <h3 class="fw-bold text-danger mt-1 mb-0">@Model.Count(a => a.AlertType == "Critical Maintenance" && a.AlertStatus != "Resolved")</h3>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
+                <span class="text-secondary small">Healthy Vehicles</span>
+                <h3 class="fw-bold text-success mt-1 mb-0">@vehicles.Count(v => v.ConditionStatus == "Good")</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Predictive Maintenance Alerts -->
+    <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
+        <h5 class="fw-semibold text-dark mb-3">AI Diagnostic Intelligence Alerts</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-secondary">
+                    <tr>
+                        <th>Alert ID</th>
+                        <th>Vehicle</th>
+                        <th>Alert Type</th>
+                        <th>Odometer at Alert</th>
+                        <th>AI Recommendation</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @if (Model.Any())
+                    {
+                        foreach (var alert in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">#ALT-@alert.AlertID.ToString("D3")</td>
+                                <td>
+                                    <div class="fw-semibold font-mono text-primary">@alert.Vehicle?.VehicleNumber</div>
+                                    <div class="text-muted small">@alert.Vehicle?.Model (@alert.Vehicle?.VehicleType)</div>
+                                </td>
+                                <td>
+                                    @if (alert.AlertType == "Critical Maintenance")
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 fw-bold">
+                                            <i class="bi bi-exclamation-octagon-fill me-1"></i>Critical
+                                        </span>
+                                    }
+                                    else if (alert.AlertType == "Service Due")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1 fw-bold">
+                                            <i class="bi bi-tools me-1"></i>Service Due
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info-subtle text-info rounded-pill px-3 py-1">
+                                            <i class="bi bi-search me-1"></i>Inspection Due
+                                        </span>
+                                    }
+                                </td>
+                                <td>@alert.CurrentMileageAtAlert.ToString("N0") km</td>
+                                <td style="max-width: 320px;">
+                                    <div class="text-dark">@alert.Recommendation</div>
+                                    <span class="text-muted small">Reported: @alert.AlertDate.ToString("MMM dd, yyyy")</span>
+                                </td>
+                                <td>
+                                    @if (alert.AlertStatus == "Resolved")
+                                    {
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1">Resolved</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-2 py-1">New Alert</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (alert.AlertStatus != "Resolved")
+                                    {
+                                        <form asp-action="ResolveAlert" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="alertId" value="@alert.AlertID" />
+                                            <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                                <i class="bi bi-check2-circle me-1"></i>Mark Serviced
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small"><i class="bi bi-check2 text-success"></i> Fixed</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No active maintenance alerts. Run a diagnostic to check vehicle status.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
