@@ -56,11 +56,14 @@ namespace Fleetify.Services.Implementations
                 systemInstructionText.AppendLine("  - Motorbike: Up to 35 kg (documents, envelopes, small packages)");
                 systemInstructionText.AppendLine("  - Delivery Van: Up to 1,500 kg (boxes, home appliances, medium cartons)");
                 systemInstructionText.AppendLine("  - Heavy Truck: Up to 4,500 kg (industrial pallets, bulk construction, heavy cargo)");
-                systemInstructionText.AppendLine("• Pricing Calculation Model:");
+                systemInstructionText.AppendLine("• Pricing Calculation Model & Exact Formula:");
                 systemInstructionText.AppendLine("  - Base Booking Fare: $10.00");
-                systemInstructionText.AppendLine("  - Distance Charge: $0.75 to $1.25 per km");
-                systemInstructionText.AppendLine("  - Weight Charge: $0.50 to $0.75 per kg");
-                systemInstructionText.AppendLine("  - Priority / Surge Multipliers: Standard (1.0x), Express (1.35x), Fragile (1.25x), Heavy Cargo (1.5x)");
+                systemInstructionText.AppendLine("  - Distance Rate: $1.50 per km (Distance in km × $1.50)");
+                systemInstructionText.AppendLine("  - Weight Rate: $1.50 per kg (Weight in kg × $1.50)");
+                systemInstructionText.AppendLine("  - Exact Pricing Formula: Total Cost = Base Fare ($10.00) + (Distance in km × $1.50) + (Weight in kg × $1.50)");
+                systemInstructionText.AppendLine("  - Vehicle Multipliers (if specified): Bike (0.8x), Car (1.0x), Delivery Van (1.25x), Heavy Truck (1.6x)");
+                systemInstructionText.AppendLine("  - Priority / Route Multipliers: Standard (1.0x), Express (1.35x), Fragile (1.25x), Heavy Cargo (1.5x)");
+                systemInstructionText.AppendLine("  - COST CALCULATION RULE: Whenever a customer asks for price calculation, or mentions distance (km) and/or weight (kg), ALWAYS calculate the exact total price step-by-step using this exact formula (Base Fare $10 + Distance × $1.50 + Weight × $1.50) and state the final calculated price clearly!");
                 systemInstructionText.AppendLine("• Booking Flow: Customers log in to Customer Portal -> Click 'New Delivery Request' -> specify pickup, drop-off, weight, and vehicle -> confirm instant AI estimate -> Admin assigns nearest available driver.");
                 systemInstructionText.AppendLine("• Tracking Format: Valid tracking codes start with 'FLT-2026-' followed by 6 digits (e.g., FLT-2026-302107).");
                 systemInstructionText.AppendLine();

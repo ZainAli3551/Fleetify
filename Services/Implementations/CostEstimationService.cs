@@ -23,8 +23,8 @@ namespace Fleetify.Services.Implementations
         {
             // Step 1: Base fare & rates
             double baseFare = _configuration.GetValue<double>("AiSettings:BaseFare", 10.00);
-            double perKmRate = _configuration.GetValue<double>("AiSettings:PerKmRate", 1.25);
-            double perKgRate = _configuration.GetValue<double>("AiSettings:PerKgRate", 0.75);
+            double perKmRate = _configuration.GetValue<double>("AiSettings:PerKmRate", 1.50);
+            double perKgRate = _configuration.GetValue<double>("AiSettings:PerKgRate", 1.50);
 
             // Step 2: Dynamic Distance calculation based on locations
             double distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);

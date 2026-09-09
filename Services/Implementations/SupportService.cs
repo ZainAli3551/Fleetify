@@ -215,15 +215,39 @@ namespace Fleetify.Services.Implementations
                 // C. Cost Estimation & Rates
                 else if (cleanText.Contains("cost") || cleanText.Contains("price") || cleanText.Contains("rate") ||
                          cleanText.Contains("fare") || cleanText.Contains("calculate") || cleanText.Contains("kitna") ||
-                         cleanText.Contains("pricing"))
+                         cleanText.Contains("pricing") || cleanText.Contains("kharcha"))
                 {
-                    botReplyText = "💰 **How Fleetify AI Calculates Delivery Cost:**\n" +
-                                   "• **Base Booking Fare:** $10.00\n" +
-                                   "• **Distance Charge:** $0.75 - $1.25 per kilometer\n" +
-                                   "• **Parcel Weight:** $0.50 - $0.75 per kg\n" +
-                                   "• **Vehicle Selection:** Bike ($5), Van ($15), Truck ($35)\n" +
-                                   "• **Priority:** Standard (1.0x) or Express Priority (1.35x)\n\n" +
-                                   "You can get an instant, live price quote on our **Customer Booking Portal**!";
+                    // Check if message provides distance and weight to calculate dynamically
+                    var kmMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(km|kilometer)");
+                    var kgMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
+
+                    if (kmMatch.Success && kgMatch.Success &&
+                        double.TryParse(kmMatch.Groups[1].Value, out double distVal) &&
+                        double.TryParse(kgMatch.Groups[1].Value, out double wtVal))
+                    {
+                        double distCharge = Math.Round(distVal * 1.50, 2);
+                        double wtCharge = Math.Round(wtVal * 1.50, 2);
+                        double totalEst = 10.00 + distCharge + wtCharge;
+
+                        botReplyText = $"💰 **Calculated Delivery Cost Estimate:**\n\n" +
+                                       $"• **Base Booking Fare:** $10.00\n" +
+                                       $"• **Distance Charge ({distVal:F1} km × $1.50):** ${distCharge:F2}\n" +
+                                       $"• **Weight Charge ({wtVal:F1} kg × $1.50):** ${wtCharge:F2}\n" +
+                                       $"-------------------------------------\n" +
+                                       $"• **Total Estimated Cost:** **${totalEst:F2}**\n\n" +
+                                       $"*Note: Vehicle type (Van 1.25x / Truck 1.6x) and Priority (Express 1.35x) may apply on checkout.*";
+                    }
+                    else
+                    {
+                        botReplyText = "💰 **Fleetify Delivery Cost Calculation Formula:**\n\n" +
+                                       "• **Formula:** Total Cost = Base Fare ($10.00) + (Distance × $1.50) + (Weight × $1.50)\n" +
+                                       "• **Base Booking Fare:** $10.00\n" +
+                                       "• **Distance Rate:** $1.50 per kilometer\n" +
+                                       "• **Weight Rate:** $1.50 per kilogram\n" +
+                                       "• **Vehicle Multipliers:** Bike (0.8x), Car (1.0x), Delivery Van (1.25x), Heavy Truck (1.6x)\n" +
+                                       "• **Priority Multipliers:** Standard (1.0x), Express (1.35x), Fragile (1.25x), Heavy Cargo (1.5x)\n\n" +
+                                       "Agar aap mujhe apna **Distance (km)** aur **Weight (kg)** bata dein, toh main foran exact cost calculate kar ke bata doonga!";
+                    }
                 }
                 // D. Fleet Vehicles & Capacities
                 else if (cleanText.Contains("vehicle") || cleanText.Contains("bike") || cleanText.Contains("van") ||
