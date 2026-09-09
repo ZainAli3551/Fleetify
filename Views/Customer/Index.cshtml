@@ -171,31 +171,27 @@
                         <h6 class="fw-bold text-dark mb-3">Cost Estimate</h6>
 
                         <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Base Rate</span>
-                            <span class="fw-semibold text-dark" id="estBaseRate">$10.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Route Distance</span>
                             <span class="fw-semibold text-primary font-mono" id="estDistanceKm">15.0 km</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Distance Charge</span>
-                            <span class="fw-semibold text-dark" id="estDistanceCharge">$18.75</span>
+                            <span class="text-secondary">Package Weight</span>
+                            <span class="fw-semibold text-dark" id="estWeight">1.0 kg</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Weight Charge</span>
-                            <span class="fw-semibold text-dark" id="estWeightCharge">$1.50</span>
+                            <span class="text-secondary">Rate (Per km per kg)</span>
+                            <span class="fw-semibold text-dark" id="estRate">$1.50</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3 small">
-                            <span class="text-secondary">Type Surcharge</span>
-                            <span class="fw-semibold text-dark" id="estTypeSurcharge">$0.00</span>
+                            <span class="text-secondary">Calculation</span>
+                            <span class="text-muted font-mono" id="estFormulaText" style="font-size: 0.78rem;">15.0 km × 1.0 kg × $1.50</span>
                         </div>
 
                         <hr class="my-2" />
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="fw-bold text-dark">Estimated Total</span>
-                            <h4 class="fw-bold text-primary mb-0" id="estTotal">$30.25</h4>
+                            <h4 class="fw-bold text-primary mb-0" id="estTotal">$22.50</h4>
                         </div>
 
                         <div class="p-3 bg-light-blue rounded-3 text-primary small d-flex align-items-center gap-2 mb-3">
@@ -376,10 +372,16 @@
                 if (document.getElementById('estDistanceKm')) {
                     document.getElementById('estDistanceKm').innerText = data.distanceKm.toFixed(1) + ' km';
                 }
-                document.getElementById('estBaseRate').innerText = '$' + data.baseRate.toFixed(2);
-                document.getElementById('estDistanceCharge').innerText = '$' + data.distanceCharge.toFixed(2);
-                document.getElementById('estWeightCharge').innerText = '$' + data.weightCharge.toFixed(2);
-                document.getElementById('estTypeSurcharge').innerText = '$' + data.typeSurcharge.toFixed(2);
+                const currentWeight = (data.parcelWeight || weight || 1.0);
+                if (document.getElementById('estWeight')) {
+                    document.getElementById('estWeight').innerText = currentWeight.toFixed(1) + ' kg';
+                }
+                if (document.getElementById('estRate')) {
+                    document.getElementById('estRate').innerText = '$1.50 / km / kg';
+                }
+                if (document.getElementById('estFormulaText')) {
+                    document.getElementById('estFormulaText').innerText = data.distanceKm.toFixed(1) + ' km × ' + currentWeight.toFixed(1) + ' kg × $1.50';
+                }
                 document.getElementById('estTotal').innerText = '$' + data.estimatedTotal.toFixed(2);
                 document.getElementById('estDeliveryDays').innerText = data.estimatedDeliveryDays;
 

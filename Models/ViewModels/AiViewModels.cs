@@ -15,7 +15,9 @@ namespace Fleetify.Models.ViewModels
     public class CostEstimateResult
     {
         public double DistanceKm { get; set; }
-        public double BaseRate { get; set; }
+        public double ParcelWeight { get; set; } = 1.0;
+        public double RatePerKmKg { get; set; } = 1.50;
+        public double BaseRate { get; set; } = 0.00;
         public double WeightCharge { get; set; }
         public double TypeSurcharge { get; set; }
         public double DistanceCharge { get; set; }

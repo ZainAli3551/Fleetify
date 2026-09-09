@@ -26,9 +26,7 @@ namespace Fleetify.Services.Implementations
 
         public async Task<CostEstimateResult> CalculateCostAsync(CostEstimateRequest request)
         {
-            double baseFare = _configuration.GetValue<double>("AiSettings:BaseFare", 10.00);
-            double perKmRate = _configuration.GetValue<double>("AiSettings:PerKmRate", 1.50);
-            double perKgRate = _configuration.GetValue<double>("AiSettings:PerKgRate", 1.50);
+            double ratePerKmKg = _configuration.GetValue<double>("AiSettings:PerKmPerKgRate", 1.50);
 
             // Fetch Real-world Driving Road Distance from Map Routing Service (Google Maps / OSRM)
             double distanceKm = request.DistanceKm;
@@ -52,32 +50,11 @@ namespace Fleetify.Services.Implementations
                 }
             }
 
-            double distanceCharge = Math.Round(distanceKm * perKmRate, 2);
-            double weight = Math.Max(0.5, request.ParcelWeight);
-            double weightCharge = Math.Round(weight * perKgRate, 2);
+            double weight = request.ParcelWeight > 0 ? request.ParcelWeight : 1.0;
 
-            double vehicleMultiplier = request.VehicleType?.ToLower() switch
-            {
-                "bike" => 0.80,
-                "car" => 1.00,
-                "van" => 1.25,
-                "truck" => 1.60,
-                _ => 1.00
-            };
-
-            double routeMultiplier = request.RouteType?.ToLower() switch
-            {
-                "express" => 1.35,
-                "fragile" => 1.25,
-                "heavycargo" => 1.50,
-                _ => 1.00
-            };
-
-            double subtotal = baseFare + distanceCharge + weightCharge;
-            double typeSurcharge = Math.Round(subtotal * (vehicleMultiplier - 1.0 + (routeMultiplier - 1.0)), 2);
-            if (typeSurcharge < 0) typeSurcharge = 0;
-
-            double total = Math.Round(subtotal * vehicleMultiplier * routeMultiplier, 2);
+            // Unified Formula: Distance (km) * Weight (kg) * 1.50 (Per km per kg rate)
+            // e.g. 90.6 km * 2.0 kg * 1.50 = $271.80
+            double total = Math.Round(distanceKm * weight * ratePerKmKg, 2);
 
             string deliveryDays = "1-2 business days";
             if (request.RouteType?.Equals("Express", StringComparison.OrdinalIgnoreCase) == true)
@@ -96,10 +73,12 @@ namespace Fleetify.Services.Implementations
             return new CostEstimateResult
             {
                 DistanceKm = Math.Round(distanceKm, 1),
-                BaseRate = baseFare,
-                DistanceCharge = distanceCharge,
-                WeightCharge = weightCharge,
-                TypeSurcharge = typeSurcharge,
+                ParcelWeight = Math.Round(weight, 1),
+                RatePerKmKg = ratePerKmKg,
+                BaseRate = 0.00,
+                DistanceCharge = Math.Round(distanceKm * ratePerKmKg, 2),
+                WeightCharge = Math.Round(weight, 1),
+                TypeSurcharge = 0.00,
                 EstimatedTotal = total,
                 EstimatedDeliveryDays = deliveryDays,
                 DurationMinutes = durationMinutes,
@@ -116,21 +95,17 @@ namespace Fleetify.Services.Implementations
             }
             catch
             {
-                double baseFare = _configuration.GetValue<double>("AiSettings:BaseFare", 10.00);
-                double perKmRate = _configuration.GetValue<double>("AiSettings:PerKmRate", 1.50);
-                double perKgRate = _configuration.GetValue<double>("AiSettings:PerKgRate", 1.50);
+                double ratePerKmKg = _configuration.GetValue<double>("AiSettings:PerKmPerKgRate", 1.50);
                 double distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
-                double distanceCharge = Math.Round(distanceKm * perKmRate, 2);
-                double weight = Math.Max(0.5, request.ParcelWeight);
-                double weightCharge = Math.Round(weight * perKgRate, 2);
-                double subtotal = baseFare + distanceCharge + weightCharge;
+                double weight = request.ParcelWeight > 0 ? request.ParcelWeight : 1.0;
+                double total = Math.Round(distanceKm * weight * ratePerKmKg, 2);
                 return new CostEstimateResult
                 {
                     DistanceKm = Math.Round(distanceKm, 1),
-                    BaseRate = baseFare,
-                    DistanceCharge = distanceCharge,
-                    WeightCharge = weightCharge,
-                    EstimatedTotal = Math.Round(subtotal, 2)
+                    ParcelWeight = Math.Round(weight, 1),
+                    RatePerKmKg = ratePerKmKg,
+                    BaseRate = 0.00,
+                    EstimatedTotal = total
                 };
             }
         }
