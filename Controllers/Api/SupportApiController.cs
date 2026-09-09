@@ -92,9 +92,23 @@ namespace Fleetify.Controllers.Api
                 var botReply = await _supportService.ProcessUserMessageAsync(req.ConversationId, req.Message);
                 var conv = await _supportService.GetConversationDetailsAsync(req.ConversationId);
 
+                var userMsg = conv?.Messages
+                    .Where(m => m.SenderType == "User")
+                    .OrderByDescending(m => m.SentAt)
+                    .FirstOrDefault();
+
                 return Ok(new
                 {
                     success = true,
+                    userMessage = userMsg != null ? new
+                    {
+                        messageID = userMsg.MessageID,
+                        conversationID = userMsg.ConversationID,
+                        senderType = userMsg.SenderType,
+                        senderName = userMsg.SenderName,
+                        messageText = userMsg.MessageText,
+                        sentAt = userMsg.SentAt
+                    } : null,
                     botReply = new
                     {
                         messageID = botReply.MessageID,

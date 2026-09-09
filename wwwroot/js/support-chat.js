@@ -130,8 +130,11 @@
             // Clear input and keep user experience fluid
             inputField.value = '';
 
+            const tempId = 'temp_' + Date.now();
+
             // Render user bubble immediately
             appendMessage({
+                messageID: tempId,
                 senderType: 'User',
                 senderName: 'You',
                 messageText: text
@@ -146,6 +149,7 @@
                 if (!id) {
                     removeTypingIndicator();
                     appendMessage({
+                        messageID: 'err_' + Date.now(),
                         senderType: 'Bot',
                         senderName: 'System',
                         messageText: '⚠️ Support server is temporarily unreachable. Please check your connection and try again.'
@@ -164,10 +168,21 @@
                 removeTypingIndicator();
 
                 if (data && data.success) {
-                    appendMessage(data.botReply);
+                    if (data.userMessage && data.userMessage.messageID) {
+                        const realUserId = String(data.userMessage.messageID);
+                        knownMessageIds.add(realUserId);
+                        const tempEl = msgContainer.querySelector(`[data-msg-id="${tempId}"]`);
+                        if (tempEl) {
+                            tempEl.setAttribute('data-msg-id', realUserId);
+                        }
+                    }
+                    if (data.botReply) {
+                        appendMessage(data.botReply);
+                    }
                     updateStatus(data.status);
                 } else {
                     appendMessage({
+                        messageID: 'err_' + Date.now(),
                         senderType: 'Bot',
                         senderName: 'System',
                         messageText: '⚠️ ' + (data ? data.message : 'Unable to process message right now.')
@@ -177,6 +192,7 @@
                 console.error('Send message error:', err);
                 removeTypingIndicator();
                 appendMessage({
+                    messageID: 'err_' + Date.now(),
                     senderType: 'Bot',
                     senderName: 'System',
                     messageText: '⚠️ Network connection issue. Please try again.'
@@ -290,7 +306,7 @@
         function startPolling() {
             stopPolling();
             pollTimer = setInterval(async () => {
-                if (!conversationId || !isOpen) return;
+                if (!conversationId || !isOpen || isSending) return;
                 try {
                     const res = await fetch('/api/support/poll/' + conversationId);
                     if (!res.ok) return;
@@ -298,9 +314,26 @@
                     if (data && data.success && data.messages) {
                         updateStatus(data.status);
                         data.messages.forEach(msg => {
-                            if (!knownMessageIds.has(msg.messageID)) {
-                                appendMessage(msg);
+                            const msgIdStr = String(msg.messageID);
+                            if (knownMessageIds.has(msgIdStr)) return;
+
+                            // Prevent duplicate if DOM already has this element
+                            if (msgContainer.querySelector(`[data-msg-id="${msgIdStr}"]`)) {
+                                knownMessageIds.add(msgIdStr);
+                                return;
                             }
+
+                            // If this is a user message that matches an existing temporary message
+                            if (msg.senderType === 'User') {
+                                const pendingUserEl = msgContainer.querySelector(`[data-msg-id^="temp_"]`);
+                                if (pendingUserEl) {
+                                    pendingUserEl.setAttribute('data-msg-id', msgIdStr);
+                                    knownMessageIds.add(msgIdStr);
+                                    return;
+                                }
+                            }
+
+                            appendMessage(msg);
                         });
                     }
                 } catch (e) { }
@@ -323,8 +356,9 @@
         }
 
         function appendMessage(msg) {
-            if (msg.messageID && msg.messageID !== 'temp_welcome') {
-                knownMessageIds.add(msg.messageID);
+            const msgIdStr = msg.messageID ? String(msg.messageID) : '';
+            if (msgIdStr && msgIdStr !== 'temp_welcome') {
+                knownMessageIds.add(msgIdStr);
             }
 
             const isUser = msg.senderType === 'User';
@@ -333,6 +367,9 @@
 
             const wrapper = document.createElement('div');
             wrapper.className = `d-flex flex-column ${isUser ? 'align-items-end' : 'align-items-start'} mb-3`;
+            if (msgIdStr) {
+                wrapper.setAttribute('data-msg-id', msgIdStr);
+            }
 
             let badgeHtml = '';
             let bubbleClass = '';
