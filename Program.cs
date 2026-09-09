@@ -36,6 +36,10 @@ builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);
 });
+builder.Services.AddHttpClient<IMapRoutingService, MapRoutingService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICostEstimationService, CostEstimationService>();
 builder.Services.AddScoped<IMaintenancePredictionService, MaintenancePredictionService>();

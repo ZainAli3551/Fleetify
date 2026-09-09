@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Fleetify.Data;
+using Fleetify.Models.Common;
 using Fleetify.Models.Entities;
 using Fleetify.Services.Interfaces;
 
@@ -15,12 +16,18 @@ namespace Fleetify.Services.Implementations
         private readonly FleetifyDbContext _context;
         private readonly INotificationService _notificationService;
         private readonly IGeminiService _geminiService;
+        private readonly IMapRoutingService _mapRoutingService;
 
-        public SupportService(FleetifyDbContext context, INotificationService notificationService, IGeminiService geminiService)
+        public SupportService(
+            FleetifyDbContext context,
+            INotificationService notificationService,
+            IGeminiService geminiService,
+            IMapRoutingService mapRoutingService)
         {
             _context = context;
             _notificationService = notificationService;
             _geminiService = geminiService;
+            _mapRoutingService = mapRoutingService;
         }
 
         public async Task<SupportConversation> GetOrCreateConversationAsync(string sessionToken, string? email = null, string? name = null, int? userId = null)
@@ -99,8 +106,33 @@ namespace Fleetify.Services.Implementations
             _context.SupportMessages.Add(userMsg);
             conversation.UpdatedAt = DateTime.UtcNow;
 
-            // 2. Prepare Live Database Context for AI (e.g. order tracking, active customer shipments)
+            // 2. Prepare Live Database & Map Context for AI
             string? liveContext = null;
+            RouteDistanceResult? detectedMapRoute = null;
+
+            // Check if user is inquiring about route distance / locations
+            var routePair = ExtractRouteLocations(userMessage);
+            if (routePair.HasValue)
+            {
+                try
+                {
+                    detectedMapRoute = await _mapRoutingService.GetDrivingDistanceAsync(routePair.Value.origin, routePair.Value.destination);
+                    if (detectedMapRoute != null && detectedMapRoute.Success && detectedMapRoute.DistanceKm > 0)
+                    {
+                        double distCost = Math.Round(detectedMapRoute.DistanceKm * 1.50, 2);
+                        liveContext = $"=== LIVE MAP ROUTE & DISTANCE VERIFICATION ===\n" +
+                                      $"• Origin (Pickup): {detectedMapRoute.Origin}\n" +
+                                      $"• Destination (Dropoff): {detectedMapRoute.Destination}\n" +
+                                      $"• Verified Driving Road Distance: {detectedMapRoute.DistanceKm} km\n" +
+                                      $"• Estimated Travel Time: ~{detectedMapRoute.DurationMinutes} minutes\n" +
+                                      $"• Routing Source: {detectedMapRoute.Provider}\n" +
+                                      $"• Exact Pricing Formula: Total = Base Fare ($10.00) + Distance ({detectedMapRoute.DistanceKm} km × $1.50 = ${distCost:F2}) + (Weight in kg × $1.50)\n" +
+                                      $"• INSTRUCTION FOR AI: Explicitly state the verified driving road distance ({detectedMapRoute.DistanceKm} km) and travel time (~{detectedMapRoute.DurationMinutes} mins). Calculate the cost step-by-step using this exact formula! If parcel weight is mentioned, add (weight × $1.50) to give the complete total.";
+                    }
+                }
+                catch { }
+            }
+
             var trackingMatch = Regex.Match(userMessage.ToUpper(), @"FLT-\d{4}-\d+");
             if (trackingMatch.Success)
             {
@@ -116,20 +148,23 @@ namespace Fleetify.Services.Implementations
                         ? $"{order.Assignment.Driver.FullName} (Phone: {order.Assignment.Driver.PhoneNumber})"
                         : "Awaiting Driver Dispatch";
 
-                    liveContext = $"Database Record for Tracking Code '{trackingNumber}':\n" +
-                                  $"• Current Status: {order.RequestedStatus}\n" +
-                                  $"• Route: {order.PickupLocation} -> {order.DropoffLocation}\n" +
-                                  $"• Assigned Driver: {driverInfo}\n" +
-                                  $"• Estimated Fare: ${order.EstimatedCost:F2}\n" +
-                                  $"• Vehicle Type: {order.VehicleType}\n" +
-                                  $"• Created At: {order.RequestDate:yyyy-MM-dd HH:mm} UTC";
+                    string orderContext = $"Database Record for Tracking Code '{trackingNumber}':\n" +
+                                          $"• Current Status: {order.RequestedStatus}\n" +
+                                          $"• Route: {order.PickupLocation} -> {order.DropoffLocation}\n" +
+                                          $"• Assigned Driver: {driverInfo}\n" +
+                                          $"• Estimated Fare: ${order.EstimatedCost:F2}\n" +
+                                          $"• Vehicle Type: {order.VehicleType}\n" +
+                                          $"• Created At: {order.RequestDate:yyyy-MM-dd HH:mm} UTC";
+
+                    liveContext = string.IsNullOrWhiteSpace(liveContext) ? orderContext : $"{liveContext}\n\n{orderContext}";
                 }
                 else
                 {
-                    liveContext = $"Database search for tracking code '{trackingNumber}' returned NO MATCHING ORDER.";
+                    string missingContext = $"Database search for tracking code '{trackingNumber}' returned NO MATCHING ORDER.";
+                    liveContext = string.IsNullOrWhiteSpace(liveContext) ? missingContext : $"{liveContext}\n\n{missingContext}";
                 }
             }
-            else if (conversation.UserID.HasValue)
+            else if (conversation.UserID.HasValue && detectedMapRoute == null)
             {
                 var recentOrder = await _context.DeliveryRequests
                     .Where(d => d.UserID == conversation.UserID.Value)
@@ -138,7 +173,8 @@ namespace Fleetify.Services.Implementations
 
                 if (recentOrder != null)
                 {
-                    liveContext = $"User's Most Recent Shipment Record: Tracking {recentOrder.TrackingNumber}, Status: {recentOrder.RequestedStatus}, Route: {recentOrder.PickupLocation} -> {recentOrder.DropoffLocation}, Cost: ${recentOrder.EstimatedCost:F2}";
+                    string userHistContext = $"User's Most Recent Shipment Record: Tracking {recentOrder.TrackingNumber}, Status: {recentOrder.RequestedStatus}, Route: {recentOrder.PickupLocation} -> {recentOrder.DropoffLocation}, Cost: ${recentOrder.EstimatedCost:F2}";
+                    liveContext = string.IsNullOrWhiteSpace(liveContext) ? userHistContext : $"{liveContext}\n\n{userHistContext}";
                 }
             }
 
@@ -215,38 +251,60 @@ namespace Fleetify.Services.Implementations
                 // C. Cost Estimation & Rates
                 else if (cleanText.Contains("cost") || cleanText.Contains("price") || cleanText.Contains("rate") ||
                          cleanText.Contains("fare") || cleanText.Contains("calculate") || cleanText.Contains("kitna") ||
-                         cleanText.Contains("pricing") || cleanText.Contains("kharcha"))
+                         cleanText.Contains("pricing") || cleanText.Contains("kharcha") || detectedMapRoute != null)
                 {
-                    // Check if message provides distance and weight to calculate dynamically
-                    var kmMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(km|kilometer)");
-                    var kgMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
-
-                    if (kmMatch.Success && kgMatch.Success &&
-                        double.TryParse(kmMatch.Groups[1].Value, out double distVal) &&
-                        double.TryParse(kgMatch.Groups[1].Value, out double wtVal))
+                    if (detectedMapRoute != null && detectedMapRoute.Success)
                     {
-                        double distCharge = Math.Round(distVal * 1.50, 2);
-                        double wtCharge = Math.Round(wtVal * 1.50, 2);
-                        double totalEst = 10.00 + distCharge + wtCharge;
+                        double distCharge = Math.Round(detectedMapRoute.DistanceKm * 1.50, 2);
+                        var kgMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
+                        double wtVal = kgMatch.Success && double.TryParse(kgMatch.Groups[1].Value, out double w) ? w : 0;
+                        double wtCost = Math.Round(wtVal * 1.50, 2);
+                        double totalEst = 10.00 + distCharge + wtCost;
 
-                        botReplyText = $"💰 **Calculated Delivery Cost Estimate:**\n\n" +
+                        botReplyText = $"🗺️ **Verified Route Distance & Cost ({detectedMapRoute.Provider}):**\n\n" +
+                                       $"• **Pickup:** {detectedMapRoute.Origin}\n" +
+                                       $"• **Drop-off:** {detectedMapRoute.Destination}\n" +
+                                       $"• **Real Road Distance:** **{detectedMapRoute.DistanceKm} km** (~{detectedMapRoute.DurationMinutes} mins drive)\n\n" +
+                                       $"💰 **Cost Breakdown (Formula: Base $10 + Distance × $1.50 + Weight × $1.50):**\n" +
                                        $"• **Base Booking Fare:** $10.00\n" +
-                                       $"• **Distance Charge ({distVal:F1} km × $1.50):** ${distCharge:F2}\n" +
-                                       $"• **Weight Charge ({wtVal:F1} kg × $1.50):** ${wtCharge:F2}\n" +
+                                       $"• **Distance Charge ({detectedMapRoute.DistanceKm} km × $1.50):** ${distCharge:F2}\n" +
+                                       (wtVal > 0 ? $"• **Weight Charge ({wtVal:F1} kg × $1.50):** ${wtCost:F2}\n" : "• **Weight Charge:** $0.00 (Standard parcel)\n") +
                                        $"-------------------------------------\n" +
-                                       $"• **Total Estimated Cost:** **${totalEst:F2}**\n\n" +
-                                       $"*Note: Vehicle type (Van 1.25x / Truck 1.6x) and Priority (Express 1.35x) may apply on checkout.*";
+                                       $"• **Total Estimated Cost:** **${totalEst:F2}**";
                     }
                     else
                     {
-                        botReplyText = "💰 **Fleetify Delivery Cost Calculation Formula:**\n\n" +
-                                       "• **Formula:** Total Cost = Base Fare ($10.00) + (Distance × $1.50) + (Weight × $1.50)\n" +
-                                       "• **Base Booking Fare:** $10.00\n" +
-                                       "• **Distance Rate:** $1.50 per kilometer\n" +
-                                       "• **Weight Rate:** $1.50 per kilogram\n" +
-                                       "• **Vehicle Multipliers:** Bike (0.8x), Car (1.0x), Delivery Van (1.25x), Heavy Truck (1.6x)\n" +
-                                       "• **Priority Multipliers:** Standard (1.0x), Express (1.35x), Fragile (1.25x), Heavy Cargo (1.5x)\n\n" +
-                                       "Agar aap mujhe apna **Distance (km)** aur **Weight (kg)** bata dein, toh main foran exact cost calculate kar ke bata doonga!";
+                        // Check if message provides distance and weight to calculate dynamically
+                        var kmMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(km|kilometer)");
+                        var kgMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
+
+                        if (kmMatch.Success && kgMatch.Success &&
+                            double.TryParse(kmMatch.Groups[1].Value, out double distVal) &&
+                            double.TryParse(kgMatch.Groups[1].Value, out double wtVal))
+                        {
+                            double distCharge = Math.Round(distVal * 1.50, 2);
+                            double wtCharge = Math.Round(wtVal * 1.50, 2);
+                            double totalEst = 10.00 + distCharge + wtCharge;
+
+                            botReplyText = $"💰 **Calculated Delivery Cost Estimate:**\n\n" +
+                                           $"• **Base Booking Fare:** $10.00\n" +
+                                           $"• **Distance Charge ({distVal:F1} km × $1.50):** ${distCharge:F2}\n" +
+                                           $"• **Weight Charge ({wtVal:F1} kg × $1.50):** ${wtCharge:F2}\n" +
+                                           $"-------------------------------------\n" +
+                                           $"• **Total Estimated Cost:** **${totalEst:F2}**\n\n" +
+                                           $"*Note: Vehicle type (Van 1.25x / Truck 1.6x) and Priority (Express 1.35x) may apply on checkout.*";
+                        }
+                        else
+                        {
+                            botReplyText = "💰 **Fleetify Delivery Cost Calculation Formula:**\n\n" +
+                                           "• **Formula:** Total Cost = Base Fare ($10.00) + (Distance × $1.50) + (Weight × $1.50)\n" +
+                                           "• **Base Booking Fare:** $10.00\n" +
+                                           "• **Distance Rate:** $1.50 per kilometer\n" +
+                                           "• **Weight Rate:** $1.50 per kilogram\n" +
+                                           "• **Vehicle Multipliers:** Bike (0.8x), Car (1.0x), Delivery Van (1.25x), Heavy Truck (1.6x)\n" +
+                                           "• **Priority Multipliers:** Standard (1.0x), Express (1.35x), Fragile (1.25x), Heavy Cargo (1.5x)\n\n" +
+                                           "Agar aap mujhe apna **Pickup & Drop-off locations** (maslan *Shaheenabad, Gujranwala se Data Darbar, Lahore*) bata dein, toh main map se real distance check kar ke exact cost calculate kar ke bata doonga!";
+                        }
                     }
                 }
                 // D. Fleet Vehicles & Capacities
@@ -440,6 +498,45 @@ namespace Fleetify.Services.Implementations
         {
             if (string.IsNullOrEmpty(val)) return string.Empty;
             return val.Length <= maxLength ? val : val.Substring(0, maxLength) + "...";
+        }
+
+        private (string origin, string destination)? ExtractRouteLocations(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return null;
+
+            // 1. "from {origin} to {destination}"
+            var fromTo = Regex.Match(message, @"from\s+([A-Za-z0-9\s,]+?)\s+to\s+([A-Za-z0-9\s,]+?)($|\?|\.|\s*(?:parcel|deliver|cost|price|rate|wazan|kg|km))", RegexOptions.IgnoreCase);
+            if (fromTo.Success && !string.IsNullOrWhiteSpace(fromTo.Groups[1].Value) && !string.IsNullOrWhiteSpace(fromTo.Groups[2].Value))
+            {
+                return (fromTo.Groups[1].Value.Trim(), fromTo.Groups[2].Value.Trim());
+            }
+
+            // 2. "{origin} (se|sa) {destination} (tak|cheez|parcel|jana|jani|bhejna|le kar|la kar)"
+            var seTak = Regex.Match(message, @"([A-Za-z0-9\s,]+?)\s+(?:se|sa)\s+([A-Za-z0-9\s,]+?)(?:\s+(?:tak|cheez|parcel|jana|jani|bhejna|le\s+kar|la\s+kar|jaana|bheja)|$|\?|\.)", RegexOptions.IgnoreCase);
+            if (seTak.Success && !string.IsNullOrWhiteSpace(seTak.Groups[1].Value) && !string.IsNullOrWhiteSpace(seTak.Groups[2].Value))
+            {
+                string o = seTak.Groups[1].Value.Trim();
+                string d = seTak.Groups[2].Value.Trim();
+                o = Regex.Replace(o, @"^(?:main|mai|hum|muje|mujhe|ma)\s+(?:ne\s+|na\s+)?", "", RegexOptions.IgnoreCase).Trim();
+                if (o.Length > 2 && d.Length > 2)
+                {
+                    return (o, d);
+                }
+            }
+
+            // 3. "{origin} to {destination}"
+            var toMatch = Regex.Match(message, @"([A-Za-z0-9\s,]+?)\s+to\s+([A-Za-z0-9\s,]+?)($|\?|\.|\s*(?:cost|price|rate|wazan|kg|km))", RegexOptions.IgnoreCase);
+            if (toMatch.Success && !string.IsNullOrWhiteSpace(toMatch.Groups[1].Value) && !string.IsNullOrWhiteSpace(toMatch.Groups[2].Value))
+            {
+                string o = toMatch.Groups[1].Value.Trim();
+                string d = toMatch.Groups[2].Value.Trim();
+                if (o.Length > 2 && d.Length > 2 && !o.Equals("talk", StringComparison.OrdinalIgnoreCase))
+                {
+                    return (o, d);
+                }
+            }
+
+            return null;
         }
     }
 }

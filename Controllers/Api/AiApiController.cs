@@ -22,14 +22,14 @@ namespace Fleetify.Controllers.Api
 
         // POST: /api/ai/estimate-cost
         [HttpPost("estimate-cost")]
-        public IActionResult EstimateCost([FromBody] CostEstimateRequest request)
+        public async Task<IActionResult> EstimateCost([FromBody] CostEstimateRequest request)
         {
             if (request == null)
             {
                 return BadRequest(new { message = "Invalid cost estimation request data." });
             }
 
-            var result = _costService.CalculateCost(request);
+            var result = await _costService.CalculateCostAsync(request);
             return Ok(result);
         }
 

@@ -12,29 +12,50 @@ namespace Fleetify.Services.Implementations
     {
         private readonly FleetifyDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IMapRoutingService _mapRoutingService;
 
-        public CostEstimationService(FleetifyDbContext context, IConfiguration configuration)
+        public CostEstimationService(
+            FleetifyDbContext context,
+            IConfiguration configuration,
+            IMapRoutingService mapRoutingService)
         {
             _context = context;
             _configuration = configuration;
+            _mapRoutingService = mapRoutingService;
         }
 
-        public CostEstimateResult CalculateCost(CostEstimateRequest request)
+        public async Task<CostEstimateResult> CalculateCostAsync(CostEstimateRequest request)
         {
-            // Step 1: Base fare & rates
             double baseFare = _configuration.GetValue<double>("AiSettings:BaseFare", 10.00);
             double perKmRate = _configuration.GetValue<double>("AiSettings:PerKmRate", 1.50);
             double perKgRate = _configuration.GetValue<double>("AiSettings:PerKgRate", 1.50);
 
-            // Step 2: Dynamic Distance calculation based on locations
-            double distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
-            double distanceCharge = Math.Round(distanceKm * perKmRate, 2);
+            // Fetch Real-world Driving Road Distance from Map Routing Service (Google Maps / OSRM)
+            double distanceKm = request.DistanceKm;
+            int durationMinutes = 30;
+            string? polyline = null;
+            string provider = "Local";
 
-            // Step 3: Weight charge
+            if (!string.IsNullOrWhiteSpace(request.PickupLocation) && !string.IsNullOrWhiteSpace(request.DropoffLocation))
+            {
+                var routeResult = await _mapRoutingService.GetDrivingDistanceAsync(request.PickupLocation, request.DropoffLocation);
+                if (routeResult.Success && routeResult.DistanceKm > 0)
+                {
+                    distanceKm = routeResult.DistanceKm;
+                    durationMinutes = routeResult.DurationMinutes;
+                    polyline = routeResult.EncodedPolyline;
+                    provider = routeResult.Provider;
+                }
+                else
+                {
+                    distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
+                }
+            }
+
+            double distanceCharge = Math.Round(distanceKm * perKmRate, 2);
             double weight = Math.Max(0.5, request.ParcelWeight);
             double weightCharge = Math.Round(weight * perKgRate, 2);
 
-            // Step 4: Vehicle factor & Route surcharge
             double vehicleMultiplier = request.VehicleType?.ToLower() switch
             {
                 "bike" => 0.80,
@@ -56,13 +77,12 @@ namespace Fleetify.Services.Implementations
             double typeSurcharge = Math.Round(subtotal * (vehicleMultiplier - 1.0 + (routeMultiplier - 1.0)), 2);
             if (typeSurcharge < 0) typeSurcharge = 0;
 
-            // Step 5: Total estimate
             double total = Math.Round(subtotal * vehicleMultiplier * routeMultiplier, 2);
 
             string deliveryDays = "1-2 business days";
             if (request.RouteType?.Equals("Express", StringComparison.OrdinalIgnoreCase) == true)
             {
-                deliveryDays = "Same-day or next-morning rush delivery";
+                deliveryDays = "Same-day rush delivery";
             }
             else if (distanceKm > 400)
             {
@@ -81,8 +101,38 @@ namespace Fleetify.Services.Implementations
                 WeightCharge = weightCharge,
                 TypeSurcharge = typeSurcharge,
                 EstimatedTotal = total,
-                EstimatedDeliveryDays = deliveryDays
+                EstimatedDeliveryDays = deliveryDays,
+                DurationMinutes = durationMinutes,
+                RoutePolyline = polyline,
+                Provider = provider
             };
+        }
+
+        public CostEstimateResult CalculateCost(CostEstimateRequest request)
+        {
+            try
+            {
+                return CalculateCostAsync(request).GetAwaiter().GetResult();
+            }
+            catch
+            {
+                double baseFare = _configuration.GetValue<double>("AiSettings:BaseFare", 10.00);
+                double perKmRate = _configuration.GetValue<double>("AiSettings:PerKmRate", 1.50);
+                double perKgRate = _configuration.GetValue<double>("AiSettings:PerKgRate", 1.50);
+                double distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
+                double distanceCharge = Math.Round(distanceKm * perKmRate, 2);
+                double weight = Math.Max(0.5, request.ParcelWeight);
+                double weightCharge = Math.Round(weight * perKgRate, 2);
+                double subtotal = baseFare + distanceCharge + weightCharge;
+                return new CostEstimateResult
+                {
+                    DistanceKm = Math.Round(distanceKm, 1),
+                    BaseRate = baseFare,
+                    DistanceCharge = distanceCharge,
+                    WeightCharge = weightCharge,
+                    EstimatedTotal = Math.Round(subtotal, 2)
+                };
+            }
         }
 
         private double EstimateDistance(string? pickup, string? dropoff, double fallbackDistance)

@@ -198,12 +198,21 @@
                             <h4 class="fw-bold text-primary mb-0" id="estTotal">$30.25</h4>
                         </div>
 
-                        <div class="p-3 bg-light-blue rounded-3 text-primary small d-flex align-items-center gap-2">
+                        <div class="p-3 bg-light-blue rounded-3 text-primary small d-flex align-items-center gap-2 mb-3">
                             <i class="bi bi-clock-history fs-5"></i>
                             <div>
                                 <span class="d-block text-secondary x-small">Estimated Delivery</span>
                                 <strong id="estDeliveryDays">2-3 business days</strong>
                             </div>
+                        </div>
+
+                        <!-- Interactive Live Route Map -->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small fw-semibold"><i class="bi bi-map me-1 text-primary"></i>Live Route Map</span>
+                                <span id="estMapProvider" class="badge bg-light text-primary border" style="font-size: 0.68rem;">Google Maps Verified</span>
+                            </div>
+                            <div id="routeMap" class="rounded-3 border shadow-xs" style="height: 190px; width: 100%; background: #f8fafc; z-index: 1;"></div>
                         </div>
                     </div>
                 </div>
@@ -293,11 +302,55 @@
 </div>
 
 @section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let estimateTimeout = null;
+        let map = null;
+        let routeLayer = null;
+        let pickupMarker = null;
+        let dropoffMarker = null;
 
-        // Real-time AI Cost Calculation
+        function initRouteMap() {
+            const mapEl = document.getElementById('routeMap');
+            if (!mapEl || map) return;
+            map = L.map('routeMap', { zoomControl: false }).setView([31.5204, 74.3587], 8);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: 'Map data &copy; OpenStreetMap'
+            }).addTo(map);
+            L.control.zoom({ position: 'topright' }).addTo(map);
+        }
+
+        function decodePolyline(str, precision) {
+            var index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, lat_change, lng_change;
+            var factor = Math.pow(10, precision || 5);
+            while (index < str.length) {
+                byte = null; shift = 0; result = 0;
+                do {
+                    byte = str.charCodeAt(index++) - 63;
+                    result |= (byte & 0x1f) << shift;
+                    shift += 5;
+                } while (byte >= 0x20);
+                lat_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                shift = 0; result = 0;
+                do {
+                    byte = str.charCodeAt(index++) - 63;
+                    result |= (byte & 0x1f) << shift;
+                    shift += 5;
+                } while (byte >= 0x20);
+                lng_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                lat += lat_change;
+                lng += lng_change;
+                coordinates.push([lat / factor, lng / factor]);
+            }
+            return coordinates;
+        }
+
+        // Real-time AI & Map Cost Calculation
         function updateAiEstimate() {
+            initRouteMap();
+
             const pickup = document.getElementById('pickupAddr')?.value || '';
             const dropoff = document.getElementById('dropoffAddr')?.value || '';
             const weight = parseFloat(document.getElementById('packageWeight')?.value) || 1.0;
@@ -330,15 +383,46 @@
                 document.getElementById('estTotal').innerText = '$' + data.estimatedTotal.toFixed(2);
                 document.getElementById('estDeliveryDays').innerText = data.estimatedDeliveryDays;
 
+                const provBadge = document.getElementById('estMapProvider');
+                if (provBadge && data.provider) {
+                    provBadge.innerText = data.provider + ' Verified';
+                }
+
                 const distInput = document.getElementById('distanceKm');
                 if (distInput) distInput.value = data.distanceKm;
+
+                // Render Route Polyline on Map if coordinates or polyline are available
+                if (map && data.routePolyline) {
+                    try {
+                        const coords = decodePolyline(data.routePolyline);
+                        if (coords && coords.length > 0) {
+                            if (routeLayer) map.removeLayer(routeLayer);
+                            if (pickupMarker) map.removeLayer(pickupMarker);
+                            if (dropoffMarker) map.removeLayer(dropoffMarker);
+
+                            routeLayer = L.polyline(coords, { color: '#2563eb', weight: 4, opacity: 0.85 }).addTo(map);
+
+                            const startPt = coords[0];
+                            const endPt = coords[coords.length - 1];
+
+                            pickupMarker = L.circleMarker(startPt, { radius: 6, color: '#16a34a', fillColor: '#22c55e', fillOpacity: 0.9 })
+                                .bindPopup('<b>Pickup:</b> ' + (pickup || 'Origin')).addTo(map);
+                            dropoffMarker = L.circleMarker(endPt, { radius: 6, color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.9 })
+                                .bindPopup('<b>Drop-off:</b> ' + (dropoff || 'Destination')).addTo(map);
+
+                            map.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
+                        }
+                    } catch (e) {
+                        console.warn('Polyline render error:', e);
+                    }
+                }
             })
             .catch(err => console.error("Error fetching AI estimate:", err));
         }
 
         function debouncedUpdate() {
             clearTimeout(estimateTimeout);
-            estimateTimeout = setTimeout(updateAiEstimate, 250);
+            estimateTimeout = setTimeout(updateAiEstimate, 350);
         }
 
         // Live interactive listeners on ALL fields
@@ -349,6 +433,9 @@
         document.getElementById('routeType')?.addEventListener('change', updateAiEstimate);
 
         // Run on page load
-        document.addEventListener('DOMContentLoaded', updateAiEstimate);
+        document.addEventListener('DOMContentLoaded', () => {
+            initRouteMap();
+            updateAiEstimate();
+        });
     </script>
 }
