@@ -31,7 +31,7 @@ namespace Fleetify.Services.Implementations
                 _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
             }
 
-            _model = configuration["Gemini:Model"] ?? "gemini-1.5-flash";
+            _model = configuration["Gemini:Model"] ?? "gemini-3.5-flash-lite";
         }
 
         public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey) && !_apiKey.Equals("YOUR_GEMINI_API_KEY", StringComparison.OrdinalIgnoreCase);

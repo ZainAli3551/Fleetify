@@ -33,7 +33,7 @@ builder.Services.AddDbContext<FleetifyDbContext>(options =>
 // 2. Register Application & AI Services
 builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(15);
+    client.Timeout = TimeSpan.FromSeconds(60);
 });
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICostEstimationService, CostEstimationService>();
