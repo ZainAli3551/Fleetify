@@ -223,7 +223,7 @@
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                     <div>
                         <h5 class="fw-bold text-dark mb-1">My Delivery Bookings</h5>
-                        <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>Aap kisi bhi request ko <strong>1 ghantay ke andar</strong> edit ya cancel kar saktay hain.</p>
+                        <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>Time-Limited: You can only Edit or Cancel delivery requests within <strong>1 hour</strong> of booking.</p>
                     </div>
                     <form asp-action="Track" method="get" class="d-flex gap-2" style="max-width: 320px;">
                         <input name="trackingNumber" class="form-control form-control-sm rounded-pill" placeholder="Enter Tracking # (e.g. FLT-...)" required />
@@ -360,10 +360,14 @@
             <div class="modal-body px-4 py-3">
                 <div class="alert alert-warning border-0 rounded-3 p-3 mb-3">
                     <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-clock-history fs-4 text-warning-emphasis flex-shrink-0"></i>
+                        <i class="bi bi-clock-history fs-4 text-warning-emphasis flex-shrink-0 mt-1"></i>
                         <div class="small text-dark">
-                            <strong>Aap is delivery request ko submit karne ke baad sirf 1 ghantay (60 minutes) ke andar hi Edit ya Delete / Cancel kar saktay hain!</strong>
-                            <p class="mb-0 mt-1 text-secondary">1 ghanta mukammal hone ke baad yeh order shipping aur dispatch ke liye lock ho jayega aur isay tabdeel ya cancel nahi kiya ja sakega.</p>
+                            <p class="mb-2">
+                                <strong>Time-Limited Adjustments:</strong> You can only Edit, Delete, or Cancel this delivery request within 1 hour (60 minutes) of submission.
+                            </p>
+                            <p class="mb-0 text-secondary">
+                                <strong class="text-dark">Order Locking:</strong> Please note that the delivery request will lock automatically after 1 hour. Once locked, no further modifications or cancellations can be processed.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -423,7 +427,7 @@
 
                 <div class="modal-body px-4 py-3">
                     <div class="alert alert-info border-0 rounded-3 py-2 px-3 small mb-3">
-                        <i class="bi bi-info-circle me-1"></i>Aap 1 ghantay ke andar apna order update kar rahay hain.
+                        <i class="bi bi-info-circle me-1"></i>You are modifying this delivery request within the 1-hour allowed window.
                     </div>
 
                     <div class="mb-3">
