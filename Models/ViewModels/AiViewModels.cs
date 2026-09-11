@@ -22,7 +22,7 @@ namespace Fleetify.Models.ViewModels
         public double DistanceCharge { get; set; }
         public double WeightCharge { get; set; }
         public double TypeSurcharge { get; set; }
-        public double PetrolCharge { get; set; } = 500.0;
+        public double PetrolCharge { get; set; } = 0.0;
         public string DeliveryType { get; set; } = "Normal";
         public double DeliveryMultiplier { get; set; } = 1.0;
         public string Currency { get; set; } = "Rs.";

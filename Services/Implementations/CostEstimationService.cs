@@ -26,12 +26,7 @@ namespace Fleetify.Services.Implementations
 
         public static double CalculatePetrolSurcharge(double distanceKm)
         {
-            if (distanceKm < 5.0) return 200.0;
-            if (distanceKm < 10.0) return 300.0;
-            if (distanceKm < 20.0) return 500.0;
-            if (distanceKm < 50.0) return 700.0;
-            if (distanceKm < 100.0) return 1000.0;
-            return 2500.0; // 100km to 200km+
+            return 0.0; // Petrol surcharge completely removed as requested
         }
 
         public static double GetDeliveryMultiplier(string? deliveryType)
@@ -70,14 +65,20 @@ namespace Fleetify.Services.Implementations
 
             double weight = request.ParcelWeight > 0 ? request.ParcelWeight : 2.0;
 
-            // Updated Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier
-            double baseCost = distanceKm * weight * ratePerKmKg;
-            double petrolCharge = CalculatePetrolSurcharge(distanceKm);
+            // Floor numbers down to previous whole number (e.g. 2.535 -> 2, 100.7 -> 100)
+            double flooredWeight = Math.Floor(weight);
+            if (flooredWeight < 1.0) flooredWeight = 1.0;
+
+            double flooredDistance = Math.Floor(distanceKm);
+            if (flooredDistance < 1.0) flooredDistance = 1.0;
+
             string deliveryType = string.IsNullOrWhiteSpace(request.RouteType) ? "Normal" : request.RouteType;
             if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
             double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
-            double total = Math.Round((baseCost + petrolCharge) * deliveryMultiplier, 2);
+            // Formula: Math.Floor(1.5 * Distance * Weight * DeliveryMultiplier) - Petrol Surcharge completely removed
+            double baseCost = Math.Floor(flooredDistance * flooredWeight * ratePerKmKg);
+            double total = Math.Floor(baseCost * deliveryMultiplier);
 
             string deliveryDays = "1-2 business days";
             if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
@@ -88,22 +89,22 @@ namespace Fleetify.Services.Implementations
             {
                 deliveryDays = "Next-day fast delivery";
             }
-            else if (distanceKm > 400)
+            else if (flooredDistance > 400)
             {
                 deliveryDays = "3-5 business days";
             }
-            else if (distanceKm > 100)
+            else if (flooredDistance > 100)
             {
                 deliveryDays = "2-3 business days";
             }
 
             return new CostEstimateResult
             {
-                DistanceKm = Math.Round(distanceKm, 1),
-                ParcelWeight = Math.Round(weight, 1),
+                DistanceKm = flooredDistance,
+                ParcelWeight = flooredWeight,
                 RatePerKmKg = ratePerKmKg,
-                BaseCost = Math.Round(baseCost, 2),
-                PetrolCharge = petrolCharge,
+                BaseCost = baseCost,
+                PetrolCharge = 0.0,
                 DeliveryType = deliveryType,
                 DeliveryMultiplier = deliveryMultiplier,
                 Currency = "Rs.",
@@ -126,20 +127,26 @@ namespace Fleetify.Services.Implementations
                 double ratePerKmKg = _configuration.GetValue<double>("AiSettings:PerKmPerKgRate", 1.50);
                 double distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
                 double weight = request.ParcelWeight > 0 ? request.ParcelWeight : 2.0;
-                double baseCost = distanceKm * weight * ratePerKmKg;
-                double petrolCharge = CalculatePetrolSurcharge(distanceKm);
+                double flooredWeight = Math.Floor(weight);
+                if (flooredWeight < 1.0) flooredWeight = 1.0;
+
+                double flooredDistance = Math.Floor(distanceKm);
+                if (flooredDistance < 1.0) flooredDistance = 1.0;
+
                 string deliveryType = string.IsNullOrWhiteSpace(request.RouteType) ? "Normal" : request.RouteType;
                 if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
                 double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
-                double total = Math.Round((baseCost + petrolCharge) * deliveryMultiplier, 2);
+
+                double baseCost = Math.Floor(flooredDistance * flooredWeight * ratePerKmKg);
+                double total = Math.Floor(baseCost * deliveryMultiplier);
 
                 return new CostEstimateResult
                 {
-                    DistanceKm = Math.Round(distanceKm, 1),
-                    ParcelWeight = Math.Round(weight, 1),
+                    DistanceKm = flooredDistance,
+                    ParcelWeight = flooredWeight,
                     RatePerKmKg = ratePerKmKg,
-                    BaseCost = Math.Round(baseCost, 2),
-                    PetrolCharge = petrolCharge,
+                    BaseCost = baseCost,
+                    PetrolCharge = 0.0,
                     DeliveryType = deliveryType,
                     DeliveryMultiplier = deliveryMultiplier,
                     Currency = "Rs.",

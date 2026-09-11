@@ -133,9 +133,9 @@
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Delivery Type</label>
                                     <select asp-for="NewDelivery.RouteType" id="deliveryType" class="form-select rounded-3 py-2 fw-semibold text-dark">
-                                        <option value="Normal" selected>Normal Delivery (1x)</option>
-                                        <option value="Fast">Fast Delivery (1.75x)</option>
-                                        <option value="Express">Express Delivery (2.5x)</option>
+                                        <option value="Normal" selected>Normal Delivery</option>
+                                        <option value="Fast">Fast Delivery</option>
+                                        <option value="Express">Express Delivery</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
@@ -172,26 +172,22 @@
 
                         <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Route Distance</span>
-                            <span class="fw-semibold text-primary font-mono" id="estDistanceKm">15.0 km</span>
+                            <span class="fw-semibold text-primary font-mono" id="estDistanceKm">15 km</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Cargo Size</span>
-                            <span class="fw-semibold text-dark" id="estWeight">2.0 kg</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Petrol Surcharge</span>
-                            <span class="fw-semibold text-dark" id="estPetrol">Rs. 500</span>
+                            <span class="fw-semibold text-dark" id="estWeight">2 kg</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3 small">
                             <span class="text-secondary">Delivery Speed</span>
-                            <span class="fw-semibold text-primary" id="estDeliveryType">Normal (1x)</span>
+                            <span class="fw-semibold text-primary" id="estDeliveryType">Normal</span>
                         </div>
 
                         <hr class="my-2" />
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="fw-bold text-dark">Estimated Total</span>
-                            <h4 class="fw-bold text-primary mb-0" id="estTotal">Rs. 545.00</h4>
+                            <h4 class="fw-bold text-primary mb-0" id="estTotal">Rs. 45</h4>
                         </div>
 
                         <div class="p-3 bg-light-blue rounded-3 text-primary small d-flex align-items-center gap-2 mb-3">
@@ -259,7 +255,7 @@
                                                 <i class="bi bi-geo-alt-fill text-danger me-1"></i>@d.DropoffLocation
                                             </div>
                                         </td>
-                                        <td><strong>@d.ParcelWeight.ToString("F1")</strong> kg</td>
+                                        <td><strong>@Math.Floor(d.ParcelWeight).ToString("F0")</strong> kg</td>
                                         <td>
                                             @{
                                                 var speed = string.IsNullOrWhiteSpace(d.RouteType) ? "Normal" : d.RouteType;
@@ -270,7 +266,7 @@
                                         <td>
                                             <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-truck me-1"></i>@d.VehicleType</span>
                                         </td>
-                                        <td class="fw-bold text-dark">Rs. @d.EstimatedCost.ToString("F2")</td>
+                                        <td class="fw-bold text-dark">Rs. @Math.Floor(d.EstimatedCost).ToString("F0")</td>
                                         <td>
                                             @if (d.RequestedStatus == "Delivered")
                                             {
@@ -390,7 +386,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-secondary">Delivery Type:</span>
-                        <strong class="text-dark" id="modalTypeText">Normal (1x)</strong>
+                        <strong class="text-dark" id="modalTypeText">Normal Delivery</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-secondary">Vehicle Assigned:</span>
@@ -449,9 +445,9 @@
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary">Delivery Type</label>
                         <select id="editRouteType" name="RouteType" class="form-select rounded-3 py-2 fw-semibold">
-                            <option value="Normal">Normal Delivery (1x)</option>
-                            <option value="Fast">Fast Delivery (1.75x)</option>
-                            <option value="Express">Express Delivery (2.5x)</option>
+                            <option value="Normal">Normal Delivery</option>
+                            <option value="Fast">Fast Delivery</option>
+                            <option value="Express">Express Delivery</option>
                         </select>
                     </div>
                     <div class="mb-2">
@@ -541,20 +537,16 @@
             })
             .then(data => {
                 if (document.getElementById('estDistanceKm')) {
-                    document.getElementById('estDistanceKm').innerText = data.distanceKm.toFixed(1) + ' km';
+                    document.getElementById('estDistanceKm').innerText = Math.floor(data.distanceKm) + ' km';
                 }
                 const currentWeight = (data.parcelWeight || weight || 2.0);
                 if (document.getElementById('estWeight')) {
-                    document.getElementById('estWeight').innerText = currentWeight.toFixed(1) + ' kg';
-                }
-                if (document.getElementById('estPetrol')) {
-                    document.getElementById('estPetrol').innerText = 'Rs. ' + (data.petrolCharge || 500).toFixed(0);
+                    document.getElementById('estWeight').innerText = Math.floor(currentWeight) + ' kg';
                 }
                 if (document.getElementById('estDeliveryType')) {
-                    const multText = (data.deliveryMultiplier === 1.0 ? '1x' : data.deliveryMultiplier + 'x');
-                    document.getElementById('estDeliveryType').innerText = (data.deliveryType || route) + ' (' + multText + ')';
+                    document.getElementById('estDeliveryType').innerText = (data.deliveryType || route);
                 }
-                document.getElementById('estTotal').innerText = 'Rs. ' + data.estimatedTotal.toFixed(2);
+                document.getElementById('estTotal').innerText = 'Rs. ' + Math.floor(data.estimatedTotal);
                 document.getElementById('estDeliveryDays').innerText = data.estimatedDeliveryDays;
 
                 const provBadge = document.getElementById('estMapProvider');
@@ -607,10 +599,11 @@
 
             const pickup = document.getElementById('pickupAddr')?.value || 'Not specified';
             const dropoff = document.getElementById('dropoffAddr')?.value || 'Not specified';
-            const weight = document.getElementById('packageWeight')?.value || '2.0';
+            const rawWeight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
+            const weight = Math.floor(rawWeight);
             const typeSel = document.getElementById('deliveryType');
-            const deliveryType = typeSel ? typeSel.options[typeSel.selectedIndex].text : 'Normal Delivery (1x)';
-            const total = document.getElementById('estTotal')?.innerText || 'Rs. 0.00';
+            const deliveryType = typeSel ? typeSel.options[typeSel.selectedIndex].text : 'Normal Delivery';
+            const total = document.getElementById('estTotal')?.innerText || 'Rs. 0';
 
             document.getElementById('modalPickupText').innerText = pickup;
             document.getElementById('modalDropoffText').innerText = dropoff;

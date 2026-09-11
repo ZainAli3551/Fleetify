@@ -319,7 +319,7 @@ namespace Fleetify.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Delivery request {request.TrackingNumber} has been updated successfully within your 1-hour window! New total: Rs. {request.EstimatedCost:F2}";
+            TempData["SuccessMessage"] = $"Delivery request {request.TrackingNumber} has been updated successfully within your 1-hour window! New total: Rs. {Math.Floor(request.EstimatedCost):F0}";
             return RedirectToAction(nameof(Index));
         }
 
