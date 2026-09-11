@@ -113,30 +113,11 @@
                             </div>
 
                             <div class="row g-3 mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label small fw-semibold text-secondary">Package Weight (kg)</label>
                                     <input asp-for="NewDelivery.ParcelWeight" id="packageWeight" type="number" step="0.5" min="0.5" class="form-control rounded-3 py-2" value="2.0" required />
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-secondary">Height (m)</label>
-                                    <input asp-for="NewDelivery.Height" id="packageHeight" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" value="1.0" required />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-secondary">Width (m)</label>
-                                    <input asp-for="NewDelivery.Width" id="packageWidth" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" value="1.0" required />
-                                </div>
-                            </div>
-
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-secondary">Vehicle Type</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-end-0 text-primary"><i class="bi bi-truck fs-5"></i></span>
-                                        <input type="text" class="form-control rounded-end-3 py-2 bg-light fw-bold text-dark border-start-0" value="Truck (Heavy freight)" readonly />
-                                    </div>
-                                    <input type="hidden" asp-for="NewDelivery.VehicleType" id="vehicleType" value="Truck" />
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label small fw-semibold text-secondary">Package Type</label>
                                     <select asp-for="NewDelivery.ParcelDescription" id="parcelDescription" class="form-select rounded-3 py-2">
                                         <option value="Document">Document</option>
@@ -146,12 +127,25 @@
                                         <option value="Hardware Parts" selected>Hardware Parts</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary">Vehicle Type</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 text-primary"><i class="bi bi-truck fs-5"></i></span>
+                                        <input type="text" class="form-control rounded-end-3 py-2 bg-light fw-bold text-dark border-start-0" value="Truck (Heavy freight)" readonly />
+                                    </div>
+                                    <input type="hidden" asp-for="NewDelivery.VehicleType" id="vehicleType" value="Truck" />
+                                </div>
+                                <div class="col-md-6">
                                     <label class="form-label small fw-semibold text-secondary">Pickup Date</label>
                                     <input asp-for="NewDelivery.PickupDate" id="pickupDate" type="date" class="form-control rounded-3 py-2" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
                                 </div>
                             </div>
 
+                            <input type="hidden" asp-for="NewDelivery.Height" id="packageHeight" value="1.0" />
+                            <input type="hidden" asp-for="NewDelivery.Width" id="packageWidth" value="1.0" />
                             <input type="hidden" id="distanceKm" name="NewDelivery.EstimatedDistanceKm" value="15" />
 
                             <div class="d-grid">
@@ -174,11 +168,7 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Cargo Size</span>
-                            <span class="fw-semibold text-dark" id="estWeight">2.0 kg (1.0m × 1.0m)</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Vehicle</span>
-                            <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-truck me-1"></i>Truck</span>
+                            <span class="fw-semibold text-dark" id="estWeight">2.0 kg</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Rate (Per km per kg)</span>
@@ -241,8 +231,6 @@
                                     <th>Date</th>
                                     <th>Pickup &rarr; Dropoff</th>
                                     <th>Weight</th>
-                                    <th>Height</th>
-                                    <th>Width</th>
                                     <th>Vehicle</th>
                                     <th>Cost</th>
                                     <th>Status</th>
@@ -263,8 +251,6 @@
                                             </div>
                                         </td>
                                         <td><strong>@d.ParcelWeight.ToString("F1")</strong> kg</td>
-                                        <td><strong>@d.Height.ToString("F1")</strong> m</td>
-                                        <td><strong>@d.Width.ToString("F1")</strong> m</td>
                                         <td>
                                             <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-truck me-1"></i>@d.VehicleType</span>
                                         </td>
@@ -300,7 +286,7 @@
                                                 @if (isEditable)
                                                 {
                                                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" title="Edit Request (~@minsLeft mins left)"
-                                                            onclick="openEditModal(@d.RequestID, '@d.TrackingNumber', '@Html.Raw(d.PickupLocation.Replace("'", "\\'"))', '@Html.Raw(d.DropoffLocation.Replace("'", "\\'"))', @d.ParcelWeight, @d.Height, @d.Width, '@Html.Raw((d.ParcelDescription ?? "").Replace("'", "\\'"))')">
+                                                            onclick="openEditModal(@d.RequestID, '@d.TrackingNumber', '@Html.Raw(d.PickupLocation.Replace("'", "\\'"))', '@Html.Raw(d.DropoffLocation.Replace("'", "\\'"))', @d.ParcelWeight, '@Html.Raw((d.ParcelDescription ?? "").Replace("'", "\\'"))')">
                                                         <i class="bi bi-pencil-square text-dark"></i>
                                                     </button>
                                                     <form asp-action="CancelDelivery" method="post" class="d-inline" onsubmit="return confirm('Aap yeh delivery request cancel karna chahte hain? (Tracking: @d.TrackingNumber)');">
@@ -387,10 +373,6 @@
                         <strong class="text-dark" id="modalWeightText">-</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
-                        <span class="text-secondary">Dimensions (H × W):</span>
-                        <strong class="text-dark" id="modalDimsText">-</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1">
                         <span class="text-secondary">Vehicle Assigned:</span>
                         <span class="badge bg-primary text-white"><i class="bi bi-truck me-1"></i>Truck</span>
                     </div>
@@ -424,6 +406,8 @@
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="editRequestId" name="id" value="" />
                 <input type="hidden" name="VehicleType" value="Truck" />
+                <input type="hidden" id="editHeight" name="Height" value="1.0" />
+                <input type="hidden" id="editWidth" name="Width" value="1.0" />
 
                 <div class="modal-body px-4 py-3">
                     <div class="alert alert-info border-0 rounded-3 py-2 px-3 small mb-3">
@@ -438,19 +422,9 @@
                         <label class="form-label small fw-semibold text-secondary">Dropoff Address</label>
                         <input id="editDropoff" name="DropoffLocation" class="form-control rounded-3 py-2" required />
                     </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-4">
-                            <label class="form-label small fw-semibold text-secondary">Weight (kg)</label>
-                            <input id="editWeight" name="ParcelWeight" type="number" step="0.5" min="0.5" class="form-control rounded-3 py-2" required />
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small fw-semibold text-secondary">Height (m)</label>
-                            <input id="editHeight" name="Height" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" required />
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small fw-semibold text-secondary">Width (m)</label>
-                            <input id="editWidth" name="Width" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" required />
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Weight (kg)</label>
+                        <input id="editWeight" name="ParcelWeight" type="number" step="0.5" min="0.5" class="form-control rounded-3 py-2" required />
                     </div>
                     <div class="mb-2">
                         <label class="form-label small fw-semibold text-secondary">Package Description</label>
@@ -519,8 +493,6 @@
             const pickup = document.getElementById('pickupAddr')?.value || '';
             const dropoff = document.getElementById('dropoffAddr')?.value || '';
             const weight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
-            const height = parseFloat(document.getElementById('packageHeight')?.value) || 1.0;
-            const width = parseFloat(document.getElementById('packageWidth')?.value) || 1.0;
             const vehicle = 'Truck';
             const route = 'Standard';
 
@@ -545,7 +517,7 @@
                 }
                 const currentWeight = (data.parcelWeight || weight || 2.0);
                 if (document.getElementById('estWeight')) {
-                    document.getElementById('estWeight').innerText = currentWeight.toFixed(1) + ' kg (' + height.toFixed(1) + 'm × ' + width.toFixed(1) + 'm)';
+                    document.getElementById('estWeight').innerText = currentWeight.toFixed(1) + ' kg';
                 }
                 if (document.getElementById('estRate')) {
                     document.getElementById('estRate').innerText = '$1.50 / km / kg';
@@ -607,14 +579,11 @@
             const pickup = document.getElementById('pickupAddr')?.value || 'Not specified';
             const dropoff = document.getElementById('dropoffAddr')?.value || 'Not specified';
             const weight = document.getElementById('packageWeight')?.value || '2.0';
-            const height = document.getElementById('packageHeight')?.value || '1.0';
-            const width = document.getElementById('packageWidth')?.value || '1.0';
             const total = document.getElementById('estTotal')?.innerText || '$0.00';
 
             document.getElementById('modalPickupText').innerText = pickup;
             document.getElementById('modalDropoffText').innerText = dropoff;
             document.getElementById('modalWeightText').innerText = weight + ' kg';
-            document.getElementById('modalDimsText').innerText = height + ' m × ' + width + ' m';
             document.getElementById('modalCostText').innerText = total;
 
             const modalEl = document.getElementById('submitNoticeModal');
@@ -626,14 +595,12 @@
             document.getElementById('deliveryForm').submit();
         }
 
-        function openEditModal(id, tracking, pickup, dropoff, weight, height, width, desc) {
+        function openEditModal(id, tracking, pickup, dropoff, weight, desc) {
             document.getElementById('editRequestId').value = id;
             document.getElementById('editTrackingNumber').innerText = tracking;
             document.getElementById('editPickup').value = pickup;
             document.getElementById('editDropoff').value = dropoff;
             document.getElementById('editWeight').value = weight;
-            document.getElementById('editHeight').value = height;
-            document.getElementById('editWidth').value = width;
             document.getElementById('editDesc').value = desc;
 
             const editModalEl = document.getElementById('editDeliveryModal');
@@ -645,8 +612,6 @@
         document.getElementById('pickupAddr')?.addEventListener('input', debouncedUpdate);
         document.getElementById('dropoffAddr')?.addEventListener('input', debouncedUpdate);
         document.getElementById('packageWeight')?.addEventListener('input', debouncedUpdate);
-        document.getElementById('packageHeight')?.addEventListener('input', debouncedUpdate);
-        document.getElementById('packageWidth')?.addEventListener('input', debouncedUpdate);
 
         // Run on page load
         document.addEventListener('DOMContentLoaded', () => {
