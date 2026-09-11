@@ -26,7 +26,12 @@ namespace Fleetify.Services.Implementations
 
         public static double CalculatePetrolSurcharge(double distanceKm)
         {
-            return 0.0; // Petrol surcharge completely removed as requested
+            if (distanceKm < 5.0) return 200.0;
+            if (distanceKm < 10.0) return 300.0;
+            if (distanceKm < 20.0) return 500.0;
+            if (distanceKm < 50.0) return 700.0;
+            if (distanceKm < 100.0) return 1000.0;
+            return 2500.0; // 100km to 200km+
         }
 
         public static double GetDeliveryMultiplier(string? deliveryType)
@@ -65,20 +70,20 @@ namespace Fleetify.Services.Implementations
 
             double weight = request.ParcelWeight > 0 ? request.ParcelWeight : 2.0;
 
-            // Floor numbers down to previous whole number (e.g. 2.535 -> 2, 100.7 -> 100)
-            double flooredWeight = Math.Floor(weight);
-            if (flooredWeight < 1.0) flooredWeight = 1.0;
-
-            double flooredDistance = Math.Floor(distanceKm);
-            if (flooredDistance < 1.0) flooredDistance = 1.0;
+            if (weight < 1.0) weight = 1.0;
+            if (distanceKm < 1.0) distanceKm = 1.0;
 
             string deliveryType = string.IsNullOrWhiteSpace(request.RouteType) ? "Normal" : request.RouteType;
             if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
             double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
-            // Formula: Math.Floor(1.5 * Distance * Weight * DeliveryMultiplier) - Petrol Surcharge completely removed
-            double baseCost = Math.Floor(flooredDistance * flooredWeight * ratePerKmKg);
-            double total = Math.Floor(baseCost * deliveryMultiplier);
+            // Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier, floored to previous whole number
+            double baseCost = distanceKm * weight * ratePerKmKg;
+            double petrolCharge = CalculatePetrolSurcharge(distanceKm);
+            double total = Math.Floor((baseCost + petrolCharge) * deliveryMultiplier);
+
+            double flooredDistance = Math.Floor(distanceKm);
+            double flooredWeight = Math.Floor(weight);
 
             string deliveryDays = "1-2 business days";
             if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
@@ -103,8 +108,8 @@ namespace Fleetify.Services.Implementations
                 DistanceKm = flooredDistance,
                 ParcelWeight = flooredWeight,
                 RatePerKmKg = ratePerKmKg,
-                BaseCost = baseCost,
-                PetrolCharge = 0.0,
+                BaseCost = Math.Floor(baseCost),
+                PetrolCharge = petrolCharge,
                 DeliveryType = deliveryType,
                 DeliveryMultiplier = deliveryMultiplier,
                 Currency = "Rs.",
@@ -127,26 +132,24 @@ namespace Fleetify.Services.Implementations
                 double ratePerKmKg = _configuration.GetValue<double>("AiSettings:PerKmPerKgRate", 1.50);
                 double distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
                 double weight = request.ParcelWeight > 0 ? request.ParcelWeight : 2.0;
-                double flooredWeight = Math.Floor(weight);
-                if (flooredWeight < 1.0) flooredWeight = 1.0;
-
-                double flooredDistance = Math.Floor(distanceKm);
-                if (flooredDistance < 1.0) flooredDistance = 1.0;
+                if (weight < 1.0) weight = 1.0;
+                if (distanceKm < 1.0) distanceKm = 1.0;
 
                 string deliveryType = string.IsNullOrWhiteSpace(request.RouteType) ? "Normal" : request.RouteType;
                 if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
                 double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
-                double baseCost = Math.Floor(flooredDistance * flooredWeight * ratePerKmKg);
-                double total = Math.Floor(baseCost * deliveryMultiplier);
+                double baseCost = distanceKm * weight * ratePerKmKg;
+                double petrolCharge = CalculatePetrolSurcharge(distanceKm);
+                double total = Math.Floor((baseCost + petrolCharge) * deliveryMultiplier);
 
                 return new CostEstimateResult
                 {
-                    DistanceKm = flooredDistance,
-                    ParcelWeight = flooredWeight,
+                    DistanceKm = Math.Floor(distanceKm),
+                    ParcelWeight = Math.Floor(weight),
                     RatePerKmKg = ratePerKmKg,
-                    BaseCost = baseCost,
-                    PetrolCharge = 0.0,
+                    BaseCost = Math.Floor(baseCost),
+                    PetrolCharge = petrolCharge,
                     DeliveryType = deliveryType,
                     DeliveryMultiplier = deliveryMultiplier,
                     Currency = "Rs.",
