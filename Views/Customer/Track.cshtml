@@ -135,8 +135,15 @@
                         <strong>@Model.DistanceKm km</strong>
                     </div>
                     <div class="col-6">
+                        <span class="text-secondary d-block">Delivery Type</span>
+                        <strong>@(string.IsNullOrWhiteSpace(Model.RouteType) ? "Normal" : Model.RouteType)</strong>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3 small">
+                    <div class="col-12">
                         <span class="text-secondary d-block">Total Cost</span>
-                        <strong class="text-primary fs-6">$@Model.EstimatedCost.ToString("F2")</strong>
+                        <strong class="text-primary fs-6">Rs. @Model.EstimatedCost.ToString("F2")</strong>
                     </div>
                 </div>
 

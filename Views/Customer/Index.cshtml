@@ -65,10 +65,10 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <span class="text-secondary small">Total Spent</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-0">$@Model.TotalSpent.ToString("N0")</h3>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">Rs. @Model.TotalSpent.ToString("N0")</h3>
                     </div>
                     <div class="kpi-icon bg-purple-subtle text-purple rounded-circle p-3">
-                        <i class="bi bi-currency-dollar fs-4"></i>
+                        <i class="bi bi-wallet2 fs-4"></i>
                     </div>
                 </div>
             </div>
@@ -130,7 +130,15 @@
                             </div>
 
                             <div class="row g-3 mb-4">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-secondary">Delivery Type</label>
+                                    <select asp-for="NewDelivery.RouteType" id="deliveryType" class="form-select rounded-3 py-2 fw-semibold text-dark">
+                                        <option value="Normal" selected>Normal Delivery (1x)</option>
+                                        <option value="Fast">Fast Delivery (1.75x)</option>
+                                        <option value="Express">Express Delivery (2.5x)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Vehicle Type</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-end-0 text-primary"><i class="bi bi-truck fs-5"></i></span>
@@ -138,7 +146,7 @@
                                     </div>
                                     <input type="hidden" asp-for="NewDelivery.VehicleType" id="vehicleType" value="Truck" />
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Pickup Date</label>
                                     <input asp-for="NewDelivery.PickupDate" id="pickupDate" type="date" class="form-control rounded-3 py-2" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
                                 </div>
@@ -171,19 +179,19 @@
                             <span class="fw-semibold text-dark" id="estWeight">2.0 kg</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Rate (Per km per kg)</span>
-                            <span class="fw-semibold text-dark" id="estRate">$1.50 / km / kg</span>
+                            <span class="text-secondary">Petrol Surcharge</span>
+                            <span class="fw-semibold text-dark" id="estPetrol">Rs. 500</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3 small">
-                            <span class="text-secondary">Calculation</span>
-                            <span class="text-muted font-mono" id="estFormulaText" style="font-size: 0.78rem;">15.0 km × 2.0 kg × $1.50</span>
+                            <span class="text-secondary">Delivery Speed</span>
+                            <span class="fw-semibold text-primary" id="estDeliveryType">Normal (1x)</span>
                         </div>
 
                         <hr class="my-2" />
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="fw-bold text-dark">Estimated Total</span>
-                            <h4 class="fw-bold text-primary mb-0" id="estTotal">$45.00</h4>
+                            <h4 class="fw-bold text-primary mb-0" id="estTotal">Rs. 545.00</h4>
                         </div>
 
                         <div class="p-3 bg-light-blue rounded-3 text-primary small d-flex align-items-center gap-2 mb-3">
@@ -231,6 +239,7 @@
                                     <th>Date</th>
                                     <th>Pickup &rarr; Dropoff</th>
                                     <th>Weight</th>
+                                    <th>Speed</th>
                                     <th>Vehicle</th>
                                     <th>Cost</th>
                                     <th>Status</th>
@@ -252,9 +261,16 @@
                                         </td>
                                         <td><strong>@d.ParcelWeight.ToString("F1")</strong> kg</td>
                                         <td>
+                                            @{
+                                                var speed = string.IsNullOrWhiteSpace(d.RouteType) ? "Normal" : d.RouteType;
+                                                var speedBadge = speed == "Express" ? "bg-danger-subtle text-danger" : speed == "Fast" ? "bg-warning-subtle text-warning-emphasis" : "bg-light text-dark";
+                                            }
+                                            <span class="badge @speedBadge border">@speed</span>
+                                        </td>
+                                        <td>
                                             <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-truck me-1"></i>@d.VehicleType</span>
                                         </td>
-                                        <td class="fw-bold text-dark">$@d.EstimatedCost.ToString("F2")</td>
+                                        <td class="fw-bold text-dark">Rs. @d.EstimatedCost.ToString("F2")</td>
                                         <td>
                                             @if (d.RequestedStatus == "Delivered")
                                             {
@@ -286,7 +302,7 @@
                                                 @if (isEditable)
                                                 {
                                                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" title="Edit Request (~@minsLeft mins left)"
-                                                            onclick="openEditModal(@d.RequestID, '@d.TrackingNumber', '@Html.Raw(d.PickupLocation.Replace("'", "\\'"))', '@Html.Raw(d.DropoffLocation.Replace("'", "\\'"))', @d.ParcelWeight, '@Html.Raw((d.ParcelDescription ?? "").Replace("'", "\\'"))')">
+                                                            onclick="openEditModal(@d.RequestID, '@d.TrackingNumber', '@Html.Raw(d.PickupLocation.Replace("'", "\\'"))', '@Html.Raw(d.DropoffLocation.Replace("'", "\\'"))', @d.ParcelWeight, '@Html.Raw((d.RouteType ?? "Normal").Replace("'", "\\'"))', '@Html.Raw((d.ParcelDescription ?? "").Replace("'", "\\'"))')">
                                                         <i class="bi bi-pencil-square text-dark"></i>
                                                     </button>
                                                     <form asp-action="CancelDelivery" method="post" class="d-inline" onsubmit="return confirm('Aap yeh delivery request cancel karna chahte hain? (Tracking: @d.TrackingNumber)');">
@@ -373,6 +389,10 @@
                         <strong class="text-dark" id="modalWeightText">-</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Delivery Type:</span>
+                        <strong class="text-dark" id="modalTypeText">Normal (1x)</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
                         <span class="text-secondary">Vehicle Assigned:</span>
                         <span class="badge bg-primary text-white"><i class="bi bi-truck me-1"></i>Truck</span>
                     </div>
@@ -425,6 +445,14 @@
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary">Weight (kg)</label>
                         <input id="editWeight" name="ParcelWeight" type="number" step="0.5" min="0.5" class="form-control rounded-3 py-2" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Delivery Type</label>
+                        <select id="editRouteType" name="RouteType" class="form-select rounded-3 py-2 fw-semibold">
+                            <option value="Normal">Normal Delivery (1x)</option>
+                            <option value="Fast">Fast Delivery (1.75x)</option>
+                            <option value="Express">Express Delivery (2.5x)</option>
+                        </select>
                     </div>
                     <div class="mb-2">
                         <label class="form-label small fw-semibold text-secondary">Package Description</label>
@@ -486,7 +514,7 @@
             return coordinates;
         }
 
-        // Real-time AI & Map Cost Calculation (Distance * Weight * $1.50)
+        // Real-time AI & Map Cost Calculation (((1.5 * Distance * Weight) + Petrol) * Speed)
         function updateAiEstimate() {
             initRouteMap();
 
@@ -494,7 +522,7 @@
             const dropoff = document.getElementById('dropoffAddr')?.value || '';
             const weight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
             const vehicle = 'Truck';
-            const route = 'Standard';
+            const route = document.getElementById('deliveryType')?.value || 'Normal';
 
             fetch('/api/ai/estimate-cost', {
                 method: 'POST',
@@ -519,13 +547,14 @@
                 if (document.getElementById('estWeight')) {
                     document.getElementById('estWeight').innerText = currentWeight.toFixed(1) + ' kg';
                 }
-                if (document.getElementById('estRate')) {
-                    document.getElementById('estRate').innerText = '$1.50 / km / kg';
+                if (document.getElementById('estPetrol')) {
+                    document.getElementById('estPetrol').innerText = 'Rs. ' + (data.petrolCharge || 500).toFixed(0);
                 }
-                if (document.getElementById('estFormulaText')) {
-                    document.getElementById('estFormulaText').innerText = data.distanceKm.toFixed(1) + ' km × ' + currentWeight.toFixed(1) + ' kg × $1.50';
+                if (document.getElementById('estDeliveryType')) {
+                    const multText = (data.deliveryMultiplier === 1.0 ? '1x' : data.deliveryMultiplier + 'x');
+                    document.getElementById('estDeliveryType').innerText = (data.deliveryType || route) + ' (' + multText + ')';
                 }
-                document.getElementById('estTotal').innerText = '$' + data.estimatedTotal.toFixed(2);
+                document.getElementById('estTotal').innerText = 'Rs. ' + data.estimatedTotal.toFixed(2);
                 document.getElementById('estDeliveryDays').innerText = data.estimatedDeliveryDays;
 
                 const provBadge = document.getElementById('estMapProvider');
@@ -579,11 +608,16 @@
             const pickup = document.getElementById('pickupAddr')?.value || 'Not specified';
             const dropoff = document.getElementById('dropoffAddr')?.value || 'Not specified';
             const weight = document.getElementById('packageWeight')?.value || '2.0';
-            const total = document.getElementById('estTotal')?.innerText || '$0.00';
+            const typeSel = document.getElementById('deliveryType');
+            const deliveryType = typeSel ? typeSel.options[typeSel.selectedIndex].text : 'Normal Delivery (1x)';
+            const total = document.getElementById('estTotal')?.innerText || 'Rs. 0.00';
 
             document.getElementById('modalPickupText').innerText = pickup;
             document.getElementById('modalDropoffText').innerText = dropoff;
             document.getElementById('modalWeightText').innerText = weight + ' kg';
+            if (document.getElementById('modalTypeText')) {
+                document.getElementById('modalTypeText').innerText = deliveryType;
+            }
             document.getElementById('modalCostText').innerText = total;
 
             const modalEl = document.getElementById('submitNoticeModal');
@@ -595,12 +629,15 @@
             document.getElementById('deliveryForm').submit();
         }
 
-        function openEditModal(id, tracking, pickup, dropoff, weight, desc) {
+        function openEditModal(id, tracking, pickup, dropoff, weight, routeType, desc) {
             document.getElementById('editRequestId').value = id;
             document.getElementById('editTrackingNumber').innerText = tracking;
             document.getElementById('editPickup').value = pickup;
             document.getElementById('editDropoff').value = dropoff;
             document.getElementById('editWeight').value = weight;
+            if (document.getElementById('editRouteType')) {
+                document.getElementById('editRouteType').value = routeType || 'Normal';
+            }
             document.getElementById('editDesc').value = desc;
 
             const editModalEl = document.getElementById('editDeliveryModal');
@@ -612,6 +649,7 @@
         document.getElementById('pickupAddr')?.addEventListener('input', debouncedUpdate);
         document.getElementById('dropoffAddr')?.addEventListener('input', debouncedUpdate);
         document.getElementById('packageWeight')?.addEventListener('input', debouncedUpdate);
+        document.getElementById('deliveryType')?.addEventListener('change', updateAiEstimate);
 
         // Run on page load
         document.addEventListener('DOMContentLoaded', () => {

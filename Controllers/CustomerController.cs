@@ -140,7 +140,7 @@ namespace Fleetify.Controllers
             if (string.IsNullOrWhiteSpace(model.RouteType))
             {
                 model.RouteType = Request.Form["NewDelivery.RouteType"].ToString();
-                if (string.IsNullOrWhiteSpace(model.RouteType)) model.RouteType = "Standard";
+                if (string.IsNullOrWhiteSpace(model.RouteType)) model.RouteType = "Normal";
             }
             if (string.IsNullOrWhiteSpace(model.ParcelDescription))
             {
@@ -195,20 +195,23 @@ namespace Fleetify.Controllers
             // Save AI Cost Record
             await _costService.SaveCostEstimateAsync(deliveryRequest.RequestID, costRequest, costEstimate);
 
-            // Notify Admin
-            var admins = await _context.Admins.ToListAsync();
-            foreach (var admin in admins)
+            // Broadcast notification to Admins
+            if (_notificationService != null)
             {
-                await _notificationService.CreateNotificationAsync(
-                    "Admin",
-                    admin.UserID,
-                    "New Delivery Request",
-                    $"Customer booked delivery {deliveryRequest.TrackingNumber} from {deliveryRequest.PickupLocation} to {deliveryRequest.DropoffLocation}.",
-                    deliveryRequest.RequestID
-                );
+                var admins = await _context.Admins.ToListAsync();
+                foreach (var admin in admins)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        "Admin",
+                        admin.UserID,
+                        "New Delivery Request",
+                        $"Customer booked delivery {deliveryRequest.TrackingNumber} from {deliveryRequest.PickupLocation} to {deliveryRequest.DropoffLocation}.",
+                        deliveryRequest.RequestID
+                    );
+                }
             }
 
-            TempData["SuccessMessage"] = $"Delivery request submitted successfully! Your tracking number is {trackingNumber}. Total: ${costEstimate.EstimatedTotal:F2} (Editable or cancellable within 1 hour).";
+            TempData["SuccessMessage"] = $"Delivery request submitted successfully! Your tracking number is {trackingNumber}. Total: Rs. {costEstimate.EstimatedTotal:F2} (Editable or cancellable within 1 hour).";
             return RedirectToAction(nameof(Index));
         }
 
@@ -307,6 +310,8 @@ namespace Fleetify.Controllers
             request.ParcelWeight = weight;
             request.Height = height;
             request.Width = width;
+            if (!string.IsNullOrWhiteSpace(model.RouteType))
+                request.RouteType = model.RouteType;
             if (!string.IsNullOrWhiteSpace(model.ParcelDescription))
                 request.ParcelDescription = model.ParcelDescription;
             request.DistanceKm = costEstimate.DistanceKm > 0 ? costEstimate.DistanceKm : request.DistanceKm;
@@ -314,7 +319,7 @@ namespace Fleetify.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Delivery request {request.TrackingNumber} has been updated successfully within your 1-hour window! New total: ${request.EstimatedCost:F2}";
+            TempData["SuccessMessage"] = $"Delivery request {request.TrackingNumber} has been updated successfully within your 1-hour window! New total: Rs. {request.EstimatedCost:F2}";
             return RedirectToAction(nameof(Index));
         }
 

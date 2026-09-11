@@ -65,7 +65,7 @@ namespace Fleetify.Models.ViewModels
         public double Width { get; set; } = 1.0;
         public string ParcelDescription { get; set; } = string.Empty;
         public string VehicleType { get; set; } = "Truck";
-        public string RouteType { get; set; } = "Standard"; // Standard, Express, Fragile, HeavyCargo
+        public string RouteType { get; set; } = "Normal"; // Normal (1x), Fast (1.75x), Express (2.5x)
         public double EstimatedDistanceKm { get; set; } = 15.0;
         public DateTime PickupDate { get; set; } = DateTime.Today;
     }

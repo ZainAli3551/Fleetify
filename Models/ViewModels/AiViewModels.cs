@@ -8,19 +8,24 @@ namespace Fleetify.Models.ViewModels
         public string? DropoffLocation { get; set; }
         public double DistanceKm { get; set; } = 15.0;
         public double ParcelWeight { get; set; } = 2.0;
-        public string VehicleType { get; set; } = "Van";
-        public string RouteType { get; set; } = "Standard";
+        public string VehicleType { get; set; } = "Truck";
+        public string RouteType { get; set; } = "Normal";
     }
 
     public class CostEstimateResult
     {
         public double DistanceKm { get; set; }
-        public double ParcelWeight { get; set; } = 1.0;
+        public double ParcelWeight { get; set; } = 2.0;
         public double RatePerKmKg { get; set; } = 1.50;
+        public double BaseCost { get; set; }
         public double BaseRate { get; set; } = 0.00;
+        public double DistanceCharge { get; set; }
         public double WeightCharge { get; set; }
         public double TypeSurcharge { get; set; }
-        public double DistanceCharge { get; set; }
+        public double PetrolCharge { get; set; } = 500.0;
+        public string DeliveryType { get; set; } = "Normal";
+        public double DeliveryMultiplier { get; set; } = 1.0;
+        public string Currency { get; set; } = "Rs.";
         public double EstimatedTotal { get; set; }
         public string EstimatedDeliveryDays { get; set; } = "1-2 business days";
         public int DurationMinutes { get; set; }
