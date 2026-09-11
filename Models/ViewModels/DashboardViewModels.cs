@@ -60,11 +60,13 @@ namespace Fleetify.Models.ViewModels
     {
         public string PickupLocation { get; set; } = string.Empty;
         public string DropoffLocation { get; set; } = string.Empty;
-        public double ParcelWeight { get; set; } = 1.0;
+        public double ParcelWeight { get; set; } = 2.0;
+        public double Height { get; set; } = 1.0;
+        public double Width { get; set; } = 1.0;
         public string ParcelDescription { get; set; } = string.Empty;
-        public string VehicleType { get; set; } = "Car"; // Bike, Car, Van, Truck
+        public string VehicleType { get; set; } = "Truck";
         public string RouteType { get; set; } = "Standard"; // Standard, Express, Fragile, HeavyCargo
-        public double EstimatedDistanceKm { get; set; } = 12.0;
+        public double EstimatedDistanceKm { get; set; } = 15.0;
         public DateTime PickupDate { get; set; } = DateTime.Today;
     }
 

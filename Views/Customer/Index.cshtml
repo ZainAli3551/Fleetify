@@ -104,61 +104,59 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label small fw-semibold text-secondary">Pickup Address</label>
-                                    <input asp-for="NewDelivery.PickupLocation" id="pickupAddr" class="form-control rounded-3 py-2" placeholder="123 Main St, City" required />
+                                    <input asp-for="NewDelivery.PickupLocation" id="pickupAddr" class="form-control rounded-3 py-2" placeholder="e.g. Shaheenabad, Gujranwala" required />
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-semibold text-secondary">Dropoff Address</label>
-                                    <input asp-for="NewDelivery.DropoffLocation" id="dropoffAddr" class="form-control rounded-3 py-2" placeholder="456 Park Ave, City" required />
+                                    <input asp-for="NewDelivery.DropoffLocation" id="dropoffAddr" class="form-control rounded-3 py-2" placeholder="e.g. Data Darbar, Lahore" required />
                                 </div>
                             </div>
 
                             <div class="row g-3 mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Package Weight (kg)</label>
                                     <input asp-for="NewDelivery.ParcelWeight" id="packageWeight" type="number" step="0.5" min="0.5" class="form-control rounded-3 py-2" value="2.0" required />
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold text-secondary">Package Type</label>
-                                    <select asp-for="NewDelivery.ParcelDescription" class="form-select rounded-3 py-2">
-                                        <option value="Document">Document</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Clothing & Apparel">Clothing &amp; Apparel</option>
-                                        <option value="Fragile Item">Fragile Goods</option>
-                                        <option value="Hardware Parts">Hardware Parts</option>
-                                    </select>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-secondary">Height (m)</label>
+                                    <input asp-for="NewDelivery.Height" id="packageHeight" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" value="1.0" required />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-secondary">Width (m)</label>
+                                    <input asp-for="NewDelivery.Width" id="packageWidth" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" value="1.0" required />
                                 </div>
                             </div>
 
                             <div class="row g-3 mb-4">
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Vehicle Type</label>
-                                    <select asp-for="NewDelivery.VehicleType" id="vehicleType" class="form-select rounded-3 py-2">
-                                        <option value="Bike">Bike (Quick courier)</option>
-                                        <option value="Car">Car (Standard parcel)</option>
-                                        <option value="Van" selected>Van (Medium loads)</option>
-                                        <option value="Truck">Truck (Heavy freight)</option>
-                                    </select>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 text-primary"><i class="bi bi-truck fs-5"></i></span>
+                                        <input type="text" class="form-control rounded-end-3 py-2 bg-light fw-bold text-dark border-start-0" value="Truck (Heavy freight)" readonly />
+                                    </div>
+                                    <input type="hidden" asp-for="NewDelivery.VehicleType" id="vehicleType" value="Truck" />
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-secondary">Service Route Type</label>
-                                    <select asp-for="NewDelivery.RouteType" id="routeType" class="form-select rounded-3 py-2">
-                                        <option value="Standard" selected>Standard Delivery</option>
-                                        <option value="Express">Express Rush</option>
-                                        <option value="Fragile">Fragile Handling</option>
-                                        <option value="HeavyCargo">Heavy Cargo</option>
+                                    <label class="form-label small fw-semibold text-secondary">Package Type</label>
+                                    <select asp-for="NewDelivery.ParcelDescription" id="parcelDescription" class="form-select rounded-3 py-2">
+                                        <option value="Document">Document</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Clothing & Apparel">Clothing &amp; Apparel</option>
+                                        <option value="Fragile Goods">Fragile Goods</option>
+                                        <option value="Hardware Parts" selected>Hardware Parts</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Pickup Date</label>
-                                    <input asp-for="NewDelivery.PickupDate" type="date" class="form-control rounded-3 py-2" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                                    <input asp-for="NewDelivery.PickupDate" id="pickupDate" type="date" class="form-control rounded-3 py-2" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
                                 </div>
                             </div>
 
                             <input type="hidden" id="distanceKm" name="NewDelivery.EstimatedDistanceKm" value="15" />
 
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold text-white">
-                                    Submit Delivery Request
+                                <button type="button" class="btn btn-primary rounded-pill py-2 fw-semibold text-white shadow-sm" onclick="showDeliveryNoticeModal()">
+                                    <i class="bi bi-send me-1"></i> Submit Delivery Request
                                 </button>
                             </div>
                         </form>
@@ -175,30 +173,34 @@
                             <span class="fw-semibold text-primary font-mono" id="estDistanceKm">15.0 km</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Package Weight</span>
-                            <span class="fw-semibold text-dark" id="estWeight">1.0 kg</span>
+                            <span class="text-secondary">Cargo Size</span>
+                            <span class="fw-semibold text-dark" id="estWeight">2.0 kg (1.0m × 1.0m)</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-secondary">Vehicle</span>
+                            <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-truck me-1"></i>Truck</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Rate (Per km per kg)</span>
-                            <span class="fw-semibold text-dark" id="estRate">$1.50</span>
+                            <span class="fw-semibold text-dark" id="estRate">$1.50 / km / kg</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3 small">
                             <span class="text-secondary">Calculation</span>
-                            <span class="text-muted font-mono" id="estFormulaText" style="font-size: 0.78rem;">15.0 km × 1.0 kg × $1.50</span>
+                            <span class="text-muted font-mono" id="estFormulaText" style="font-size: 0.78rem;">15.0 km × 2.0 kg × $1.50</span>
                         </div>
 
                         <hr class="my-2" />
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="fw-bold text-dark">Estimated Total</span>
-                            <h4 class="fw-bold text-primary mb-0" id="estTotal">$22.50</h4>
+                            <h4 class="fw-bold text-primary mb-0" id="estTotal">$45.00</h4>
                         </div>
 
                         <div class="p-3 bg-light-blue rounded-3 text-primary small d-flex align-items-center gap-2 mb-3">
                             <i class="bi bi-clock-history fs-5"></i>
                             <div>
                                 <span class="d-block text-secondary x-small">Estimated Delivery</span>
-                                <strong id="estDeliveryDays">2-3 business days</strong>
+                                <strong id="estDeliveryDays">1-2 business days</strong>
                             </div>
                         </div>
 
@@ -219,7 +221,10 @@
         <div class="tab-pane fade" id="track-deliveries-pane" role="tabpanel" tabindex="0">
             <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                    <h5 class="fw-bold text-dark mb-0">My Delivery Bookings</h5>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">My Delivery Bookings</h5>
+                        <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>Aap kisi bhi request ko <strong>1 ghantay ke andar</strong> edit ya cancel kar saktay hain.</p>
+                    </div>
                     <form asp-action="Track" method="get" class="d-flex gap-2" style="max-width: 320px;">
                         <input name="trackingNumber" class="form-control form-control-sm rounded-pill" placeholder="Enter Tracking # (e.g. FLT-...)" required />
                         <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 text-white">Track</button>
@@ -232,13 +237,16 @@
                         <table class="table table-hover align-middle mb-0 small">
                             <thead class="table-light text-secondary">
                                 <tr>
-                                    <th>Tracking Number</th>
+                                    <th>Tracking #</th>
                                     <th>Date</th>
                                     <th>Pickup &rarr; Dropoff</th>
-                                    <th>Parcel / Vehicle</th>
+                                    <th>Weight</th>
+                                    <th>Height</th>
+                                    <th>Width</th>
+                                    <th>Vehicle</th>
                                     <th>Cost</th>
                                     <th>Status</th>
-                                    <th class="text-end">Action</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -248,15 +256,17 @@
                                         <td class="fw-bold font-mono text-primary">@d.TrackingNumber</td>
                                         <td>@d.RequestDate.ToString("MMM dd, yyyy")</td>
                                         <td>
-                                            <div class="text-truncate" style="max-width: 250px;">
+                                            <div class="text-truncate" style="max-width: 200px;">
                                                 <i class="bi bi-circle-fill text-muted me-1 small"></i>@d.PickupLocation
                                                 <br />
                                                 <i class="bi bi-geo-alt-fill text-danger me-1"></i>@d.DropoffLocation
                                             </div>
                                         </td>
+                                        <td><strong>@d.ParcelWeight.ToString("F1")</strong> kg</td>
+                                        <td><strong>@d.Height.ToString("F1")</strong> m</td>
+                                        <td><strong>@d.Width.ToString("F1")</strong> m</td>
                                         <td>
-                                            <span class="badge bg-light text-dark border">@d.VehicleType</span>
-                                            <span class="text-muted">(@d.ParcelWeight kg)</span>
+                                            <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-truck me-1"></i>@d.VehicleType</span>
                                         </td>
                                         <td class="fw-bold text-dark">$@d.EstimatedCost.ToString("F2")</td>
                                         <td>
@@ -268,15 +278,49 @@
                                             {
                                                 <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">In-Transit</span>
                                             }
+                                            else if (d.RequestedStatus == "Cancelled")
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">Cancelled</span>
+                                            }
                                             else
                                             {
                                                 <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Pending</span>
                                             }
                                         </td>
                                         <td class="text-end">
-                                            <a asp-action="Track" asp-route-trackingNumber="@d.TrackingNumber" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                                                <i class="bi bi-geo-alt me-1"></i>Track
-                                            </a>
+                                            <div class="d-flex justify-content-end align-items-center gap-1">
+                                                <a asp-action="Track" asp-route-trackingNumber="@d.TrackingNumber" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-1" title="Track Live">
+                                                    <i class="bi bi-geo-alt"></i>
+                                                </a>
+                                                @{
+                                                    var elapsedMins = (DateTime.UtcNow - d.RequestDate).TotalMinutes;
+                                                    var isEditable = elapsedMins <= 60.0 && d.RequestedStatus == "Pending";
+                                                    var minsLeft = Math.Max(0, (int)(60.0 - elapsedMins));
+                                                }
+                                                @if (isEditable)
+                                                {
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" title="Edit Request (~@minsLeft mins left)"
+                                                            onclick="openEditModal(@d.RequestID, '@d.TrackingNumber', '@Html.Raw(d.PickupLocation.Replace("'", "\\'"))', '@Html.Raw(d.DropoffLocation.Replace("'", "\\'"))', @d.ParcelWeight, @d.Height, @d.Width, '@Html.Raw((d.ParcelDescription ?? "").Replace("'", "\\'"))')">
+                                                        <i class="bi bi-pencil-square text-dark"></i>
+                                                    </button>
+                                                    <form asp-action="CancelDelivery" method="post" class="d-inline" onsubmit="return confirm('Aap yeh delivery request cancel karna chahte hain? (Tracking: @d.TrackingNumber)');">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@d.RequestID" />
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2 py-1" title="Cancel (~@minsLeft mins left)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border rounded-pill small ms-1" style="font-size: 0.65rem;" title="1-hour window">
+                                                        <i class="bi bi-hourglass-split"></i> @(minsLeft)m
+                                                    </span>
+                                                }
+                                                else if (d.RequestedStatus != "Cancelled")
+                                                {
+                                                    <span class="badge bg-light text-muted border rounded-pill small ms-1" style="font-size: 0.65rem;" title="1-hour window closed; locked for shipping">
+                                                        <i class="bi bi-lock-fill"></i> Locked
+                                                    </span>
+                                                }
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -293,6 +337,127 @@
                     </div>
                 }
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- POP-UP 1: SUBMIT DELIVERY 1-HOUR LOCK NOTICE MODAL -->
+<div class="modal fade" id="submitNoticeModal" tabindex="-1" aria-labelledby="submitNoticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-warning bg-opacity-10 border-bottom-0 pb-2 pt-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-warning text-dark p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="submitNoticeModalLabel">Important Delivery Notice</h5>
+                        <span class="text-muted small">1-Hour Edit &amp; Cancellation Policy</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <div class="alert alert-warning border-0 rounded-3 p-3 mb-3">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-clock-history fs-4 text-warning-emphasis flex-shrink-0"></i>
+                        <div class="small text-dark">
+                            <strong>Aap is delivery request ko submit karne ke baad sirf 1 ghantay (60 minutes) ke andar hi Edit ya Delete / Cancel kar saktay hain!</strong>
+                            <p class="mb-0 mt-1 text-secondary">1 ghanta mukammal hone ke baad yeh order shipping aur dispatch ke liye lock ho jayega aur isay tabdeel ya cancel nahi kiya ja sakega.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-2 small text-uppercase letter-spacing-1">Order Details Summary:</h6>
+                <div class="bg-light rounded-3 p-3 small mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Pickup:</span>
+                        <strong class="text-dark text-truncate ms-2" style="max-width: 250px;" id="modalPickupText">-</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Dropoff:</span>
+                        <strong class="text-dark text-truncate ms-2" style="max-width: 250px;" id="modalDropoffText">-</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Weight:</span>
+                        <strong class="text-dark" id="modalWeightText">-</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Dimensions (H × W):</span>
+                        <strong class="text-dark" id="modalDimsText">-</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Vehicle Assigned:</span>
+                        <span class="badge bg-primary text-white"><i class="bi bi-truck me-1"></i>Truck</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                        <strong class="text-dark">Estimated Cost:</strong>
+                        <strong class="text-primary fs-6" id="modalCostText">-</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Review Again</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 text-white fw-semibold" onclick="confirmAndSubmitDelivery()">
+                    <i class="bi bi-check2-circle me-1"></i>I Understand, Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- POP-UP 2: EDIT DELIVERY MODAL (Within 1-Hour Window) -->
+<div class="modal fade" id="editDeliveryModal" tabindex="-1" aria-labelledby="editDeliveryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0 pt-3 px-4">
+                <h5 class="modal-title fw-bold text-dark" id="editDeliveryModalLabel">
+                    <i class="bi bi-pencil-square text-primary me-2"></i>Edit Delivery (<span id="editTrackingNumber"></span>)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editDeliveryForm" asp-action="EditDelivery" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editRequestId" name="id" value="" />
+                <input type="hidden" name="VehicleType" value="Truck" />
+
+                <div class="modal-body px-4 py-3">
+                    <div class="alert alert-info border-0 rounded-3 py-2 px-3 small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>Aap 1 ghantay ke andar apna order update kar rahay hain.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Pickup Address</label>
+                        <input id="editPickup" name="PickupLocation" class="form-control rounded-3 py-2" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Dropoff Address</label>
+                        <input id="editDropoff" name="DropoffLocation" class="form-control rounded-3 py-2" required />
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold text-secondary">Weight (kg)</label>
+                            <input id="editWeight" name="ParcelWeight" type="number" step="0.5" min="0.5" class="form-control rounded-3 py-2" required />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold text-secondary">Height (m)</label>
+                            <input id="editHeight" name="Height" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" required />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold text-secondary">Width (m)</label>
+                            <input id="editWidth" name="Width" type="number" step="0.1" min="0.1" class="form-control rounded-3 py-2" required />
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-secondary">Package Description</label>
+                        <input id="editDesc" name="ParcelDescription" class="form-control rounded-3 py-2" />
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 text-white fw-semibold">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -343,15 +508,17 @@
             return coordinates;
         }
 
-        // Real-time AI & Map Cost Calculation
+        // Real-time AI & Map Cost Calculation (Distance * Weight * $1.50)
         function updateAiEstimate() {
             initRouteMap();
 
             const pickup = document.getElementById('pickupAddr')?.value || '';
             const dropoff = document.getElementById('dropoffAddr')?.value || '';
-            const weight = parseFloat(document.getElementById('packageWeight')?.value) || 1.0;
-            const vehicle = document.getElementById('vehicleType')?.value || 'Van';
-            const route = document.getElementById('routeType')?.value || 'Standard';
+            const weight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
+            const height = parseFloat(document.getElementById('packageHeight')?.value) || 1.0;
+            const width = parseFloat(document.getElementById('packageWidth')?.value) || 1.0;
+            const vehicle = 'Truck';
+            const route = 'Standard';
 
             fetch('/api/ai/estimate-cost', {
                 method: 'POST',
@@ -372,9 +539,9 @@
                 if (document.getElementById('estDistanceKm')) {
                     document.getElementById('estDistanceKm').innerText = data.distanceKm.toFixed(1) + ' km';
                 }
-                const currentWeight = (data.parcelWeight || weight || 1.0);
+                const currentWeight = (data.parcelWeight || weight || 2.0);
                 if (document.getElementById('estWeight')) {
-                    document.getElementById('estWeight').innerText = currentWeight.toFixed(1) + ' kg';
+                    document.getElementById('estWeight').innerText = currentWeight.toFixed(1) + ' kg (' + height.toFixed(1) + 'm × ' + width.toFixed(1) + 'm)';
                 }
                 if (document.getElementById('estRate')) {
                     document.getElementById('estRate').innerText = '$1.50 / km / kg';
@@ -393,7 +560,7 @@
                 const distInput = document.getElementById('distanceKm');
                 if (distInput) distInput.value = data.distanceKm;
 
-                // Render Route Polyline on Map if coordinates or polyline are available
+                // Render Route Polyline on Map without annoying marker popups
                 if (map && data.routePolyline) {
                     try {
                         const coords = decodePolyline(data.routePolyline);
@@ -407,10 +574,8 @@
                             const startPt = coords[0];
                             const endPt = coords[coords.length - 1];
 
-                            pickupMarker = L.circleMarker(startPt, { radius: 6, color: '#16a34a', fillColor: '#22c55e', fillOpacity: 0.9 })
-                                .bindPopup('<b>Pickup:</b> ' + (pickup || 'Origin')).addTo(map);
-                            dropoffMarker = L.circleMarker(endPt, { radius: 6, color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.9 })
-                                .bindPopup('<b>Drop-off:</b> ' + (dropoff || 'Destination')).addTo(map);
+                            pickupMarker = L.circleMarker(startPt, { radius: 6, color: '#16a34a', fillColor: '#22c55e', fillOpacity: 0.9 }).addTo(map);
+                            dropoffMarker = L.circleMarker(endPt, { radius: 6, color: '#dc2626', fillColor: '#ef4444', fillOpacity: 0.9 }).addTo(map);
 
                             map.fitBounds(routeLayer.getBounds(), { padding: [20, 20] });
                         }
@@ -427,12 +592,57 @@
             estimateTimeout = setTimeout(updateAiEstimate, 350);
         }
 
-        // Live interactive listeners on ALL fields
+        // Pop-up trigger with validation and 1-hour policy notice
+        function showDeliveryNoticeModal() {
+            const form = document.getElementById('deliveryForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const pickup = document.getElementById('pickupAddr')?.value || 'Not specified';
+            const dropoff = document.getElementById('dropoffAddr')?.value || 'Not specified';
+            const weight = document.getElementById('packageWeight')?.value || '2.0';
+            const height = document.getElementById('packageHeight')?.value || '1.0';
+            const width = document.getElementById('packageWidth')?.value || '1.0';
+            const total = document.getElementById('estTotal')?.innerText || '$0.00';
+
+            document.getElementById('modalPickupText').innerText = pickup;
+            document.getElementById('modalDropoffText').innerText = dropoff;
+            document.getElementById('modalWeightText').innerText = weight + ' kg';
+            document.getElementById('modalDimsText').innerText = height + ' m × ' + width + ' m';
+            document.getElementById('modalCostText').innerText = total;
+
+            const modalEl = document.getElementById('submitNoticeModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        function confirmAndSubmitDelivery() {
+            document.getElementById('deliveryForm').submit();
+        }
+
+        function openEditModal(id, tracking, pickup, dropoff, weight, height, width, desc) {
+            document.getElementById('editRequestId').value = id;
+            document.getElementById('editTrackingNumber').innerText = tracking;
+            document.getElementById('editPickup').value = pickup;
+            document.getElementById('editDropoff').value = dropoff;
+            document.getElementById('editWeight').value = weight;
+            document.getElementById('editHeight').value = height;
+            document.getElementById('editWidth').value = width;
+            document.getElementById('editDesc').value = desc;
+
+            const editModalEl = document.getElementById('editDeliveryModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(editModalEl);
+            modal.show();
+        }
+
+        // Live interactive listeners
         document.getElementById('pickupAddr')?.addEventListener('input', debouncedUpdate);
         document.getElementById('dropoffAddr')?.addEventListener('input', debouncedUpdate);
         document.getElementById('packageWeight')?.addEventListener('input', debouncedUpdate);
-        document.getElementById('vehicleType')?.addEventListener('change', updateAiEstimate);
-        document.getElementById('routeType')?.addEventListener('change', updateAiEstimate);
+        document.getElementById('packageHeight')?.addEventListener('input', debouncedUpdate);
+        document.getElementById('packageWidth')?.addEventListener('input', debouncedUpdate);
 
         // Run on page load
         document.addEventListener('DOMContentLoaded', () => {

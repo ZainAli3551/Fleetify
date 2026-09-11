@@ -28,11 +28,15 @@ namespace Fleetify.Models.Entities
 
         public double ParcelWeight { get; set; }
 
+        public double Height { get; set; } = 1.0; // Height in meters/dimensions
+
+        public double Width { get; set; } = 1.0; // Width in meters/dimensions
+
         [MaxLength(250)]
         public string ParcelDescription { get; set; } = string.Empty;
 
         [MaxLength(30)]
-        public string VehicleType { get; set; } = "Van"; // Bike, Car, Van, Truck
+        public string VehicleType { get; set; } = "Truck"; // Default to Truck for customers
 
         [MaxLength(30)]
         public string RouteType { get; set; } = "Standard"; // Standard, Express, Fragile, HeavyCargo
