@@ -36,7 +36,7 @@ namespace Fleetify.Models.Entities
         public string ParcelDescription { get; set; } = string.Empty;
 
         [MaxLength(30)]
-        public string VehicleType { get; set; } = "Truck"; // Default to Truck for customers
+        public string VehicleType { get; set; } = "Truck"; // Bike, Pickup, Van, Truck
 
         [MaxLength(30)]
         public string RouteType { get; set; } = "Standard"; // Standard, Express, Fragile, HeavyCargo

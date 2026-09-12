@@ -140,11 +140,12 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Vehicle Type</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-end-0 text-primary"><i class="bi bi-truck fs-5"></i></span>
-                                        <input type="text" class="form-control rounded-end-3 py-2 bg-light fw-bold text-dark border-start-0" value="Truck (Heavy freight)" readonly />
-                                    </div>
-                                    <input type="hidden" asp-for="NewDelivery.VehicleType" id="vehicleType" value="Truck" />
+                                    <select asp-for="NewDelivery.VehicleType" id="vehicleType" class="form-select rounded-3 py-2 fw-semibold text-dark">
+                                        <option value="Bike">Bike (Up to 40 kg)</option>
+                                        <option value="Pickup">Pickup (Up to 800 kg)</option>
+                                        <option value="Van">Van (Up to 1,500 kg)</option>
+                                        <option value="Truck" selected>Truck (Up to 5,000 kg)</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Pickup Date</label>
@@ -264,7 +265,15 @@
                                             <span class="badge @speedBadge border">@speed</span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-truck me-1"></i>@d.VehicleType</span>
+                                            @{
+                                                var vIcon = (d.VehicleType ?? "Truck") switch {
+                                                    "Bike" => "bi-bicycle",
+                                                    "Pickup" => "bi-truck",
+                                                    "Van" => "bi-box-seam",
+                                                    _ => "bi-truck"
+                                                };
+                                            }
+                                            <span class="badge bg-primary-subtle text-primary border"><i class="bi @vIcon me-1"></i>@d.VehicleType</span>
                                         </td>
                                         <td class="fw-bold text-dark">Rs. @Math.Floor(d.EstimatedCost).ToString("F0")</td>
                                         <td>
@@ -298,7 +307,7 @@
                                                 @if (isEditable)
                                                 {
                                                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" title="Edit Request (~@minsLeft mins left)"
-                                                            onclick="openEditModal(@d.RequestID, '@d.TrackingNumber', '@Html.Raw(d.PickupLocation.Replace("'", "\\'"))', '@Html.Raw(d.DropoffLocation.Replace("'", "\\'"))', @d.ParcelWeight, '@Html.Raw((d.RouteType ?? "Normal").Replace("'", "\\'"))', '@Html.Raw((d.ParcelDescription ?? "").Replace("'", "\\'"))')">
+                                                            onclick="openEditModal(@d.RequestID, '@d.TrackingNumber', '@Html.Raw(d.PickupLocation.Replace("'", "\\'"))', '@Html.Raw(d.DropoffLocation.Replace("'", "\\'"))', @d.ParcelWeight, '@Html.Raw((d.RouteType ?? "Normal").Replace("'", "\\'"))', '@Html.Raw((d.ParcelDescription ?? "").Replace("'", "\\'"))', '@Html.Raw((d.VehicleType ?? "Truck").Replace("'", "\\'"))')">
                                                         <i class="bi bi-pencil-square text-dark"></i>
                                                     </button>
                                                     <form asp-action="CancelDelivery" method="post" class="d-inline" onsubmit="return confirm('Aap yeh delivery request cancel karna chahte hain? (Tracking: @d.TrackingNumber)');">
@@ -389,8 +398,8 @@
                         <strong class="text-dark" id="modalTypeText">Normal Delivery</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
-                        <span class="text-secondary">Vehicle Assigned:</span>
-                        <span class="badge bg-primary text-white"><i class="bi bi-truck me-1"></i>Truck</span>
+                        <span class="text-secondary">Vehicle Selected:</span>
+                        <span class="badge bg-primary text-white" id="modalVehicleText"><i class="bi bi-truck me-1"></i>Truck</span>
                     </div>
                     <div class="d-flex justify-content-between border-top pt-2 mt-2">
                         <strong class="text-dark">Estimated Cost:</strong>
@@ -421,7 +430,15 @@
             <form id="editDeliveryForm" asp-action="EditDelivery" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="editRequestId" name="id" value="" />
-                <input type="hidden" name="VehicleType" value="Truck" />
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Vehicle Type</label>
+                    <select id="editVehicleType" name="VehicleType" class="form-select rounded-3 py-2 fw-semibold">
+                        <option value="Bike">Bike (Up to 40 kg)</option>
+                        <option value="Pickup">Pickup (Up to 800 kg)</option>
+                        <option value="Van">Van (Up to 1,500 kg)</option>
+                        <option value="Truck">Truck (Up to 5,000 kg)</option>
+                    </select>
+                </div>
                 <input type="hidden" id="editHeight" name="Height" value="1.0" />
                 <input type="hidden" id="editWidth" name="Width" value="1.0" />
 
@@ -517,7 +534,7 @@
             const pickup = document.getElementById('pickupAddr')?.value || '';
             const dropoff = document.getElementById('dropoffAddr')?.value || '';
             const weight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
-            const vehicle = 'Truck';
+            const vehicle = document.getElementById('vehicleType')?.value || 'Truck';
             const route = document.getElementById('deliveryType')?.value || 'Normal';
 
             fetch('/api/ai/estimate-cost', {
@@ -603,6 +620,8 @@
             const weight = Math.floor(rawWeight);
             const typeSel = document.getElementById('deliveryType');
             const deliveryType = typeSel ? typeSel.options[typeSel.selectedIndex].text : 'Normal Delivery';
+            const vehSel = document.getElementById('vehicleType');
+            const vehicleText = vehSel ? vehSel.options[vehSel.selectedIndex].text : 'Truck (Up to 5,000 kg)';
             const total = document.getElementById('estTotal')?.innerText || 'Rs. 0';
 
             document.getElementById('modalPickupText').innerText = pickup;
@@ -610,6 +629,9 @@
             document.getElementById('modalWeightText').innerText = weight + ' kg';
             if (document.getElementById('modalTypeText')) {
                 document.getElementById('modalTypeText').innerText = deliveryType;
+            }
+            if (document.getElementById('modalVehicleText')) {
+                document.getElementById('modalVehicleText').innerText = vehicleText;
             }
             document.getElementById('modalCostText').innerText = total;
 
@@ -622,7 +644,7 @@
             document.getElementById('deliveryForm').submit();
         }
 
-        function openEditModal(id, tracking, pickup, dropoff, weight, routeType, desc) {
+        function openEditModal(id, tracking, pickup, dropoff, weight, routeType, desc, vehicleType) {
             document.getElementById('editRequestId').value = id;
             document.getElementById('editTrackingNumber').innerText = tracking;
             document.getElementById('editPickup').value = pickup;
@@ -630,6 +652,9 @@
             document.getElementById('editWeight').value = weight;
             if (document.getElementById('editRouteType')) {
                 document.getElementById('editRouteType').value = routeType || 'Normal';
+            }
+            if (document.getElementById('editVehicleType')) {
+                document.getElementById('editVehicleType').value = vehicleType || 'Truck';
             }
             document.getElementById('editDesc').value = desc;
 
@@ -643,6 +668,7 @@
         document.getElementById('dropoffAddr')?.addEventListener('input', debouncedUpdate);
         document.getElementById('packageWeight')?.addEventListener('input', debouncedUpdate);
         document.getElementById('deliveryType')?.addEventListener('change', updateAiEstimate);
+        document.getElementById('vehicleType')?.addEventListener('change', updateAiEstimate);
 
         // Run on page load
         document.addEventListener('DOMContentLoaded', () => {

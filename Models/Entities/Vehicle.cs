@@ -12,7 +12,7 @@ namespace Fleetify.Models.Entities
         public string VehicleNumber { get; set; } = string.Empty; // e.g. LEA-2024-901
 
         [Required, MaxLength(30)]
-        public string VehicleType { get; set; } = "Van"; // Bike, Car, Van, Truck
+        public string VehicleType { get; set; } = "Van"; // Bike, Pickup, Van, Truck
 
         [Required, MaxLength(100)]
         public string Model { get; set; } = string.Empty; // e.g. Toyota HiAce 2023

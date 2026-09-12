@@ -53,9 +53,10 @@ namespace Fleetify.Services.Implementations
                 systemInstructionText.AppendLine("Fleetify Information & Knowledge Base:");
                 systemInstructionText.AppendLine("• Services: Door-to-door delivery, B2B & B2C cargo, on-demand dispatch, and real-time fleet management.");
                 systemInstructionText.AppendLine("• Fleet Vehicle Types & Capacity Limits:");
-                systemInstructionText.AppendLine("  - Motorbike: Up to 35 kg (documents, envelopes, small packages)");
-                systemInstructionText.AppendLine("  - Delivery Van: Up to 1,500 kg (boxes, home appliances, medium cartons)");
-                systemInstructionText.AppendLine("  - Heavy Truck: Up to 4,500 kg (industrial pallets, bulk construction, heavy cargo)");
+                systemInstructionText.AppendLine("  - Bike: Up to 40 kg (documents, envelopes, small packages)");
+                systemInstructionText.AppendLine("  - Pickup: Up to 800 kg (tools, hardware, medium cargo, appliances)");
+                systemInstructionText.AppendLine("  - Van: Up to 1,500 kg (boxes, furniture, medium cartons)");
+                systemInstructionText.AppendLine("  - Truck: Up to 5,000 kg (industrial pallets, bulk construction, heavy cargo)");
                 systemInstructionText.AppendLine("• Pricing Calculation Model & Exact Formula:");
                 systemInstructionText.AppendLine("  - Currency: Rs. (Pakistani Rupees)");
                 systemInstructionText.AppendLine("  - Distance-Based Petrol Surcharge (Included in calculation, but never displayed as a separate line item to customer):");

@@ -24,6 +24,9 @@ namespace Fleetify.Data
                     BEGIN
                         ALTER TABLE DeliveryRequests ADD Width FLOAT NOT NULL DEFAULT 1.0;
                     END
+
+                    UPDATE Vehicles SET VehicleType = 'Pickup', CapacityKg = 800 WHERE VehicleType = 'Car';
+                    UPDATE DeliveryRequests SET VehicleType = 'Pickup' WHERE VehicleType = 'Car';
                 ");
             }
             catch (Exception ex)

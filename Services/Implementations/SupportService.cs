@@ -311,9 +311,10 @@ namespace Fleetify.Services.Implementations
                          cleanText.Contains("gaari"))
                 {
                     botReplyText = "🚚 **Fleetify Vehicle Types & Capacity Limits:**\n" +
-                                   "• 🏍️ **Motorbike:** Up to 35 kg (Best for letters, legal documents, small parcels)\n" +
+                                   "• 🏍️ **Bike:** Up to 40 kg (Best for letters, legal documents, small parcels)\n" +
+                                   "• 🛻 **Pickup:** Up to 800 kg (Tools, equipment, hardware & medium freight)\n" +
                                    "• 🚐 **Delivery Van:** Up to 1,500 kg (Cartons, appliances, mid-sized shipments)\n" +
-                                   "• 🚛 **Heavy Truck:** Up to 4,500 kg (Industrial goods, pallets & heavy bulk freight)";
+                                   "• 🚛 **Heavy Truck:** Up to 5,000 kg (Industrial goods, pallets & heavy bulk freight)";
                 }
                 // E. How to Book
                 else if (cleanText.Contains("book") || cleanText.Contains("kaise") || cleanText.Contains("order") ||

@@ -134,8 +134,11 @@ namespace Fleetify.Controllers
                 }
             }
 
-            // Customer Vehicle Type is strictly Truck
-            model.VehicleType = "Truck";
+            if (string.IsNullOrWhiteSpace(model.VehicleType))
+            {
+                var vForm = Request.Form["NewDelivery.VehicleType"].ToString();
+                model.VehicleType = !string.IsNullOrWhiteSpace(vForm) ? vForm : "Truck";
+            }
 
             if (string.IsNullOrWhiteSpace(model.RouteType))
             {
@@ -161,7 +164,7 @@ namespace Fleetify.Controllers
                 DropoffLocation = model.DropoffLocation,
                 DistanceKm = model.EstimatedDistanceKm,
                 ParcelWeight = model.ParcelWeight,
-                VehicleType = "Truck",
+                VehicleType = model.VehicleType,
                 RouteType = model.RouteType
             };
 
@@ -182,7 +185,7 @@ namespace Fleetify.Controllers
                 Height = model.Height,
                 Width = model.Width,
                 ParcelDescription = string.IsNullOrWhiteSpace(model.ParcelDescription) ? "General Package" : model.ParcelDescription,
-                VehicleType = "Truck",
+                VehicleType = model.VehicleType,
                 RouteType = model.RouteType,
                 DistanceKm = distance,
                 RequestedStatus = "Pending",
@@ -294,13 +297,15 @@ namespace Fleetify.Controllers
             double height = model.Height > 0 ? model.Height : request.Height;
             double width = model.Width > 0 ? model.Width : request.Width;
 
+            var vehicleType = !string.IsNullOrWhiteSpace(model.VehicleType) ? model.VehicleType : (!string.IsNullOrWhiteSpace(request.VehicleType) ? request.VehicleType : "Truck");
+
             var costRequest = new CostEstimateRequest
             {
                 PickupLocation = model.PickupLocation,
                 DropoffLocation = model.DropoffLocation,
                 DistanceKm = model.EstimatedDistanceKm > 0 ? model.EstimatedDistanceKm : request.DistanceKm,
                 ParcelWeight = weight,
-                VehicleType = "Truck",
+                VehicleType = vehicleType,
                 RouteType = model.RouteType ?? request.RouteType
             };
             var costEstimate = _costService.CalculateCost(costRequest);
@@ -310,6 +315,7 @@ namespace Fleetify.Controllers
             request.ParcelWeight = weight;
             request.Height = height;
             request.Width = width;
+            request.VehicleType = vehicleType;
             if (!string.IsNullOrWhiteSpace(model.RouteType))
                 request.RouteType = model.RouteType;
             if (!string.IsNullOrWhiteSpace(model.ParcelDescription))

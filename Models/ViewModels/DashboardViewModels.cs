@@ -64,7 +64,7 @@ namespace Fleetify.Models.ViewModels
         public double Height { get; set; } = 1.0;
         public double Width { get; set; } = 1.0;
         public string ParcelDescription { get; set; } = string.Empty;
-        public string VehicleType { get; set; } = "Truck";
+        public string VehicleType { get; set; } = "Truck"; // Bike, Pickup, Van, Truck
         public string RouteType { get; set; } = "Normal"; // Normal, Fast, Express
         public double EstimatedDistanceKm { get; set; } = 15.0;
         public DateTime PickupDate { get; set; } = DateTime.Today;
