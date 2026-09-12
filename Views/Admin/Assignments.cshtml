@@ -4,6 +4,7 @@
     var drivers = ViewBag.Drivers as List<Fleetify.Models.Entities.Driver> ?? new();
     var vehicles = ViewBag.Vehicles as List<Fleetify.Models.Entities.Vehicle> ?? new();
     var existingAssignments = ViewBag.Assignments as List<Fleetify.Models.Entities.Assignment> ?? new();
+    var verificationRequests = ViewBag.VerificationRequests as List<Fleetify.Models.Entities.DeliveryRequest> ?? new();
 }
 
 <div class="container-fluid px-lg-5 py-4">
@@ -57,7 +58,7 @@
                                     <span class="badge bg-light text-dark border">@req.VehicleType</span>
                                     <span class="text-muted">(@req.ParcelWeight kg - @req.ParcelDescription)</span>
                                 </td>
-                                <td class="fw-bold text-dark">$@req.EstimatedCost.ToString("F2")</td>
+                                <td class="fw-bold text-dark">Rs. @Math.Floor(req.EstimatedCost).ToString("F0")</td>
                                 <td class="text-end">
                                     <form asp-action="AssignDelivery" method="post" class="d-inline-flex gap-2 align-items-center justify-content-end">
                                         @Html.AntiForgeryToken()
@@ -95,6 +96,109 @@
             <div class="alert alert-light border text-center text-muted mb-0 py-4">
                 <i class="bi bi-check-circle text-success fs-4 d-block mb-1"></i>
                 All pending delivery requests have been successfully allocated to drivers!
+            </div>
+        }
+    </div>
+
+    <!-- Parcel Weight Verification & Cost Finalization Card -->
+    <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-semibold text-dark mb-0">
+                    <i class="bi bi-shield-check text-primary me-2"></i>Weight Verification &amp; Cost Finalization
+                </h5>
+                <span class="text-secondary small">Review driver-verified parcel weights and finalize customer delivery costs</span>
+            </div>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1">@verificationRequests.Count Pending Action</span>
+        </div>
+
+        @if (verificationRequests.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-secondary">
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Customer</th>
+                            <th>Driver</th>
+                            <th>Declared Weight</th>
+                            <th>Driver Measured Weight</th>
+                            <th>Current Est. Cost</th>
+                            <th>Status</th>
+                            <th class="text-end">Finalize Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @foreach (var vr in verificationRequests)
+                        {
+                            var isMatch = vr.WeightStatus == "VerifiedMatched";
+                            var driverName = vr.Assignment?.Driver?.FullName ?? "Assigned Driver";
+                            var measuredWeight = vr.VerifiedWeight ?? vr.ParcelWeight;
+
+                            <tr>
+                                <td class="fw-bold text-primary font-mono">@vr.TrackingNumber</td>
+                                <td>@(vr.User?.FullName ?? "Customer")</td>
+                                <td><i class="bi bi-person-badge text-muted me-1"></i>@driverName</td>
+                                <td><span class="badge bg-light text-dark border">@vr.ParcelWeight kg</span></td>
+                                <td>
+                                    <strong class="@(isMatch ? "text-success" : "text-warning")">
+                                        @measuredWeight.ToString("F1") kg
+                                    </strong>
+                                    @if (!string.IsNullOrEmpty(vr.DriverVerificationNotes))
+                                    {
+                                        <div class="text-muted x-small">Note: @vr.DriverVerificationNotes</div>
+                                    }
+                                </td>
+                                <td class="fw-bold text-dark">Rs. @Math.Floor(vr.EstimatedCost).ToString("F0")</td>
+                                <td>
+                                    @if (isMatch)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                                            <i class="bi bi-check-circle me-1"></i>Exact Match
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Discrepancy Reported
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <form asp-action="FinalizeDeliveryCost" method="post" class="d-inline-flex gap-2 align-items-center justify-content-end">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="requestId" value="@vr.RequestID" />
+
+                                        <div class="input-group input-group-sm" style="max-width: 140px;">
+                                            <input name="finalWeight" type="number" step="0.1" min="0.1" class="form-control" value="@measuredWeight" title="Final Weight in kg" required />
+                                            <span class="input-group-text bg-white">kg</span>
+                                        </div>
+
+                                        @if (isMatch)
+                                        {
+                                            <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 text-white text-nowrap" title="Finalize cost at declared amount">
+                                                <i class="bi bi-check2-circle me-1"></i>Finalize
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 text-dark fw-semibold text-nowrap" title="Recalculate and finalize updated cost">
+                                                <i class="bi bi-calculator me-1"></i>Update &amp; Finalize
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border text-center text-muted mb-0 py-3 small">
+                <i class="bi bi-clipboard-check text-success fs-4 d-block mb-1"></i>
+                No driver-verified weights currently awaiting cost finalization.
             </div>
         }
     </div>

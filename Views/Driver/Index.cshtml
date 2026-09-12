@@ -65,7 +65,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <span class="text-secondary small">Earnings Today</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-0">$@Model.EarningsToday.ToString("F2")</h3>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">Rs. @Math.Floor(Model.EarningsToday).ToString("F0")</h3>
                     </div>
                     <div class="kpi-icon bg-purple-subtle text-purple rounded-circle p-3">
                         <i class="bi bi-currency-dollar fs-4"></i>
@@ -156,7 +156,7 @@
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
-                                <h4 class="fw-bold text-dark mb-0">$@req.EstimatedCost.ToString("F2")</h4>
+                                <h4 class="fw-bold text-dark mb-0">Rs. @Math.Floor(req.EstimatedCost).ToString("F0")</h4>
                                 <div class="d-flex gap-2">
                                     <form asp-action="RejectAssignment" method="post">
                                         @Html.AntiForgeryToken()
@@ -212,6 +212,60 @@
                                 <div class="col-md-6">
                                     <i class="bi bi-flag-fill text-danger me-1"></i>To: <strong>@req.DropoffLocation</strong>
                                 </div>
+                            </div>
+
+                            <!-- Parcel Pickup & Weight Verification Section -->
+                            <div class="p-3 @(req.WeightStatus == "Finalized" ? "bg-success-subtle border-success-subtle" : req.WeightStatus == "VerifiedMatched" ? "bg-info-subtle border-info-subtle" : req.WeightStatus == "DiscrepancyReported" ? "bg-warning-subtle border-warning-subtle" : "bg-warning-subtle border-warning-subtle") rounded-3 mt-2 border mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small fw-bold text-dark">
+                                        <i class="bi bi-shield-check text-primary me-1"></i>Pickup &amp; Weight Verification
+                                    </span>
+                                    <div>
+                                        <span class="badge bg-light text-dark border me-1">Declared: @req.ParcelWeight kg</span>
+                                        @if (req.WeightStatus == "Finalized")
+                                        {
+                                            <span class="badge bg-success text-white"><i class="bi bi-patch-check-fill me-1"></i>Cost Finalized: Rs. @Math.Floor(req.EstimatedCost).ToString("F0")</span>
+                                        }
+                                        else if (req.WeightStatus == "VerifiedMatched")
+                                        {
+                                            <span class="badge bg-success text-white"><i class="bi bi-check-circle me-1"></i>Weight Verified (@(req.VerifiedWeight ?? req.ParcelWeight) kg)</span>
+                                        }
+                                        else if (req.WeightStatus == "DiscrepancyReported")
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Discrepancy: @req.VerifiedWeight kg (Awaiting Admin Finalization)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary text-white">Pending Verification</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (req.WeightStatus != "Finalized")
+                                {
+                                    <form asp-action="VerifyWeight" method="post" class="d-flex flex-wrap gap-2 align-items-center mt-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="assignmentId" value="@a.AssignmentID" />
+
+                                        <div class="input-group input-group-sm" style="max-width: 200px;">
+                                            <span class="input-group-text bg-white fw-semibold">Measured</span>
+                                            <input name="verifiedWeight" type="number" step="0.1" min="0.1" class="form-control" value="@(req.VerifiedWeight ?? req.ParcelWeight)" required />
+                                            <span class="input-group-text bg-white">kg</span>
+                                        </div>
+
+                                        <input name="remarks" class="form-control form-control-sm rounded-pill" placeholder="Note (e.g. scale calibration, heavy parcel)..." style="max-width: 280px;" />
+
+                                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 text-white">
+                                            <i class="bi bi-check2-circle me-1"></i>Verify &amp; Report Weight
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="small text-success mt-1">
+                                        <i class="bi bi-check2-all me-1"></i>Cost finalized by Admin based on verified weight (@req.ParcelWeight kg). Proceed with dropoff delivery.
+                                    </div>
+                                }
                             </div>
 
                             <!-- Progress Actions -->
@@ -273,7 +327,7 @@
                                         <td>@a.DeliveryRequest?.DropoffLocation</td>
                                         <td>@a.AssignedDate.ToString("MMM dd, yyyy")</td>
                                         <td>@a.DeliveryRequest?.DistanceKm km</td>
-                                        <td class="fw-bold text-success">$@(( (a.DeliveryRequest?.EstimatedCost ?? 0) * 0.70 ).ToString("F2"))</td>
+                                        <td class="fw-bold text-success">Rs. @Math.Floor(((a.DeliveryRequest?.EstimatedCost ?? 0) * 0.70)).ToString("F0")</td>
                                     </tr>
                                 }
                             </tbody>

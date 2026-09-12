@@ -20,19 +20,22 @@ namespace Fleetify.Controllers
         private readonly INotificationService _notificationService;
         private readonly IAuthService _authService;
         private readonly ISupportService _supportService;
+        private readonly ICostEstimationService _costService;
 
         public AdminController(
             FleetifyDbContext context,
             IMaintenancePredictionService maintenanceService,
             INotificationService notificationService,
             IAuthService authService,
-            ISupportService supportService)
+            ISupportService supportService,
+            ICostEstimationService costService)
         {
             _context = context;
             _maintenanceService = maintenanceService;
             _notificationService = notificationService;
             _authService = authService;
             _supportService = supportService;
+            _costService = costService;
         }
 
         // GET: /Admin (Figure 21: Admin Dashboard)
@@ -186,7 +189,16 @@ namespace Fleetify.Controllers
                 .OrderByDescending(a => a.AssignedDate)
                 .ToListAsync();
 
+            var verificationRequests = await _context.DeliveryRequests
+                .Include(r => r.User)
+                .Include(r => r.Assignment)
+                    .ThenInclude(a => a!.Driver)
+                .Where(r => r.WeightStatus == "VerifiedMatched" || r.WeightStatus == "DiscrepancyReported")
+                .OrderByDescending(r => r.RequestDate)
+                .ToListAsync();
+
             ViewBag.Assignments = existingAssignments;
+            ViewBag.VerificationRequests = verificationRequests;
 
             return View(pendingRequests);
         }
@@ -256,6 +268,102 @@ namespace Fleetify.Controllers
             );
 
             TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} successfully assigned to {driver.FullName}!";
+            return RedirectToAction(nameof(Assignments));
+        }
+
+        // POST: /Admin/FinalizeDeliveryCost
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinalizeDeliveryCost(int requestId, double finalWeight)
+        {
+            var deliveryRequest = await _context.DeliveryRequests
+                .Include(r => r.User)
+                .Include(r => r.Assignment)
+                    .ThenInclude(a => a!.Driver)
+                .FirstOrDefaultAsync(r => r.RequestID == requestId);
+
+            if (deliveryRequest == null)
+            {
+                TempData["ErrorMessage"] = "Delivery request not found.";
+                return RedirectToAction(nameof(Assignments));
+            }
+
+            if (finalWeight <= 0)
+            {
+                TempData["ErrorMessage"] = "Please provide a valid parcel weight in kg.";
+                return RedirectToAction(nameof(Assignments));
+            }
+
+            double oldWeight = deliveryRequest.ParcelWeight;
+            double oldCost = deliveryRequest.EstimatedCost;
+            bool weightChanged = Math.Abs(finalWeight - oldWeight) >= 0.01;
+
+            double newCost = oldCost;
+            if (weightChanged)
+            {
+                var costReq = new Models.ViewModels.CostEstimateRequest
+                {
+                    PickupLocation = deliveryRequest.PickupLocation,
+                    DropoffLocation = deliveryRequest.DropoffLocation,
+                    DistanceKm = deliveryRequest.DistanceKm,
+                    ParcelWeight = finalWeight,
+                    VehicleType = deliveryRequest.VehicleType,
+                    RouteType = deliveryRequest.RouteType
+                };
+                var est = _costService.CalculateCost(costReq);
+                newCost = est.EstimatedTotal;
+                deliveryRequest.ParcelWeight = finalWeight;
+                deliveryRequest.EstimatedCost = newCost;
+
+                await _costService.SaveCostEstimateAsync(deliveryRequest.RequestID, costReq, est);
+            }
+
+            deliveryRequest.VerifiedWeight = finalWeight;
+            deliveryRequest.WeightStatus = "Finalized";
+            if (deliveryRequest.RequestedStatus == "Pending" || deliveryRequest.RequestedStatus == "Weight Verified" || deliveryRequest.RequestedStatus == "Weight Reported")
+            {
+                deliveryRequest.RequestedStatus = deliveryRequest.Assignment != null ? "In-Transit" : "Approved";
+            }
+
+            if (deliveryRequest.Assignment != null)
+            {
+                _context.StatusUpdates.Add(new StatusUpdate
+                {
+                    AssignmentID = deliveryRequest.Assignment.AssignmentID,
+                    DriverID = deliveryRequest.Assignment.DriverID,
+                    UpdateStatus = "Cost Finalized",
+                    UpdateTime = DateTime.UtcNow,
+                    Remarks = weightChanged
+                        ? $"Admin finalized cost at Rs. {Math.Floor(newCost):F0} based on updated weight {finalWeight:F1} kg (Customer declared: {oldWeight:F1} kg)."
+                        : $"Admin finalized cost at Rs. {Math.Floor(newCost):F0} (Verified weight: {finalWeight:F1} kg)."
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Send notification to Customer
+            if (weightChanged)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    "Customer",
+                    deliveryRequest.UserID,
+                    "Updated Delivery Cost Notification",
+                    $"The driver verified the actual weight as {finalWeight:F1} kg (previously declared: {oldWeight:F1} kg). Your delivery cost has been updated and finalized to Rs. {Math.Floor(newCost):F0}.",
+                    deliveryRequest.RequestID
+                );
+            }
+            else
+            {
+                await _notificationService.CreateNotificationAsync(
+                    "Customer",
+                    deliveryRequest.UserID,
+                    "Delivery Cost Finalized",
+                    $"Your parcel weight of {finalWeight:F1} kg has been verified by the driver upon pickup. Your delivery cost is finalized at Rs. {Math.Floor(newCost):F0}.",
+                    deliveryRequest.RequestID
+                );
+            }
+
+            TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} finalized! Weight: {finalWeight:F1} kg, Final Cost: Rs. {Math.Floor(newCost):F0}. Notification sent to customer.";
             return RedirectToAction(nameof(Assignments));
         }
 

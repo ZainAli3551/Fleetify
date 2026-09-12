@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Fleetify.Data;
 using Fleetify.Models.Entities;
@@ -197,6 +198,24 @@ namespace Fleetify.Services.Implementations
 
         public async Task<CostEstimate> SaveCostEstimateAsync(int deliveryRequestId, CostEstimateRequest request, CostEstimateResult result)
         {
+            var existing = await _context.CostEstimates.FirstOrDefaultAsync(c => c.RequestID == deliveryRequestId);
+            if (existing != null)
+            {
+                existing.DistanceKm = request.DistanceKm;
+                existing.ParcelWeight = request.ParcelWeight;
+                existing.VehicleType = request.VehicleType;
+                existing.RouteType = request.RouteType;
+                existing.BaseFare = result.BaseRate;
+                existing.DistanceCharge = result.DistanceCharge;
+                existing.WeightCharge = result.WeightCharge;
+                existing.TypeSurcharge = result.TypeSurcharge;
+                existing.EstimatedAmount = result.EstimatedTotal;
+                existing.GeneratedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+                return existing;
+            }
+
             var estimate = new CostEstimate
             {
                 RequestID = deliveryRequestId,

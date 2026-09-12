@@ -122,6 +122,18 @@
                     <div class="col-6">
                         <span class="text-secondary d-block">Weight</span>
                         <strong>@Math.Floor(Model.ParcelWeight).ToString("F0") kg</strong>
+                        @if (Model.WeightStatus == "Finalized")
+                        {
+                            <span class="badge bg-success-subtle text-success border d-block mt-1 x-small"><i class="bi bi-patch-check-fill me-1"></i>Cost Finalized</span>
+                        }
+                        else if (Model.WeightStatus == "VerifiedMatched" || Model.WeightStatus == "DiscrepancyReported")
+                        {
+                            <span class="badge bg-info-subtle text-info border d-block mt-1 x-small"><i class="bi bi-shield-check me-1"></i>Weight Verified</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary border d-block mt-1 x-small"><i class="bi bi-hourglass me-1"></i>Pending Verification</span>
+                        }
                     </div>
                     <div class="col-6">
                         <span class="text-secondary d-block">Vehicle Type</span>
@@ -144,6 +156,14 @@
                     <div class="col-12">
                         <span class="text-secondary d-block">Total Cost</span>
                         <strong class="text-primary fs-6">Rs. @Math.Floor(Model.EstimatedCost).ToString("F0")</strong>
+                        @if (Model.WeightStatus == "Finalized")
+                        {
+                            <span class="text-success small ms-2"><i class="bi bi-check-circle me-1"></i>Confirmed</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted small ms-2">(Subject to driver verification)</span>
+                        }
                     </div>
                 </div>
 

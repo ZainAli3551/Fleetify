@@ -25,6 +25,19 @@ namespace Fleetify.Data
                         ALTER TABLE DeliveryRequests ADD Width FLOAT NOT NULL DEFAULT 1.0;
                     END
 
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'VerifiedWeight')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD VerifiedWeight FLOAT NULL;
+                    END
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'WeightStatus')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD WeightStatus NVARCHAR(50) NULL DEFAULT 'PendingVerification';
+                    END
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'DriverVerificationNotes')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD DriverVerificationNotes NVARCHAR(500) NULL;
+                    END
+
                     UPDATE Vehicles SET VehicleType = 'Pickup', CapacityKg = 800 WHERE VehicleType = 'Car';
                     UPDATE DeliveryRequests SET VehicleType = 'Pickup' WHERE VehicleType = 'Car';
                 ");

@@ -12,6 +12,34 @@
         </div>
     </div>
 
+    @if (Model.Notifications != null && Model.Notifications.Any())
+    {
+        <div class="card border-0 shadow-xs rounded-4 bg-white p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-bell-fill text-white"></i></span>
+                    <h6 class="fw-bold text-dark mb-0">Recent Notifications &amp; Updates</h6>
+                </div>
+                <span class="badge bg-light text-secondary border">@Model.Notifications.Count Total</span>
+            </div>
+            <div class="list-group list-group-flush small">
+                @foreach (var notif in Model.Notifications.Take(3))
+                {
+                    <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle-fill text-primary mt-1"></i>
+                            <div>
+                                <strong class="text-dark">@notif.Title</strong>
+                                <span class="text-secondary d-block">@notif.Message</span>
+                            </div>
+                        </div>
+                        <span class="text-muted x-small text-nowrap ms-3">@notif.SentAt.ToString("MMM dd, HH:mm")</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     <!-- 4 Top Metric Cards (Figure 23) -->
     <div class="row g-3 mb-4">
         <!-- Total Deliveries -->
@@ -281,9 +309,25 @@
                                             {
                                                 <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Delivered</span>
                                             }
-                                            else if (d.RequestedStatus == "In-Transit" || d.RequestedStatus == "Assigned")
+                                            else if (d.WeightStatus == "Finalized" || d.RequestedStatus == "Cost Finalized")
                                             {
-                                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">In-Transit</span>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1"><i class="bi bi-check-circle me-1"></i>Cost Finalized</span>
+                                            }
+                                            else if (d.WeightStatus == "VerifiedMatched" || d.RequestedStatus == "Weight Verified")
+                                            {
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-1"><i class="bi bi-shield-check me-1"></i>Weight Verified</span>
+                                            }
+                                            else if (d.WeightStatus == "DiscrepancyReported" || d.RequestedStatus == "Weight Reported")
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1"><i class="bi bi-exclamation-triangle me-1"></i>Weight Reported</span>
+                                            }
+                                            else if (d.RequestedStatus == "In-Transit")
+                                            {
+                                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1">In-Transit</span>
+                                            }
+                                            else if (d.RequestedStatus == "Assigned")
+                                            {
+                                                <span class="badge bg-info-subtle text-info rounded-pill px-3 py-1">Driver Assigned</span>
                                             }
                                             else if (d.RequestedStatus == "Cancelled")
                                             {
@@ -291,7 +335,7 @@
                                             }
                                             else
                                             {
-                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Pending</span>
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Pending Verification</span>
                                             }
                                         </td>
                                         <td class="text-end">
@@ -365,16 +409,22 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-4 py-3">
-                <div class="alert alert-warning border-0 rounded-3 p-3 mb-3">
+                <!-- Block 1: Time limit (unified into 1 paragraph) -->
+                <div class="alert alert-warning border-0 rounded-3 p-3 mb-2">
                     <div class="d-flex align-items-start gap-2">
                         <i class="bi bi-clock-history fs-4 text-warning-emphasis flex-shrink-0 mt-1"></i>
                         <div class="small text-dark">
-                            <p class="mb-2">
-                                <strong>Time-Limited Adjustments:</strong> You can only Edit, Delete, or Cancel this delivery request within 1 hour (60 minutes) of submission.
-                            </p>
-                            <p class="mb-0 text-secondary">
-                                <strong class="text-dark">Order Locking:</strong> Please note that the delivery request will lock automatically after 1 hour. Once locked, no further modifications or cancellations can be processed.
-                            </p>
+                            <strong>Time limit:</strong> You can only Edit, Delete, or Cancel this delivery request within 1 hour (60 minutes) of submission. Please note that the delivery request will lock automatically after 1 hour, and once locked, no further modifications or cancellations can be processed.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Block 2: Weight Verification & Cost Finalization -->
+                <div class="alert alert-info border-0 rounded-3 p-3 mb-3 bg-info-subtle">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-shield-check fs-4 text-primary flex-shrink-0 mt-1"></i>
+                        <div class="small text-dark">
+                            <strong>Weight Verification &amp; Final Cost:</strong> When the driver arrives to pick up your parcel, they will physically verify the actual weight. The notification with your confirmed original cost will be sent to you after the driver's verification is completed.
                         </div>
                     </div>
                 </div>

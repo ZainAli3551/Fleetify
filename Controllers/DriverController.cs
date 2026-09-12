@@ -222,5 +222,102 @@ namespace Fleetify.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        // POST: /Driver/VerifyWeight
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyWeight(int assignmentId, double verifiedWeight, string? remarks)
+        {
+            var assignment = await _context.Assignments
+                .Include(a => a.DeliveryRequest)
+                .Include(a => a.Driver)
+                .FirstOrDefaultAsync(a => a.AssignmentID == assignmentId);
+
+            if (assignment == null || assignment.DeliveryRequest == null)
+            {
+                TempData["ErrorMessage"] = "Assignment or Delivery Request not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var req = assignment.DeliveryRequest;
+            var driverName = assignment.Driver?.FullName ?? "Driver";
+
+            if (verifiedWeight <= 0)
+            {
+                TempData["ErrorMessage"] = "Please enter a valid parcel weight in kg.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            req.VerifiedWeight = verifiedWeight;
+            req.DriverVerificationNotes = remarks;
+
+            bool isExactMatch = Math.Abs(verifiedWeight - req.ParcelWeight) < 0.01;
+
+            if (isExactMatch)
+            {
+                req.WeightStatus = "VerifiedMatched";
+                req.RequestedStatus = "Weight Verified";
+
+                _context.StatusUpdates.Add(new StatusUpdate
+                {
+                    AssignmentID = assignment.AssignmentID,
+                    DriverID = assignment.DriverID,
+                    UpdateStatus = "Weight Verified",
+                    UpdateTime = DateTime.UtcNow,
+                    Remarks = string.IsNullOrWhiteSpace(remarks)
+                        ? $"Driver verified weight upon pickup: {verifiedWeight:F1} kg (Matches declared weight)."
+                        : $"Driver verified weight: {verifiedWeight:F1} kg (Matches declared). Note: {remarks}"
+                });
+
+                // Notify Admins
+                var admins = await _context.Admins.ToListAsync();
+                foreach (var admin in admins)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        "Admin",
+                        admin.UserID,
+                        "Parcel Weight Verified",
+                        $"Driver {driverName} verified exact weight ({verifiedWeight:F1} kg) for delivery {req.TrackingNumber}. Ready for finalization.",
+                        req.RequestID
+                    );
+                }
+
+                TempData["SuccessMessage"] = $"Weight verified successfully ({verifiedWeight:F1} kg matches declared weight). Admin has been notified to finalize cost.";
+            }
+            else
+            {
+                req.WeightStatus = "DiscrepancyReported";
+                req.RequestedStatus = "Weight Reported";
+
+                _context.StatusUpdates.Add(new StatusUpdate
+                {
+                    AssignmentID = assignment.AssignmentID,
+                    DriverID = assignment.DriverID,
+                    UpdateStatus = "Weight Discrepancy",
+                    UpdateTime = DateTime.UtcNow,
+                    Remarks = string.IsNullOrWhiteSpace(remarks)
+                        ? $"Driver reported actual weight: {verifiedWeight:F1} kg (Customer declared: {req.ParcelWeight:F1} kg)."
+                        : $"Driver reported actual weight: {verifiedWeight:F1} kg (Declared: {req.ParcelWeight:F1} kg). Note: {remarks}"
+                });
+
+                // Notify Admins
+                var admins = await _context.Admins.ToListAsync();
+                foreach (var admin in admins)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        "Admin",
+                        admin.UserID,
+                        "Weight Discrepancy Reported",
+                        $"Driver {driverName} reported weight discrepancy for {req.TrackingNumber}: Measured {verifiedWeight:F1} kg vs Declared {req.ParcelWeight:F1} kg. Admin action required to finalize cost.",
+                        req.RequestID
+                    );
+                }
+
+                TempData["WarningMessage"] = $"Weight discrepancy reported ({verifiedWeight:F1} kg vs declared {req.ParcelWeight:F1} kg). Admin has been notified to finalize cost.";
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -55,6 +55,9 @@ namespace Fleetify.Controllers
             var inTransit = deliveries.Count(d => d.RequestedStatus == "In-Transit" || d.RequestedStatus == "Assigned");
             var delivered = deliveries.Count(d => d.RequestedStatus == "Delivered");
             var totalSpent = deliveries.Sum(d => d.EstimatedCost);
+            var notifications = _notificationService != null
+                ? await _notificationService.GetUserNotificationsAsync("Customer", userId, 10)
+                : new List<Notification>();
 
             var viewModel = new CustomerDashboardViewModel
             {
@@ -64,7 +67,8 @@ namespace Fleetify.Controllers
                 InTransitCount = inTransit,
                 DeliveredCount = delivered,
                 TotalSpent = Math.Round(totalSpent, 2),
-                MyDeliveries = deliveries
+                MyDeliveries = deliveries,
+                Notifications = notifications
             };
 
             return View(viewModel);
@@ -189,6 +193,7 @@ namespace Fleetify.Controllers
                 RouteType = model.RouteType,
                 DistanceKm = distance,
                 RequestedStatus = "Pending",
+                WeightStatus = "PendingVerification",
                 EstimatedCost = costEstimate.EstimatedTotal
             };
 

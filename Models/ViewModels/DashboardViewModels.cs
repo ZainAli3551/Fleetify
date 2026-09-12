@@ -54,6 +54,7 @@ namespace Fleetify.Models.ViewModels
 
         public DeliveryRequestInputModel NewDelivery { get; set; } = new();
         public List<DeliveryRequest> MyDeliveries { get; set; } = new();
+        public List<Notification> Notifications { get; set; } = new();
     }
 
     public class DeliveryRequestInputModel

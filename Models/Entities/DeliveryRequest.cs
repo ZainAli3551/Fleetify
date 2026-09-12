@@ -48,6 +48,14 @@ namespace Fleetify.Models.Entities
 
         public double EstimatedCost { get; set; }
 
+        public double? VerifiedWeight { get; set; }
+
+        [MaxLength(50)]
+        public string? WeightStatus { get; set; } = "PendingVerification"; // PendingVerification, VerifiedMatched, DiscrepancyReported, Finalized
+
+        [MaxLength(500)]
+        public string? DriverVerificationNotes { get; set; }
+
         public virtual Assignment? Assignment { get; set; }
         public virtual CostEstimate? CostEstimate { get; set; }
     }
