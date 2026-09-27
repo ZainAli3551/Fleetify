@@ -69,6 +69,16 @@ namespace Fleetify.Models.ViewModels
         public string RouteType { get; set; } = "Normal"; // Normal, Fast, Express
         public double EstimatedDistanceKm { get; set; } = 15.0;
         public DateTime PickupDate { get; set; } = DateTime.Today;
+
+        // Warehouse Network & Service Options
+        public string OriginType { get; set; } = "DoorstepPickup"; // DoorstepPickup, WarehouseDropoff
+        public string DestinationType { get; set; } = "DoorstepDelivery"; // DoorstepDelivery, WarehousePickup
+        public string? OriginCity { get; set; }
+        public string? DestinationCity { get; set; }
+        public bool IsPrivateTransport { get; set; } = false;
+        public double PrivateTransportSurcharge { get; set; } = 0.0;
+        public string? DestinationWarehouseName { get; set; }
+        public string? DestinationWarehouseAddress { get; set; }
     }
 
     public class AdminSupportDashboardViewModel

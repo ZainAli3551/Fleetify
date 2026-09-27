@@ -56,6 +56,35 @@ namespace Fleetify.Models.Entities
         [MaxLength(500)]
         public string? DriverVerificationNotes { get; set; }
 
+        // Warehouse Network & Service Options
+        [MaxLength(50)]
+        public string OriginType { get; set; } = "DoorstepPickup"; // DoorstepPickup, WarehouseDropoff
+
+        [MaxLength(50)]
+        public string DestinationType { get; set; } = "DoorstepDelivery"; // DoorstepDelivery, WarehousePickup
+
+        [MaxLength(100)]
+        public string? OriginCity { get; set; }
+
+        [MaxLength(100)]
+        public string? DestinationCity { get; set; }
+
+        public bool HasOriginWarehouse { get; set; } = true;
+
+        public bool HasDestinationWarehouse { get; set; } = true;
+
+        public bool IsPrivateTransport { get; set; } = false;
+
+        public double PrivateTransportSurcharge { get; set; } = 0.0;
+
+        [MaxLength(150)]
+        public string? DestinationWarehouseName { get; set; }
+
+        [MaxLength(250)]
+        public string? DestinationWarehouseAddress { get; set; }
+
+        public bool WarehouseArrivalNotified { get; set; } = false;
+
         public virtual Assignment? Assignment { get; set; }
         public virtual CostEstimate? CostEstimate { get; set; }
     }

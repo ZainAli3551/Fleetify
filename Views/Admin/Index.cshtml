@@ -91,13 +91,13 @@
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <span class="text-secondary small">Revenue</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-0">$@Model.Revenue.ToString("N0")</h3>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">Rs. @Model.Revenue.ToString("N0")</h3>
                         <span class="badge bg-primary-subtle text-primary rounded-pill mt-2 small font-mono">
                             <i class="bi bi-arrow-up-short"></i>+23% this month
                         </span>
                     </div>
-                    <div class="kpi-icon bg-purple-subtle text-purple rounded-circle p-3">
-                        <i class="bi bi-currency-dollar fs-4"></i>
+                    <div class="kpi-icon bg-primary-subtle text-primary rounded-circle p-3">
+                        <i class="bi bi-cash-stack fs-4"></i>
                     </div>
                 </div>
             </div>
@@ -251,7 +251,7 @@
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
                     datasets: [{
-                        label: 'Monthly Revenue ($)',
+                        label: 'Monthly Revenue (Rs.)',
                         data: [2500, 5000, 7200, 6800, 9500, 11500, 14500],
                         borderColor: '#2563eb',
                         backgroundColor: 'rgba(37, 99, 235, 0.08)',

@@ -11,41 +11,32 @@
     </div>
 
     <div class="row justify-content-center g-4">
-        <!-- Customer Card -->
-        <div class="col-md-4 col-lg-3">
-            <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="text-decoration-none">
-                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4">
-                    <div class="role-icon-wrapper mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="bi bi-person fs-2"></i>
-                    </div>
-                    <h4 class="fw-semibold text-dark mb-2">Customer</h4>
-                    <p class="text-muted small mb-0">Send packages and track deliveries</p>
-                </div>
-            </a>
-        </div>
-
         <!-- Admin Card -->
-        <div class="col-md-4 col-lg-3">
+        <div class="col-md-5 col-lg-4">
             <a asp-controller="Account" asp-action="Login" asp-route-role="Admin" class="text-decoration-none">
-                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4">
-                    <div class="role-icon-wrapper mx-auto mb-3 bg-indigo-subtle text-indigo rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="bi bi-shield-lock fs-2"></i>
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4 p-lg-5 transition-hover">
+                    <div class="role-icon-wrapper mx-auto mb-3 bg-indigo-subtle text-indigo rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="bi bi-shield-check fs-1 text-primary"></i>
                     </div>
-                    <h4 class="fw-semibold text-dark mb-2">Admin</h4>
-                    <p class="text-muted small mb-0">Manage operations and users</p>
+                    <span class="badge bg-indigo-subtle text-indigo rounded-pill px-3 py-1 mb-2 font-mono">MODULE 1</span>
+                    <h3 class="fw-bold text-dark mb-2">Admin Portal</h3>
+                    <p class="text-muted small mb-3">Full control over operations, fleet vehicles, company drivers, on-call backup drivers directory, destination warehouse notifications, AI maintenance &amp; 24/7 support.</p>
+                    <span class="btn btn-primary rounded-pill px-4 btn-sm text-white fw-semibold">Enter Admin Portal &rarr;</span>
                 </div>
             </a>
         </div>
 
-        <!-- Driver Card -->
-        <div class="col-md-4 col-lg-3">
-            <a asp-controller="Account" asp-action="Login" asp-route-role="Driver" class="text-decoration-none">
-                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4">
-                    <div class="role-icon-wrapper mx-auto mb-3 bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="bi bi-truck fs-2"></i>
+        <!-- Customer / User Card -->
+        <div class="col-md-5 col-lg-4">
+            <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="text-decoration-none">
+                <div class="card h-100 role-card border-0 shadow-sm rounded-4 text-center p-4 p-lg-5 transition-hover">
+                    <div class="role-icon-wrapper mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="bi bi-box-seam fs-1"></i>
                     </div>
-                    <h4 class="fw-semibold text-dark mb-2">Driver</h4>
-                    <p class="text-muted small mb-0">Deliver packages to customers</p>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-2 font-mono">MODULE 2</span>
+                    <h3 class="fw-bold text-dark mb-2">User / Customer</h3>
+                    <p class="text-muted small mb-3">Register and enter parcel information, select warehouse dropoff or doorstep pickup, track shipments in real-time, and manage delivery preferences upon destination warehouse arrival.</p>
+                    <span class="btn btn-outline-primary rounded-pill px-4 btn-sm fw-semibold">Enter Customer Portal &rarr;</span>
                 </div>
             </a>
         </div>

@@ -131,12 +131,73 @@
 
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-semibold text-secondary">Pickup Address</label>
+                                    <label class="form-label small fw-semibold text-secondary">Pickup Address (Sender Location)</label>
                                     <input asp-for="NewDelivery.PickupLocation" id="pickupAddr" class="form-control rounded-3 py-2" placeholder="e.g. Shaheenabad, Gujranwala" required />
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-semibold text-secondary">Dropoff Address</label>
+                                    <label class="form-label small fw-semibold text-secondary">Dropoff Address (Destination City / Address)</label>
                                     <input asp-for="NewDelivery.DropoffLocation" id="dropoffAddr" class="form-control rounded-3 py-2" placeholder="e.g. Data Darbar, Lahore" required />
+                                </div>
+                            </div>
+
+                            <!-- Dedicated Private Transport Warning (shown if a city has no warehouse) -->
+                            <div id="privateTransportAlert" class="alert alert-warning border border-warning-subtle rounded-3 small p-3 mb-3 d-none">
+                                <div class="d-flex align-items-start gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5 flex-shrink-0 mt-1"></i>
+                                    <div>
+                                        <strong class="d-block text-dark">Special Dedicated Transport Notice:</strong>
+                                        <span id="privateTransportMsg">Fleetify does not operate a local hub warehouse in this city. A special dedicated private transport rate (+Rs. 1,500 dedicated transit surcharge) applies.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Origin & Destination Warehouse Options -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary d-block">Origin Handling</label>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
+                                            <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.OriginType" id="originDoorstep" value="DoorstepPickup" checked onchange="toggleOriginType()">
+                                            <label class="form-check-label ms-2 small fw-semibold text-dark" for="originDoorstep">
+                                                <i class="bi bi-house-door text-primary me-1"></i> Doorstep Pickup
+                                                <span class="text-muted d-block fw-normal x-small">Our courier will pick up parcel from your address.</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
+                                            <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.OriginType" id="originWarehouse" value="WarehouseDropoff" onchange="toggleOriginType()">
+                                            <label class="form-check-label ms-2 small fw-semibold text-dark" for="originWarehouse">
+                                                <i class="bi bi-building text-success me-1"></i> Warehouse Dropoff
+                                                <span class="text-muted d-block fw-normal x-small">You will drop off parcel at our local warehouse yourself.</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div id="originWarehouseNotice" class="alert alert-light border small py-2 px-3 mt-2 d-none">
+                                        <i class="bi bi-info-circle text-primary me-1"></i>
+                                        <span id="originWarehouseText">Drop parcel at nearest Fleetify Central Warehouse Hub.</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-secondary d-block">Destination Handling</label>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
+                                            <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.DestinationType" id="destDoorstep" value="DoorstepDelivery" checked>
+                                            <label class="form-check-label ms-2 small fw-semibold text-dark" for="destDoorstep">
+                                                <i class="bi bi-geo-alt-fill text-danger me-1"></i> Doorstep Delivery
+                                                <span class="text-muted d-block fw-normal x-small">Deliver directly to recipient's address.</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
+                                            <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.DestinationType" id="destWarehouse" value="WarehousePickup">
+                                            <label class="form-check-label ms-2 small fw-semibold text-dark" for="destWarehouse">
+                                                <i class="bi bi-box-arrow-in-down-right text-info me-1"></i> Warehouse Self-Pickup
+                                                <span class="text-muted d-block fw-normal x-small">Recipient picks up directly from destination hub warehouse.</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted x-small mt-2">
+                                        <i class="bi bi-bell text-secondary me-1"></i>You can also confirm or update your preference when shipment arrives at destination warehouse.
+                                    </div>
                                 </div>
                             </div>
 
@@ -212,6 +273,16 @@
                             <span class="fw-semibold text-primary" id="estDeliveryType">Normal</span>
                         </div>
 
+                        <div id="estPrivateSurchargeRow" class="d-flex justify-content-between mb-2 small text-warning-emphasis d-none">
+                            <span><i class="bi bi-shield-lock me-1"></i>Dedicated Private Freight</span>
+                            <span class="fw-semibold font-mono">+Rs. 1,500</span>
+                        </div>
+
+                        <div id="estHubInfoRow" class="d-flex justify-content-between mb-2 small text-secondary">
+                            <span>Hub Network</span>
+                            <span class="fw-semibold text-dark" id="estHubStatus">Connected Hubs</span>
+                        </div>
+
                         <hr class="my-2" />
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -254,6 +325,64 @@
                     </form>
                 </div>
 
+                @{
+                    var arrivedShipments = Model.MyDeliveries.Where(d => d.RequestedStatus == "Arrived at Destination Warehouse").ToList();
+                }
+                @if (arrivedShipments.Any())
+                {
+                    <div class="mb-4">
+                        @foreach (var arr in arrivedShipments)
+                        {
+                            <div class="card border-primary shadow-sm rounded-4 p-4 bg-primary-subtle bg-opacity-25 mb-3">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-primary text-white rounded-pill px-3 py-1 font-mono">
+                                                <i class="bi bi-building me-1"></i> ARRIVED AT DESTINATION WAREHOUSE
+                                            </span>
+                                            <span class="badge bg-light text-dark border font-mono">@arr.TrackingNumber</span>
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-1">
+                                            Your parcel has arrived at our destination warehouse!
+                                        </h5>
+                                        <p class="text-secondary small mb-2">
+                                            Destination Hub: <strong class="text-dark">@(arr.DestinationWarehouseName ?? "Fleetify Destination Warehouse Hub")</strong>
+                                            @if (!string.IsNullOrEmpty(arr.DestinationWarehouseAddress))
+                                            {
+                                                <span>(@arr.DestinationWarehouseAddress)</span>
+                                            }
+                                        </p>
+                                        <div class="small">
+                                            <span class="text-secondary">Current Preference:</span>
+                                            <span class="badge @(arr.DestinationType == "WarehousePickup" ? "bg-info text-white" : "bg-success text-white") rounded-pill">
+                                                @(arr.DestinationType == "WarehousePickup" ? "Self-Pickup from Warehouse" : "Doorstep Delivery to Address")
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <form asp-action="SetDestinationDeliveryPreference" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="requestId" value="@arr.RequestID" />
+                                            <input type="hidden" name="preference" value="WarehousePickup" />
+                                            <button type="submit" class="btn @(arr.DestinationType == "WarehousePickup" ? "btn-info text-white" : "btn-outline-info") rounded-pill px-3 py-2 btn-sm fw-semibold">
+                                                <i class="bi bi-box-arrow-in-down-right me-1"></i> I Will Pick Up at Warehouse
+                                            </button>
+                                        </form>
+                                        <form asp-action="SetDestinationDeliveryPreference" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="requestId" value="@arr.RequestID" />
+                                            <input type="hidden" name="preference" value="DoorstepDelivery" />
+                                            <button type="submit" class="btn @(arr.DestinationType == "DoorstepDelivery" ? "btn-success text-white" : "btn-outline-success") rounded-pill px-3 py-2 btn-sm fw-semibold">
+                                                <i class="bi bi-truck me-1"></i> Deliver to My Address
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
                 @if (Model.MyDeliveries.Any())
                 {
                     <div class="table-responsive">
@@ -263,6 +392,7 @@
                                     <th>Tracking #</th>
                                     <th>Date</th>
                                     <th>Pickup &rarr; Dropoff</th>
+                                    <th>Services</th>
                                     <th>Weight</th>
                                     <th>Speed</th>
                                     <th>Vehicle</th>
@@ -282,6 +412,22 @@
                                                 <i class="bi bi-circle-fill text-muted me-1 small"></i>@d.PickupLocation
                                                 <br />
                                                 <i class="bi bi-geo-alt-fill text-danger me-1"></i>@d.DropoffLocation
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-column gap-1">
+                                                <span class="badge @(d.OriginType == "WarehouseDropoff" ? "bg-light text-primary border" : "bg-light text-secondary border")" style="font-size: 0.7rem;">
+                                                    <i class="bi @(d.OriginType == "WarehouseDropoff" ? "bi-building" : "bi-house-door") me-1"></i>@(d.OriginType == "WarehouseDropoff" ? "Wh. Dropoff" : "Doorstep Pick")
+                                                </span>
+                                                <span class="badge @(d.DestinationType == "WarehousePickup" ? "bg-info-subtle text-info border border-info-subtle" : "bg-light text-secondary border")" style="font-size: 0.7rem;">
+                                                    <i class="bi @(d.DestinationType == "WarehousePickup" ? "bi-box-arrow-in-down-right" : "bi-truck") me-1"></i>@(d.DestinationType == "WarehousePickup" ? "Wh. Pickup" : "Doorstep Del")
+                                                </span>
+                                                @if (d.IsPrivateTransport)
+                                                {
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle" style="font-size: 0.65rem;">
+                                                        <i class="bi bi-shield-lock me-1"></i>Dedicated Private
+                                                    </span>
+                                                }
                                             </div>
                                         </td>
                                         <td><strong>@Math.Floor(d.ParcelWeight).ToString("F0")</strong> kg</td>
@@ -308,6 +454,10 @@
                                             @if (d.RequestedStatus == "Delivered")
                                             {
                                                 <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Delivered</span>
+                                            }
+                                            else if (d.RequestedStatus == "ArrivedAtWarehouse" || d.RequestedStatus == "Arrived at Destination Warehouse")
+                                            {
+                                                <span class="badge bg-primary text-white rounded-pill px-3 py-1"><i class="bi bi-building me-1"></i>At Destination Hub</span>
                                             }
                                             else if (d.WeightStatus == "Finalized" || d.RequestedStatus == "Cost Finalized")
                                             {
@@ -451,6 +601,18 @@
                         <span class="text-secondary">Vehicle Selected:</span>
                         <span class="badge bg-primary text-white" id="modalVehicleText"><i class="bi bi-truck me-1"></i>Truck</span>
                     </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Origin Service:</span>
+                        <strong class="text-dark" id="modalOriginText">Doorstep Pickup</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Destination Service:</span>
+                        <strong class="text-dark" id="modalDestText">Doorstep Delivery</strong>
+                    </div>
+                    <div id="modalPrivateRow" class="d-flex justify-content-between mb-1 d-none text-warning-emphasis">
+                        <span><i class="bi bi-shield-lock me-1"></i>Dedicated Private Freight:</span>
+                        <strong class="font-mono">+Rs. 1,500</strong>
+                    </div>
                     <div class="d-flex justify-content-between border-top pt-2 mt-2">
                         <strong class="text-dark">Estimated Cost:</strong>
                         <strong class="text-primary fs-6" id="modalCostText">-</strong>
@@ -540,6 +702,7 @@
         let routeLayer = null;
         let pickupMarker = null;
         let dropoffMarker = null;
+        let lastEstimateData = null;
 
         function initRouteMap() {
             const mapEl = document.getElementById('routeMap');
@@ -550,6 +713,17 @@
                 attribution: 'Map data &copy; OpenStreetMap'
             }).addTo(map);
             L.control.zoom({ position: 'topright' }).addTo(map);
+        }
+
+        function toggleOriginType() {
+            const isWarehouse = document.getElementById('originWarehouse')?.checked;
+            const notice = document.getElementById('originWarehouseNotice');
+            if (isWarehouse) {
+                notice?.classList.remove('d-none');
+            } else {
+                notice?.classList.add('d-none');
+            }
+            updateAiEstimate();
         }
 
         function decodePolyline(str, precision) {
@@ -577,7 +751,7 @@
             return coordinates;
         }
 
-        // Real-time AI & Map Cost Calculation (((1.5 * Distance * Weight) + Petrol) * Speed)
+        // Real-time AI & Map Cost Calculation (((1.5 * Distance * Weight) + Petrol) * Speed + PrivateTransport)
         function updateAiEstimate() {
             initRouteMap();
 
@@ -586,6 +760,8 @@
             const weight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
             const vehicle = document.getElementById('vehicleType')?.value || 'Truck';
             const route = document.getElementById('deliveryType')?.value || 'Normal';
+            const originType = document.querySelector('input[name="NewDelivery.OriginType"]:checked')?.value || 'DoorstepPickup';
+            const destType = document.querySelector('input[name="NewDelivery.DestinationType"]:checked')?.value || 'DoorstepDelivery';
 
             fetch('/api/ai/estimate-cost', {
                 method: 'POST',
@@ -595,7 +771,9 @@
                     dropoffLocation: dropoff,
                     parcelWeight: weight,
                     vehicleType: vehicle,
-                    routeType: route
+                    routeType: route,
+                    originType: originType,
+                    destinationType: destType
                 })
             })
             .then(res => {
@@ -603,6 +781,8 @@
                 return res.json();
             })
             .then(data => {
+                lastEstimateData = data;
+
                 if (document.getElementById('estDistanceKm')) {
                     document.getElementById('estDistanceKm').innerText = Math.floor(data.distanceKm) + ' km';
                 }
@@ -621,10 +801,34 @@
                     provBadge.innerText = data.provider + ' Verified';
                 }
 
+                // Check No-Warehouse Private Dedicated Transport Warning
+                const alertEl = document.getElementById('privateTransportAlert');
+                const surchargeRow = document.getElementById('estPrivateSurchargeRow');
+                const hubStatus = document.getElementById('estHubStatus');
+
+                if (data.isPrivateTransport) {
+                    if (alertEl) {
+                        alertEl.classList.remove('d-none');
+                        let nonWh = !data.hasOriginWarehouse ? (data.originCity || 'Origin') : (data.destCity || 'Destination');
+                        document.getElementById('privateTransportMsg').innerText = 
+                            `Notice: Fleetify does not operate a local hub warehouse in ${nonWh}. If you proceed, your shipment will be handled via dedicated private transport. A special private dedicated rate (+Rs. 1,500 dedicated transit surcharge) is applied.`;
+                    }
+                    if (surchargeRow) surchargeRow.classList.remove('d-none');
+                    if (hubStatus) hubStatus.innerText = 'Private Dedicated Transit';
+                } else {
+                    if (alertEl) alertEl.classList.add('d-none');
+                    if (surchargeRow) surchargeRow.classList.add('d-none');
+                    if (hubStatus) {
+                        hubStatus.innerText = (data.originCity && data.destinationCity) 
+                            ? `${data.originCity} Hub → ${data.destinationCity} Hub` 
+                            : 'Connected Hub Network';
+                    }
+                }
+
                 const distInput = document.getElementById('distanceKm');
                 if (distInput) distInput.value = data.distanceKm;
 
-                // Render Route Polyline on Map without annoying marker popups
+                // Render Route Polyline on Map
                 if (map && data.routePolyline) {
                     try {
                         const coords = decodePolyline(data.routePolyline);
@@ -674,6 +878,12 @@
             const vehicleText = vehSel ? vehSel.options[vehSel.selectedIndex].text : 'Truck (Up to 5,000 kg)';
             const total = document.getElementById('estTotal')?.innerText || 'Rs. 0';
 
+            const originRadio = document.querySelector('input[name="NewDelivery.OriginType"]:checked');
+            const originText = (originRadio && originRadio.value === 'WarehouseDropoff') ? 'Warehouse Dropoff (Self)' : 'Doorstep Pickup (Courier)';
+
+            const destRadio = document.querySelector('input[name="NewDelivery.DestinationType"]:checked');
+            const destText = (destRadio && destRadio.value === 'WarehousePickup') ? 'Warehouse Self-Pickup' : 'Doorstep Delivery (Address)';
+
             document.getElementById('modalPickupText').innerText = pickup;
             document.getElementById('modalDropoffText').innerText = dropoff;
             document.getElementById('modalWeightText').innerText = weight + ' kg';
@@ -683,6 +893,22 @@
             if (document.getElementById('modalVehicleText')) {
                 document.getElementById('modalVehicleText').innerText = vehicleText;
             }
+            if (document.getElementById('modalOriginText')) {
+                document.getElementById('modalOriginText').innerText = originText;
+            }
+            if (document.getElementById('modalDestText')) {
+                document.getElementById('modalDestText').innerText = destText;
+            }
+
+            const privateRow = document.getElementById('modalPrivateRow');
+            if (privateRow) {
+                if (lastEstimateData && lastEstimateData.isPrivateTransport) {
+                    privateRow.classList.remove('d-none');
+                } else {
+                    privateRow.classList.add('d-none');
+                }
+            }
+
             document.getElementById('modalCostText').innerText = total;
 
             const modalEl = document.getElementById('submitNoticeModal');
@@ -719,6 +945,8 @@
         document.getElementById('packageWeight')?.addEventListener('input', debouncedUpdate);
         document.getElementById('deliveryType')?.addEventListener('change', updateAiEstimate);
         document.getElementById('vehicleType')?.addEventListener('change', updateAiEstimate);
+        document.getElementById('destDoorstep')?.addEventListener('change', updateAiEstimate);
+        document.getElementById('destWarehouse')?.addEventListener('change', updateAiEstimate);
 
         // Run on page load
         document.addEventListener('DOMContentLoaded', () => {

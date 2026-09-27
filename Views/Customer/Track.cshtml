@@ -120,6 +120,76 @@
 
                 <div class="row g-2 mb-3 small">
                     <div class="col-6">
+                        <span class="text-secondary d-block">Origin Handling</span>
+                        @if (Model.OriginType == "WarehouseDropoff")
+                        {
+                            <span class="badge bg-secondary-subtle text-dark border"><i class="bi bi-box-arrow-in-down me-1"></i>Warehouse Dropoff</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-primary-subtle text-primary border"><i class="bi bi-house-door me-1"></i>Doorstep Pickup</span>
+                        }
+                    </div>
+                    <div class="col-6">
+                        <span class="text-secondary d-block">Destination Handling</span>
+                        @if (Model.DestinationType == "WarehousePickup")
+                        {
+                            <span class="badge bg-warning-subtle text-dark border"><i class="bi bi-box-seam me-1"></i>Warehouse Pickup</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info-subtle text-dark border"><i class="bi bi-geo-alt me-1"></i>Doorstep Delivery</span>
+                        }
+                    </div>
+                </div>
+
+                @if (Model.IsPrivateTransport)
+                {
+                    <div class="alert alert-warning border-warning-subtle py-2 px-3 small rounded-3 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                        <strong>Dedicated Private Transport:</strong> No local Fleetify warehouse hub in route. Rs. 1,500 dedicated transport surcharge applied.
+                    </div>
+                }
+
+                @if (Model.WarehouseArrivalNotified)
+                {
+                    <div class="card bg-success-subtle border-success border-opacity-25 rounded-3 p-3 mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2 text-success">
+                            <i class="bi bi-building-check fs-5"></i>
+                            <strong class="small">Arrived at Destination Hub</strong>
+                        </div>
+                        <p class="x-small text-dark mb-1"><strong>@Model.DestinationWarehouseName</strong></p>
+                        <p class="x-small text-secondary mb-2"><i class="bi bi-geo-alt me-1"></i>@Model.DestinationWarehouseAddress</p>
+                        <div class="x-small">
+                            Status: <span class="badge bg-success text-white">Ready for @(Model.DestinationType == "WarehousePickup" ? "Self Pickup at Hub" : "Doorstep Delivery Dispatch")</span>
+                        </div>
+                        @if (Model.RequestedStatus == "ArrivedAtWarehouse" || Model.RequestedStatus == "In-Transit")
+                        {
+                            <div class="mt-2 pt-2 border-top border-success-subtle">
+                                <span class="x-small text-muted d-block mb-1">Change preference:</span>
+                                <div class="d-flex gap-2">
+                                    <form asp-action="SetDestinationDeliveryPreference" method="post" class="flex-fill">
+                                        <input type="hidden" name="requestId" value="@Model.RequestID" />
+                                        <input type="hidden" name="preference" value="WarehousePickup" />
+                                        <button type="submit" class="btn btn-sm w-100 @(Model.DestinationType == "WarehousePickup" ? "btn-success" : "btn-outline-success") x-small py-1">
+                                            <i class="bi bi-box-seam me-1"></i>Self Pickup
+                                        </button>
+                                    </form>
+                                    <form asp-action="SetDestinationDeliveryPreference" method="post" class="flex-fill">
+                                        <input type="hidden" name="requestId" value="@Model.RequestID" />
+                                        <input type="hidden" name="preference" value="DoorstepDelivery" />
+                                        <button type="submit" class="btn btn-sm w-100 @(Model.DestinationType == "DoorstepDelivery" ? "btn-success" : "btn-outline-success") x-small py-1">
+                                            <i class="bi bi-truck me-1"></i>Doorstep Delivery
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6">
                         <span class="text-secondary d-block">Weight</span>
                         <strong>@Math.Floor(Model.ParcelWeight).ToString("F0") kg</strong>
                         @if (Model.WeightStatus == "Finalized")

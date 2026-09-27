@@ -136,6 +136,9 @@ namespace Fleetify.Services.Implementations
                 Role = "Driver",
                 LicenseNumber = model.LicenseNumber ?? $"LIC-{Random.Shared.Next(10000, 99999)}",
                 AvailabilityStatus = "Available",
+                DriverType = !string.IsNullOrWhiteSpace(model.DriverType) ? model.DriverType : "Company",
+                BackupContactNotes = model.BackupContactNotes,
+                VehicleOwned = model.VehicleOwned,
                 CreatedAt = DateTime.UtcNow
             };
 

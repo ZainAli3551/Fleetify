@@ -10,6 +10,9 @@ namespace Fleetify.Models.ViewModels
         public double ParcelWeight { get; set; } = 2.0;
         public string VehicleType { get; set; } = "Truck";
         public string RouteType { get; set; } = "Normal";
+        public string OriginType { get; set; } = "DoorstepPickup"; // DoorstepPickup, WarehouseDropoff
+        public string DestinationType { get; set; } = "DoorstepDelivery"; // DoorstepDelivery, WarehousePickup
+        public bool IsPrivateTransport { get; set; } = false;
     }
 
     public class CostEstimateResult
@@ -25,6 +28,14 @@ namespace Fleetify.Models.ViewModels
         public double PetrolCharge { get; set; } = 0.0;
         public string DeliveryType { get; set; } = "Normal";
         public double DeliveryMultiplier { get; set; } = 1.0;
+        public bool IsPrivateTransport { get; set; } = false;
+        public double PrivateTransportSurcharge { get; set; } = 0.0;
+        public string OriginCity { get; set; } = string.Empty;
+        public string DestinationCity { get; set; } = string.Empty;
+        public bool HasOriginWarehouse { get; set; } = true;
+        public bool HasDestinationWarehouse { get; set; } = true;
+        public string? OriginWarehouseName { get; set; }
+        public string? DestinationWarehouseName { get; set; }
         public string Currency { get; set; } = "Rs.";
         public double EstimatedTotal { get; set; }
         public string EstimatedDeliveryDays { get; set; } = "1-2 business days";

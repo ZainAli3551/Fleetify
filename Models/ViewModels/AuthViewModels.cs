@@ -37,5 +37,10 @@ namespace Fleetify.Models.ViewModels
 
         // Optional license for Driver
         public string? LicenseNumber { get; set; }
+
+        // Optional fields for Backup Driver
+        public string DriverType { get; set; } = "Company"; // Company, Backup
+        public string? BackupContactNotes { get; set; }
+        public string? VehicleOwned { get; set; }
     }
 }

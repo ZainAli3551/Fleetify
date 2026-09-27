@@ -1,16 +1,19 @@
 @model List<Fleetify.Models.Entities.Driver>
 @{
-    ViewData["Title"] = "Driver Management";
+    ViewData["Title"] = "Driver & Partner Management";
+    var companyDrivers = (ViewBag.CompanyDrivers as List<Fleetify.Models.Entities.Driver>) ?? Model.Where(d => d.DriverType != "Backup").ToList();
+    var backupDrivers = (ViewBag.BackupDrivers as List<Fleetify.Models.Entities.Driver>) ?? Model.Where(d => d.DriverType == "Backup").ToList();
 }
 
 <div class="container-fluid px-lg-5 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Driver Management</h2>
-            <p class="text-secondary small mb-0">Manage fleet drivers, license verification, and availability status</p>
+            <h2 class="fw-bold text-dark mb-1">Driver &amp; Partner Management</h2>
+            <p class="text-secondary small mb-0">Manage internal company fleet drivers and on-call freelance backup vehicle owners</p>
         </div>
-        <button type="button" class="btn btn-primary rounded-pill px-3 py-2 text-white small" data-bs-toggle="modal" data-bs-target="#addDriverModal">
-            <i class="bi bi-plus-circle me-1"></i>Add New Driver
+        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 text-white small shadow-sm" data-bs-toggle="modal" data-bs-target="#addDriverModal">
+            <i class="bi bi-person-plus-fill me-1"></i>Register Driver / Backup Partner
         </button>
     </div>
 
@@ -23,98 +26,321 @@
         <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
     </div>
 
-    <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light small text-secondary">
-                    <tr>
-                        <th>Driver ID</th>
-                        <th>Full Name</th>
-                        <th>Email &amp; Contact</th>
-                        <th>License Number</th>
-                        <th>Total Tasks</th>
-                        <th>Availability</th>
-                        <th class="text-end">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="small">
-                    @foreach (var driver in Model)
-                    {
-                        <tr>
-                            <td class="fw-bold">#DRV-@driver.UserID.ToString("D3")</td>
-                            <td class="fw-semibold text-dark">@driver.FullName</td>
-                            <td>
-                                <div>@driver.Email</div>
-                                <div class="text-muted">@driver.PhoneNumber</div>
-                            </td>
-                            <td><span class="badge bg-light text-dark border font-mono">@driver.LicenseNumber</span></td>
-                            <td>@driver.Assignments.Count assignments</td>
-                            <td>
-                                @if (driver.AvailabilityStatus == "Available")
-                                {
-                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Available</span>
-                                }
-                                else if (driver.AvailabilityStatus == "Busy")
-                                {
-                                    <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">Busy</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Offline</span>
-                                }
-                            </td>
-                            <td class="text-end">
-                                <div class="dropdown d-inline">
-                                    <button class="btn btn-light btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        Status
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                        <li>
-                                            <form asp-action="ToggleDriverStatus" method="post">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@driver.UserID" />
-                                                <input type="hidden" name="status" value="Available" />
-                                                <button type="submit" class="dropdown-item text-success">Mark Available</button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form asp-action="ToggleDriverStatus" method="post">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@driver.UserID" />
-                                                <input type="hidden" name="status" value="Busy" />
-                                                <button type="submit" class="dropdown-item text-warning">Mark Busy</button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form asp-action="ToggleDriverStatus" method="post">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@driver.UserID" />
-                                                <input type="hidden" name="status" value="Offline" />
-                                                <button type="submit" class="dropdown-item text-secondary">Mark Offline</button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    <!-- Driver Partner App Announcement / Roadmap Banner -->
+    <div class="card border-0 rounded-4 mb-4 text-white shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+        <div class="card-body p-4 position-relative">
+            <div class="row align-items-center">
+                <div class="col-md-9">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1 text-uppercase x-small">
+                            <i class="bi bi-stars me-1"></i>Product Roadmap
+                        </span>
+                        <span class="badge bg-white bg-opacity-25 rounded-pill px-2 py-1 x-small">Driver Partner App</span>
+                    </div>
+                    <h5 class="fw-bold mb-1">Freelance Driver Partner Mobile App — In Development</h5>
+                    <p class="text-white-50 small mb-0">
+                        We are currently contacting on-call backup drivers manually via phone and WhatsApp when company fleets are at peak capacity. 
+                        Soon, external vehicle owners will be able to register through our dedicated Driver Partner mobile app and claim on-demand loads automatically!
+                    </p>
+                </div>
+                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                    <button class="btn btn-light rounded-pill px-4 text-primary fw-semibold btn-sm shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#backupDriversTab">
+                        <i class="bi bi-telephone-outbound me-1"></i>View On-Call Directory
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 small" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 small" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tabs: Company Drivers vs On-Call Backup Drivers -->
+    <ul class="nav nav-pills mb-3" id="driverTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 me-2 fw-semibold" id="company-tab" data-bs-toggle="tab" data-bs-target="#company-pane" type="button" role="tab">
+                <i class="bi bi-person-badge me-1"></i>Company Fleet Drivers 
+                <span class="badge bg-primary-subtle text-primary rounded-pill ms-2">@companyDrivers.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 fw-semibold" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup-pane" type="button" role="tab">
+                <i class="bi bi-truck me-1"></i>On-Call Backup Drivers 
+                <span class="badge bg-warning-subtle text-dark rounded-pill ms-2">@backupDrivers.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="driverTabContent">
+        <!-- Company Fleet Drivers Tab -->
+        <div class="tab-pane fade show active" id="company-pane" role="tabpanel" tabindex="0">
+            <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Internal Company Drivers</h6>
+                    <span class="text-muted small">Assigned directly to Fleetify-owned vehicles</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary">
+                            <tr>
+                                <th>Driver ID</th>
+                                <th>Full Name</th>
+                                <th>Email &amp; Contact</th>
+                                <th>License Number</th>
+                                <th>Total Tasks</th>
+                                <th>Availability</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @if (!companyDrivers.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No company drivers registered yet.</td>
+                                </tr>
+                            }
+                            @foreach (var driver in companyDrivers)
+                            {
+                                <tr>
+                                    <td class="fw-bold font-mono">#DRV-@driver.UserID.ToString("D3")</td>
+                                    <td class="fw-semibold text-dark">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-circle rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 13px;">
+                                                @(string.IsNullOrWhiteSpace(driver.FullName) ? "D" : driver.FullName.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <span>@driver.FullName</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>@driver.Email</div>
+                                        <div class="text-muted"><i class="bi bi-telephone me-1"></i>@driver.PhoneNumber</div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border font-mono">@driver.LicenseNumber</span></td>
+                                    <td>@driver.Assignments.Count assignments</td>
+                                    <td>
+                                        @if (driver.AvailabilityStatus == "Available")
+                                        {
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Available</span>
+                                        }
+                                        else if (driver.AvailabilityStatus == "Busy")
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">Busy</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Offline</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="dropdown d-inline">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                Status
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                <li>
+                                                    <form asp-action="ToggleDriverStatus" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@driver.UserID" />
+                                                        <input type="hidden" name="status" value="Available" />
+                                                        <button type="submit" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i>Mark Available</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form asp-action="ToggleDriverStatus" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@driver.UserID" />
+                                                        <input type="hidden" name="status" value="Busy" />
+                                                        <button type="submit" class="dropdown-item text-warning"><i class="bi bi-dash-circle me-2"></i>Mark Busy</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form asp-action="ToggleDriverStatus" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@driver.UserID" />
+                                                        <input type="hidden" name="status" value="Offline" />
+                                                        <button type="submit" class="dropdown-item text-secondary"><i class="bi bi-x-circle me-2"></i>Mark Offline</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- On-Call Backup Drivers Tab -->
+        <div class="tab-pane fade" id="backup-pane" role="tabpanel" tabindex="0">
+            <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">On-Call Freelance Backup Drivers Directory</h6>
+                        <span class="text-muted small">Contact directly via phone or WhatsApp when company drivers or vehicles are occupied</span>
+                    </div>
+                    <span class="badge bg-warning-subtle text-dark border px-3 py-2 rounded-pill small">
+                        <i class="bi bi-info-circle me-1"></i>Manual On-Call Dispatch
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-secondary">
+                            <tr>
+                                <th>Partner</th>
+                                <th>Vehicle Owned</th>
+                                <th>Contact &amp; Quick Reach</th>
+                                <th>Notes / Operational Area</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @if (!backupDrivers.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">No backup drivers registered. Click 'Register Driver / Backup Partner' above to add one.</td>
+                                </tr>
+                            }
+                            @foreach (var driver in backupDrivers)
+                            {
+                                var cleanPhone = (driver.PhoneNumber ?? "").Replace(" ", "").Replace("-", "").Replace("+", "");
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-circle rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 13px;">
+                                                @(string.IsNullOrWhiteSpace(driver.FullName) ? "B" : driver.FullName.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <div>
+                                                <strong class="d-block text-dark">@driver.FullName</strong>
+                                                <span class="badge bg-light text-muted border font-mono x-small">@driver.LicenseNumber</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary-subtle text-primary border px-2 py-1">
+                                            <i class="bi bi-truck me-1"></i>@(string.IsNullOrWhiteSpace(driver.VehicleOwned) ? "Freelance Truck" : driver.VehicleOwned)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark mb-1">@driver.PhoneNumber</div>
+                                        <div class="d-flex gap-2">
+                                            <a href="tel:@driver.PhoneNumber" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-0 x-small" title="Call directly">
+                                                <i class="bi bi-telephone-fill me-1"></i>Call
+                                            </a>
+                                            @if (!string.IsNullOrWhiteSpace(cleanPhone))
+                                            {
+                                                <a href="https://wa.me/@cleanPhone" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-2 py-0 x-small" title="Chat on WhatsApp">
+                                                    <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-secondary small" style="max-width: 280px;">
+                                            @(string.IsNullOrWhiteSpace(driver.BackupContactNotes) ? "Available on-call for overflow dispatch." : driver.BackupContactNotes)
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (driver.AvailabilityStatus == "Available")
+                                        {
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Available</span>
+                                        }
+                                        else if (driver.AvailabilityStatus == "Busy")
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">Busy</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Offline</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="dropdown d-inline">
+                                            <button class="btn btn-light btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                Status
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                <li>
+                                                    <form asp-action="ToggleDriverStatus" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@driver.UserID" />
+                                                        <input type="hidden" name="status" value="Available" />
+                                                        <button type="submit" class="dropdown-item text-success"><i class="bi bi-check-circle me-2"></i>Mark Available</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form asp-action="ToggleDriverStatus" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@driver.UserID" />
+                                                        <input type="hidden" name="status" value="Busy" />
+                                                        <button type="submit" class="dropdown-item text-warning"><i class="bi bi-dash-circle me-2"></i>Mark Busy</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form asp-action="ToggleDriverStatus" method="post">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@driver.UserID" />
+                                                        <input type="hidden" name="status" value="Offline" />
+                                                        <button type="submit" class="dropdown-item text-secondary"><i class="bi bi-x-circle me-2"></i>Mark Offline</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Add Driver Modal -->
+<!-- Add Driver / Backup Partner Modal -->
 <div class="modal fade" id="addDriverModal" tabindex="-1" aria-labelledby="addDriverModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow">
             <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold" id="addDriverModalLabel">Register New Driver</h5>
+                <h5 class="modal-title fw-bold" id="addDriverModalLabel">Register Driver or Backup Partner</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="CreateDriver" method="post">
                 @Html.AntiForgeryToken()
                 <div class="modal-body pt-3">
+                    <!-- Driver Type Selection -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Driver Category</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="DriverType" id="typeCompany" value="Company" checked onchange="toggleBackupFields(false)">
+                                <label class="form-check-label small fw-semibold" for="typeCompany">
+                                    Company Fleet Driver
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="DriverType" id="typeBackup" value="Backup" onchange="toggleBackupFields(true)">
+                                <label class="form-check-label small fw-semibold text-primary" for="typeBackup">
+                                    On-Call Backup Driver
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary">Full Name</label>
                         <input name="FullName" required class="form-control rounded-3" placeholder="e.g. Tariq Mehmood" />
@@ -124,15 +350,28 @@
                         <input name="Email" type="email" required class="form-control rounded-3" placeholder="driver@fleetify.com" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Phone Number</label>
-                        <input name="PhoneNumber" required class="form-control rounded-3" placeholder="+92 300 0000000" />
+                        <label class="form-label small fw-semibold text-secondary">Phone Number (with country code)</label>
+                        <input name="PhoneNumber" required class="form-control rounded-3" placeholder="+92 300 1234567" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary">Driver License Number</label>
                         <input name="LicenseNumber" required class="form-control rounded-3" placeholder="PK-DL-12345" />
                     </div>
+
+                    <!-- Dynamic Backup Partner Fields -->
+                    <div id="backupFields" style="display: none;" class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold text-secondary">Vehicle Owned by Partner</label>
+                            <input name="VehicleOwned" class="form-control rounded-3" placeholder="e.g. Suzuki Ravi Pickup / Mazda Titan" />
+                        </div>
+                        <div>
+                            <label class="form-label small fw-semibold text-secondary">Contact Notes &amp; Preferred Routes</label>
+                            <textarea name="BackupContactNotes" rows="2" class="form-control rounded-3" placeholder="e.g. Available on 30 min notice; covers Lahore to Kasur / Sheikhupura"></textarea>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Temporary Password</label>
+                        <label class="form-label small fw-semibold text-secondary">Account Temporary Password</label>
                         <input name="Password" type="password" required class="form-control rounded-3" placeholder="••••••••" />
                     </div>
                 </div>
@@ -144,3 +383,14 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function toggleBackupFields(isBackup) {
+            const el = document.getElementById('backupFields');
+            if (el) {
+                el.style.display = isBackup ? 'block' : 'none';
+            }
+        }
+    </script>
+}

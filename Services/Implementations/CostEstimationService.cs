@@ -78,10 +78,21 @@ namespace Fleetify.Services.Implementations
             if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
             double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
-            // Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier, floored to previous whole number
+            // Warehouse Network & Dedicated Private Transport Check
+            var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
+            var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
+            bool hasOriginWarehouse = WarehouseNetworkService.HasWarehouse(request.PickupLocation);
+            bool hasDestWarehouse = WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
+            bool isPrivateTransport = request.IsPrivateTransport || (!hasOriginWarehouse || !hasDestWarehouse);
+            double privateTransportSurcharge = isPrivateTransport ? 1500.0 : 0.0;
+
+            var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
+            var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
+
+            // Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier + PrivateTransportSurcharge, floored to previous whole number
             double baseCost = distanceKm * weight * ratePerKmKg;
             double petrolCharge = CalculatePetrolSurcharge(distanceKm);
-            double total = Math.Floor((baseCost + petrolCharge) * deliveryMultiplier);
+            double total = Math.Floor(((baseCost + petrolCharge) * deliveryMultiplier) + privateTransportSurcharge);
 
             double flooredDistance = Math.Floor(distanceKm);
             double flooredWeight = Math.Floor(weight);
@@ -113,6 +124,14 @@ namespace Fleetify.Services.Implementations
                 PetrolCharge = petrolCharge,
                 DeliveryType = deliveryType,
                 DeliveryMultiplier = deliveryMultiplier,
+                IsPrivateTransport = isPrivateTransport,
+                PrivateTransportSurcharge = privateTransportSurcharge,
+                OriginCity = originCity,
+                DestinationCity = destCity,
+                HasOriginWarehouse = hasOriginWarehouse,
+                HasDestinationWarehouse = hasDestWarehouse,
+                OriginWarehouseName = originWarehouse?.HubName,
+                DestinationWarehouseName = destWarehouse?.HubName,
                 Currency = "Rs.",
                 EstimatedTotal = total,
                 EstimatedDeliveryDays = deliveryDays,
@@ -140,9 +159,19 @@ namespace Fleetify.Services.Implementations
                 if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
                 double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
+                var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
+                var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
+                bool hasOriginWarehouse = WarehouseNetworkService.HasWarehouse(request.PickupLocation);
+                bool hasDestWarehouse = WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
+                bool isPrivateTransport = request.IsPrivateTransport || (!hasOriginWarehouse || !hasDestWarehouse);
+                double privateTransportSurcharge = isPrivateTransport ? 1500.0 : 0.0;
+
+                var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
+                var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
+
                 double baseCost = distanceKm * weight * ratePerKmKg;
                 double petrolCharge = CalculatePetrolSurcharge(distanceKm);
-                double total = Math.Floor((baseCost + petrolCharge) * deliveryMultiplier);
+                double total = Math.Floor(((baseCost + petrolCharge) * deliveryMultiplier) + privateTransportSurcharge);
 
                 return new CostEstimateResult
                 {
@@ -153,6 +182,14 @@ namespace Fleetify.Services.Implementations
                     PetrolCharge = petrolCharge,
                     DeliveryType = deliveryType,
                     DeliveryMultiplier = deliveryMultiplier,
+                    IsPrivateTransport = isPrivateTransport,
+                    PrivateTransportSurcharge = privateTransportSurcharge,
+                    OriginCity = originCity,
+                    DestinationCity = destCity,
+                    HasOriginWarehouse = hasOriginWarehouse,
+                    HasDestinationWarehouse = hasDestWarehouse,
+                    OriginWarehouseName = originWarehouse?.HubName,
+                    DestinationWarehouseName = destWarehouse?.HubName,
                     Currency = "Rs.",
                     EstimatedTotal = total
                 };

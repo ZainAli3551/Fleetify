@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Fleetify.Data;
 using Fleetify.Models.Entities;
 using Fleetify.Models.ViewModels;
+using Fleetify.Services;
 using Fleetify.Services.Interfaces;
 
 namespace Fleetify.Controllers
@@ -161,6 +162,26 @@ namespace Fleetify.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // Extract Origin & Destination preferences from form/model
+            var originType = !string.IsNullOrWhiteSpace(model.OriginType) 
+                ? model.OriginType 
+                : (!string.IsNullOrWhiteSpace(Request.Form["NewDelivery.OriginType"].ToString()) 
+                    ? Request.Form["NewDelivery.OriginType"].ToString() 
+                    : "DoorstepPickup");
+
+            var destType = !string.IsNullOrWhiteSpace(model.DestinationType) 
+                ? model.DestinationType 
+                : (!string.IsNullOrWhiteSpace(Request.Form["NewDelivery.DestinationType"].ToString()) 
+                    ? Request.Form["NewDelivery.DestinationType"].ToString() 
+                    : "DoorstepDelivery");
+
+            // Detect cities and warehouse availability
+            var originCity = WarehouseNetworkService.DetectCity(model.PickupLocation);
+            var destCity = WarehouseNetworkService.DetectCity(model.DropoffLocation);
+            bool hasOriginWh = WarehouseNetworkService.HasWarehouse(model.PickupLocation);
+            bool hasDestWh = WarehouseNetworkService.HasWarehouse(model.DropoffLocation);
+            var destWh = WarehouseNetworkService.GetWarehouse(model.DropoffLocation);
+
             // Calculate AI Cost with locations
             var costRequest = new CostEstimateRequest
             {
@@ -169,7 +190,9 @@ namespace Fleetify.Controllers
                 DistanceKm = model.EstimatedDistanceKm,
                 ParcelWeight = model.ParcelWeight,
                 VehicleType = model.VehicleType,
-                RouteType = model.RouteType
+                RouteType = model.RouteType,
+                OriginType = originType,
+                DestinationType = destType
             };
 
             var costEstimate = _costService.CalculateCost(costRequest);
@@ -194,7 +217,17 @@ namespace Fleetify.Controllers
                 DistanceKm = distance,
                 RequestedStatus = "Pending",
                 WeightStatus = "PendingVerification",
-                EstimatedCost = costEstimate.EstimatedTotal
+                EstimatedCost = costEstimate.EstimatedTotal,
+                OriginType = originType,
+                DestinationType = destType,
+                OriginCity = originCity,
+                DestinationCity = destCity,
+                HasOriginWarehouse = hasOriginWh,
+                HasDestinationWarehouse = hasDestWh,
+                IsPrivateTransport = costEstimate.IsPrivateTransport,
+                PrivateTransportSurcharge = costEstimate.PrivateTransportSurcharge,
+                DestinationWarehouseName = destWh?.HubName,
+                DestinationWarehouseAddress = destWh?.Address
             };
 
             _context.DeliveryRequests.Add(deliveryRequest);
@@ -213,13 +246,17 @@ namespace Fleetify.Controllers
                         "Admin",
                         admin.UserID,
                         "New Delivery Request",
-                        $"Customer booked delivery {deliveryRequest.TrackingNumber} from {deliveryRequest.PickupLocation} to {deliveryRequest.DropoffLocation}.",
+                        $"Customer booked delivery {deliveryRequest.TrackingNumber} from {deliveryRequest.PickupLocation} to {deliveryRequest.DropoffLocation} (Origin: {originType}, Dest: {destType}, Private: {(deliveryRequest.IsPrivateTransport ? "Yes" : "No")}).",
                         deliveryRequest.RequestID
                     );
                 }
             }
 
-            TempData["SuccessMessage"] = $"Delivery request submitted successfully! Your tracking number is {trackingNumber}. Total: Rs. {costEstimate.EstimatedTotal:F2} (Editable or cancellable within 1 hour).";
+            string extraNotice = deliveryRequest.IsPrivateTransport 
+                ? " (Note: Dedicated Private Transport rate applied as hub warehouse is not in city)" 
+                : "";
+
+            TempData["SuccessMessage"] = $"Delivery request submitted successfully! Tracking number is {trackingNumber}. Total: Rs. {costEstimate.EstimatedTotal:F0}{extraNotice} (Editable or cancellable within 1 hour).";
             return RedirectToAction(nameof(Index));
         }
 
@@ -325,12 +362,62 @@ namespace Fleetify.Controllers
                 request.RouteType = model.RouteType;
             if (!string.IsNullOrWhiteSpace(model.ParcelDescription))
                 request.ParcelDescription = model.ParcelDescription;
+            if (!string.IsNullOrWhiteSpace(model.OriginType))
+                request.OriginType = model.OriginType;
+            if (!string.IsNullOrWhiteSpace(model.DestinationType))
+                request.DestinationType = model.DestinationType;
             request.DistanceKm = costEstimate.DistanceKm > 0 ? costEstimate.DistanceKm : request.DistanceKm;
             request.EstimatedCost = costEstimate.EstimatedTotal;
 
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Delivery request {request.TrackingNumber} has been updated successfully within your 1-hour window! New total: Rs. {Math.Floor(request.EstimatedCost):F0}";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: /Customer/SetDestinationDeliveryPreference
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetDestinationDeliveryPreference(int requestId, string preference)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToAction("Login", "Account", new { role = "Customer" });
+            }
+
+            var request = await _context.DeliveryRequests.FirstOrDefaultAsync(r => r.RequestID == requestId && r.UserID == userId);
+            if (request == null)
+            {
+                TempData["ErrorMessage"] = "Delivery request not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (preference == "WarehousePickup" || preference == "DoorstepDelivery")
+            {
+                request.DestinationType = preference;
+                await _context.SaveChangesAsync();
+
+                string prefText = preference == "WarehousePickup" 
+                    ? "Self-Pickup from Destination Warehouse" 
+                    : "Doorstep Delivery to your Address";
+
+                // Notify Admin
+                var admins = await _context.Admins.ToListAsync();
+                foreach (var admin in admins)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        "Admin",
+                        admin.UserID,
+                        "Customer Delivery Preference Updated",
+                        $"Customer selected '{prefText}' for shipment {request.TrackingNumber}.",
+                        request.RequestID
+                    );
+                }
+
+                TempData["SuccessMessage"] = $"Your delivery preference for shipment {request.TrackingNumber} has been updated to '{prefText}'!";
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

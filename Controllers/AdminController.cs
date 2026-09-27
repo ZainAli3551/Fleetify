@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Fleetify.Data;
 using Fleetify.Models.Entities;
 using Fleetify.Models.ViewModels;
+using Fleetify.Services;
 using Fleetify.Services.Interfaces;
 
 namespace Fleetify.Controllers
@@ -89,6 +90,10 @@ namespace Fleetify.Controllers
                 .Include(d => d.Assignments)
                 .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
+
+            ViewBag.CompanyDrivers = drivers.Where(d => d.DriverType != "Backup").ToList();
+            ViewBag.BackupDrivers = drivers.Where(d => d.DriverType == "Backup").ToList();
+
             return View(drivers);
         }
 
@@ -110,8 +115,14 @@ namespace Fleetify.Controllers
             }
 
             model.Role = "Driver";
+            if (string.IsNullOrWhiteSpace(model.DriverType))
+            {
+                model.DriverType = "Company";
+            }
+
             await _authService.RegisterDriverAsync(model);
-            TempData["SuccessMessage"] = $"Driver '{model.FullName}' created successfully!";
+            string typeLabel = model.DriverType == "Backup" ? "On-Call Backup Driver" : "Company Fleet Driver";
+            TempData["SuccessMessage"] = $"{typeLabel} '{model.FullName}' added successfully!";
             return RedirectToAction(nameof(Drivers));
         }
 
@@ -178,7 +189,12 @@ namespace Fleetify.Controllers
                 .Where(v => v.AvailabilityStatus != "Under Service")
                 .ToListAsync();
 
+            var companyDrivers = activeDrivers.Where(d => d.DriverType != "Backup").ToList();
+            var backupDrivers = await _context.Drivers.Where(d => d.DriverType == "Backup").ToListAsync();
+
             ViewBag.Drivers = activeDrivers;
+            ViewBag.CompanyDrivers = companyDrivers;
+            ViewBag.BackupDrivers = backupDrivers;
             ViewBag.Vehicles = availableVehicles;
 
             var existingAssignments = await _context.Assignments
@@ -197,8 +213,20 @@ namespace Fleetify.Controllers
                 .OrderByDescending(r => r.RequestDate)
                 .ToListAsync();
 
+            // All active shipments in transit or reached warehouse
+            var activeShipments = await _context.DeliveryRequests
+                .Include(r => r.User)
+                .Include(r => r.Assignment)
+                    .ThenInclude(a => a!.Driver)
+                .Include(r => r.Assignment)
+                    .ThenInclude(a => a!.Vehicle)
+                .Where(r => r.RequestedStatus != "Delivered" && r.RequestedStatus != "Cancelled" && r.RequestedStatus != "Pending")
+                .OrderByDescending(r => r.RequestDate)
+                .ToListAsync();
+
             ViewBag.Assignments = existingAssignments;
             ViewBag.VerificationRequests = verificationRequests;
+            ViewBag.ActiveShipments = activeShipments;
 
             return View(pendingRequests);
         }
@@ -364,6 +392,115 @@ namespace Fleetify.Controllers
             }
 
             TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} finalized! Weight: {finalWeight:F1} kg, Final Cost: Rs. {Math.Floor(newCost):F0}. Notification sent to customer.";
+            return RedirectToAction(nameof(Assignments));
+        }
+
+        // POST: /Admin/MarkWarehouseArrival
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkWarehouseArrival(int requestId)
+        {
+            var req = await _context.DeliveryRequests
+                .Include(r => r.User)
+                .Include(r => r.Assignment)
+                    .ThenInclude(a => a!.Driver)
+                .FirstOrDefaultAsync(r => r.RequestID == requestId);
+
+            if (req == null)
+            {
+                TempData["ErrorMessage"] = "Delivery request not found.";
+                return RedirectToAction(nameof(Assignments));
+            }
+
+            var destWh = WarehouseNetworkService.GetWarehouse(req.DropoffLocation);
+            req.RequestedStatus = "ArrivedAtWarehouse";
+            req.WarehouseArrivalNotified = true;
+            if (destWh != null)
+            {
+                req.DestinationWarehouseName = destWh.HubName;
+                req.DestinationWarehouseAddress = destWh.Address;
+            }
+
+            if (req.Assignment != null)
+            {
+                _context.StatusUpdates.Add(new StatusUpdate
+                {
+                    AssignmentID = req.Assignment.AssignmentID,
+                    DriverID = req.Assignment.DriverID,
+                    UpdateStatus = "ArrivedAtWarehouse",
+                    UpdateTime = DateTime.UtcNow,
+                    Remarks = $"Shipment arrived at destination hub ({destWh?.HubName ?? "Local Hub"}). Customer notified to choose Warehouse Self-Pickup or Doorstep Delivery."
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Send Notification to Customer
+            string whName = destWh?.HubName ?? "Destination Warehouse";
+            string whAddr = destWh?.Address ?? "Warehouse Hub";
+            await _notificationService.CreateNotificationAsync(
+                "Customer",
+                req.UserID,
+                "Shipment Arrived at Destination Warehouse",
+                $"Your shipment {req.TrackingNumber} has arrived at our {whName} ({whAddr})! You can either pick it up directly from the warehouse or have us deliver it to your address.",
+                req.RequestID
+            );
+
+            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} marked as arrived at {whName}! Customer has been notified with pickup & delivery choices.";
+            return RedirectToAction(nameof(Assignments));
+        }
+
+        // POST: /Admin/UpdateDeliveryMilestone
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateDeliveryMilestone(int requestId, string status, string? remarks)
+        {
+            var req = await _context.DeliveryRequests
+                .Include(r => r.User)
+                .Include(r => r.Assignment)
+                .FirstOrDefaultAsync(r => r.RequestID == requestId);
+
+            if (req == null)
+            {
+                TempData["ErrorMessage"] = "Delivery request not found.";
+                return RedirectToAction(nameof(Assignments));
+            }
+
+            req.RequestedStatus = status;
+
+            if (req.Assignment != null)
+            {
+                _context.StatusUpdates.Add(new StatusUpdate
+                {
+                    AssignmentID = req.Assignment.AssignmentID,
+                    DriverID = req.Assignment.DriverID,
+                    UpdateStatus = status,
+                    UpdateTime = DateTime.UtcNow,
+                    Remarks = string.IsNullOrWhiteSpace(remarks) ? $"Status updated to '{status}' by Operations Admin." : remarks
+                });
+
+                if (status == "Delivered")
+                {
+                    req.Assignment.AssignmentStatus = "Completed";
+                    var driver = await _context.Drivers.FindAsync(req.Assignment.DriverID);
+                    if (driver != null) driver.AvailabilityStatus = "Available";
+                    var vehicle = await _context.Vehicles.FindAsync(req.Assignment.VehicleID);
+                    if (vehicle != null) vehicle.AvailabilityStatus = "Available";
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Notify Customer
+            await _notificationService.CreateNotificationAsync(
+                "Customer",
+                req.UserID,
+                $"Shipment Update: {status}",
+                $"Your shipment {req.TrackingNumber} status is now '{status}'. Note: {remarks ?? "Operations update."}",
+                req.RequestID
+            );
+
+            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} status updated to '{status}'. Customer notified.";
             return RedirectToAction(nameof(Assignments));
         }
 

@@ -1,18 +1,25 @@
 @model List<Fleetify.Models.Entities.DeliveryRequest>
 @{
-    ViewData["Title"] = "Delivery Assignments";
+    ViewData["Title"] = "Delivery Assignments & Dispatch";
     var drivers = ViewBag.Drivers as List<Fleetify.Models.Entities.Driver> ?? new();
+    var companyDrivers = ViewBag.CompanyDrivers as List<Fleetify.Models.Entities.Driver> ?? new();
+    var backupDrivers = ViewBag.BackupDrivers as List<Fleetify.Models.Entities.Driver> ?? new();
     var vehicles = ViewBag.Vehicles as List<Fleetify.Models.Entities.Vehicle> ?? new();
     var existingAssignments = ViewBag.Assignments as List<Fleetify.Models.Entities.Assignment> ?? new();
     var verificationRequests = ViewBag.VerificationRequests as List<Fleetify.Models.Entities.DeliveryRequest> ?? new();
+    var activeShipments = ViewBag.ActiveShipments as List<Fleetify.Models.Entities.DeliveryRequest> ?? new();
 }
 
 <div class="container-fluid px-lg-5 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Delivery Assignments</h2>
-            <p class="text-secondary small mb-0">Allocate pending customer requests to available drivers and vehicles (Figure 7)</p>
+            <h2 class="fw-bold text-dark mb-1">Dispatch &amp; Delivery Lifecycle</h2>
+            <p class="text-secondary small mb-0">Allocate pending customer requests, notify hub arrivals, and coordinate fleet &amp; on-call backup drivers</p>
         </div>
+        <button class="btn btn-outline-primary btn-sm rounded-pill px-3" type="button" data-bs-toggle="collapse" data-bs-target="#backupDirectoryCollapse">
+            <i class="bi bi-telephone-fill me-1"></i>On-Call Backup Directory (@backupDrivers.Count)
+        </button>
     </div>
 
     <!-- Secondary Navigation Menu -->
@@ -22,6 +29,221 @@
         <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
         <a asp-action="Assignments" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">Assignments</a>
         <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 small" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 small" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Collapsible On-Call Backup Drivers Drawer -->
+    <div class="collapse mb-4" id="backupDirectoryCollapse">
+        <div class="card border-0 shadow-sm rounded-4 bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-truck text-warning me-2"></i>On-Call Freelance Vehicle Owners (Quick Reach)
+                </h6>
+                <span class="text-muted small">Company drivers busy? Call or WhatsApp freelance partners for overflow dispatches.</span>
+            </div>
+            <div class="row g-3">
+                @if (!backupDrivers.Any())
+                {
+                    <div class="col-12 text-center text-muted py-2 small">No on-call backup drivers registered.</div>
+                }
+                @foreach (var bd in backupDrivers)
+                {
+                    var cleanPhone = (bd.PhoneNumber ?? "").Replace(" ", "").Replace("-", "").Replace("+", "");
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border bg-white rounded-3 p-3 h-100 shadow-xs">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong class="text-dark d-block">@bd.FullName</strong>
+                                    <span class="badge bg-primary-subtle text-primary border x-small">
+                                        <i class="bi bi-truck me-1"></i>@(string.IsNullOrWhiteSpace(bd.VehicleOwned) ? "Freelance Truck" : bd.VehicleOwned)
+                                    </span>
+                                </div>
+                                <span class="badge bg-success-subtle text-success rounded-pill x-small">@bd.AvailabilityStatus</span>
+                            </div>
+                            <div class="x-small text-muted mb-2">
+                                <i class="bi bi-info-circle me-1"></i>@(string.IsNullOrWhiteSpace(bd.BackupContactNotes) ? "Available on call" : bd.BackupContactNotes)
+                            </div>
+                            <div class="d-flex gap-2 pt-2 border-top mt-auto">
+                                <a href="tel:@bd.PhoneNumber" class="btn btn-outline-primary btn-sm flex-fill x-small py-1">
+                                    <i class="bi bi-telephone-fill me-1"></i>Call
+                                </a>
+                                @if (!string.IsNullOrWhiteSpace(cleanPhone))
+                                {
+                                    <a href="https://wa.me/@cleanPhone" target="_blank" class="btn btn-outline-success btn-sm flex-fill x-small py-1">
+                                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Shipments & Destination Warehouse Arrival Notification -->
+    <div class="card border-0 shadow-xs rounded-4 bg-white p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-semibold text-dark mb-0">
+                    <i class="bi bi-geo-alt-fill text-primary me-2"></i>Active Shipments &amp; Destination Hub Operations
+                </h5>
+                <span class="text-secondary small">Notify users when shipments arrive at destination hubs and record customer pickup or doorstep choices</span>
+            </div>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1">@activeShipments.Count Active Shipments</span>
+        </div>
+
+        @if (activeShipments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-secondary">
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Customer &amp; Route</th>
+                            <th>Handling Mode</th>
+                            <th>Driver &amp; Vehicle</th>
+                            <th>Hub Arrival Status</th>
+                            <th class="text-end">Lifecycle Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @foreach (var s in activeShipments)
+                        {
+                            <tr>
+                                <td>
+                                    <strong class="font-mono text-primary">@s.TrackingNumber</strong>
+                                    <span class="text-muted d-block x-small">@s.RequestDate.ToString("MMM dd HH:mm")</span>
+                                </td>
+                                <td>
+                                    <strong>@(s.User?.FullName ?? "Customer")</strong>
+                                    <div class="x-small text-muted">
+                                        <i class="bi bi-geo-alt me-1"></i>@s.PickupLocation &rarr; @s.DropoffLocation
+                                    </div>
+                                    @if (s.IsPrivateTransport)
+                                    {
+                                        <span class="badge bg-warning-subtle text-dark border x-small mt-1">
+                                            <i class="bi bi-shield-exclamation me-1"></i>Private Transport (+Rs. 1,500)
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="mb-1">
+                                        <span class="x-small text-muted d-block">Origin:</span>
+                                        <span class="badge bg-light text-dark border x-small">
+                                            @(s.OriginType == "WarehouseDropoff" ? "Dropoff at Hub" : "Doorstep Pickup")
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="x-small text-muted d-block">Destination:</span>
+                                        <span class="badge @(s.DestinationType == "WarehousePickup" ? "bg-warning-subtle text-dark" : "bg-info-subtle text-dark") border x-small">
+                                            @(s.DestinationType == "WarehousePickup" ? "Hub Self Pickup" : "Doorstep Delivery")
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (s.Assignment?.Driver != null)
+                                    {
+                                        <div><i class="bi bi-person-fill text-primary me-1"></i>@s.Assignment.Driver.FullName</div>
+                                        <div class="text-muted x-small"><i class="bi bi-truck me-1"></i>@(s.Assignment.Vehicle?.VehicleNumber ?? "Fleet Vehicle")</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not assigned</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (s.WarehouseArrivalNotified)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                                            <i class="bi bi-check2-all me-1"></i>User Notified at Hub
+                                        </span>
+                                        <div class="x-small text-muted mt-1">@s.DestinationWarehouseName</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1">
+                                            <i class="bi bi-hourglass me-1"></i>En Route to Hub
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2 align-items-center justify-content-end">
+                                        @if (!s.WarehouseArrivalNotified && s.RequestedStatus != "Delivered")
+                                        {
+                                            <form asp-action="MarkWarehouseArrival" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="requestId" value="@s.RequestID" />
+                                                <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold text-dark shadow-xs" title="Notify customer that parcel has reached destination hub">
+                                                    <i class="bi bi-bell-fill me-1"></i>Notify Hub Arrival
+                                                </button>
+                                            </form>
+                                        }
+
+                                        @if (s.RequestedStatus != "Delivered")
+                                        {
+                                            <div class="dropdown d-inline">
+                                                <button class="btn btn-light btn-sm rounded-pill px-3 dropdown-toggle border" type="button" data-bs-toggle="dropdown">
+                                                    Update Status
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                    @if (s.DestinationType != "WarehousePickup")
+                                                    {
+                                                        <li>
+                                                            <form asp-action="UpdateDeliveryMilestone" method="post">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="requestId" value="@s.RequestID" />
+                                                                <input type="hidden" name="status" value="OutForDelivery" />
+                                                                <input type="hidden" name="remarks" value="Dispatched from destination hub for doorstep delivery." />
+                                                                <button type="submit" class="dropdown-item text-primary">
+                                                                    <i class="bi bi-truck me-2"></i>Out for Doorstep Delivery
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    }
+                                                    <li>
+                                                        <form asp-action="UpdateDeliveryMilestone" method="post">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="requestId" value="@s.RequestID" />
+                                                            <input type="hidden" name="status" value="Delivered" />
+                                                            <input type="hidden" name="remarks" value="Parcel handed over / delivered successfully." />
+                                                            <button type="submit" class="dropdown-item text-success">
+                                                                <i class="bi bi-check-circle-fill me-2"></i>Mark Delivered / Collected
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-light border text-center text-muted mb-0 py-3 small">
+                <i class="bi bi-inbox text-muted fs-4 d-block mb-1"></i>
+                No active in-transit shipments currently requiring hub arrival handling.
+            </div>
+        }
     </div>
 
     <!-- Pending Requests Requiring Assignment -->
@@ -39,6 +261,7 @@
                             <th>Tracking #</th>
                             <th>Customer</th>
                             <th>Pickup &rarr; Destination</th>
+                            <th>Origin / Dest Mode</th>
                             <th>Details</th>
                             <th>Est. Fare</th>
                             <th class="text-end">Assign Flow</th>
@@ -53,10 +276,30 @@
                                 <td>
                                     <div><i class="bi bi-geo-alt-fill text-muted me-1"></i>@req.PickupLocation</div>
                                     <div><i class="bi bi-flag-fill text-danger me-1"></i>@req.DropoffLocation</div>
+                                    @if (req.IsPrivateTransport)
+                                    {
+                                        <span class="badge bg-warning-subtle text-dark border x-small mt-1">
+                                            <i class="bi bi-shield-exclamation me-1"></i>Private Transport (+Rs. 1,500)
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div>
+                                        <span class="x-small text-muted">Origin:</span>
+                                        <span class="badge bg-light text-dark border x-small">
+                                            @(req.OriginType == "WarehouseDropoff" ? "Warehouse Dropoff" : "Doorstep Pickup")
+                                        </span>
+                                    </div>
+                                    <div class="mt-1">
+                                        <span class="x-small text-muted">Dest:</span>
+                                        <span class="badge @(req.DestinationType == "WarehousePickup" ? "bg-warning-subtle text-dark" : "bg-info-subtle text-dark") border x-small">
+                                            @(req.DestinationType == "WarehousePickup" ? "Warehouse Pickup" : "Doorstep Delivery")
+                                        </span>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-dark border">@req.VehicleType</span>
-                                    <span class="text-muted">(@req.ParcelWeight kg - @req.ParcelDescription)</span>
+                                    <span class="text-muted">(@Math.Floor(req.ParcelWeight).ToString("F0") kg - @req.ParcelDescription)</span>
                                 </td>
                                 <td class="fw-bold text-dark">Rs. @Math.Floor(req.EstimatedCost).ToString("F0")</td>
                                 <td class="text-end">
@@ -64,11 +307,25 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="requestId" value="@req.RequestID" />
 
-                                        <select name="driverId" required class="form-select form-select-sm rounded-pill" style="max-width: 160px;">
+                                        <select name="driverId" required class="form-select form-select-sm rounded-pill" style="max-width: 175px;">
                                             <option value="">-- Choose Driver --</option>
-                                            @foreach (var d in drivers)
+                                            @if (companyDrivers.Any())
                                             {
-                                                <option value="@d.UserID">@d.FullName (@d.AvailabilityStatus)</option>
+                                                <optgroup label="Company Fleet Drivers">
+                                                    @foreach (var d in companyDrivers)
+                                                    {
+                                                        <option value="@d.UserID">@d.FullName (@d.AvailabilityStatus)</option>
+                                                    }
+                                                </optgroup>
+                                            }
+                                            @if (backupDrivers.Any())
+                                            {
+                                                <optgroup label="On-Call Backup Drivers">
+                                                    @foreach (var d in backupDrivers)
+                                                    {
+                                                        <option value="@d.UserID">@d.FullName (Backup - @(d.VehicleOwned ?? "Partner"))</option>
+                                                    }
+                                                </optgroup>
                                             }
                                         </select>
 
@@ -139,10 +396,10 @@
                                 <td class="fw-bold text-primary font-mono">@vr.TrackingNumber</td>
                                 <td>@(vr.User?.FullName ?? "Customer")</td>
                                 <td><i class="bi bi-person-badge text-muted me-1"></i>@driverName</td>
-                                <td><span class="badge bg-light text-dark border">@vr.ParcelWeight kg</span></td>
+                                <td><span class="badge bg-light text-dark border">@Math.Floor(vr.ParcelWeight).ToString("F0") kg</span></td>
                                 <td>
                                     <strong class="@(isMatch ? "text-success" : "text-warning")">
-                                        @measuredWeight.ToString("F1") kg
+                                        @Math.Floor(measuredWeight).ToString("F0") kg
                                     </strong>
                                     @if (!string.IsNullOrEmpty(vr.DriverVerificationNotes))
                                     {
@@ -170,7 +427,7 @@
                                         <input type="hidden" name="requestId" value="@vr.RequestID" />
 
                                         <div class="input-group input-group-sm" style="max-width: 140px;">
-                                            <input name="finalWeight" type="number" step="0.1" min="0.1" class="form-control" value="@measuredWeight" title="Final Weight in kg" required />
+                                            <input name="finalWeight" type="number" step="1" min="1" class="form-control" value="@Math.Floor(measuredWeight).ToString("F0")" title="Final Weight in kg" required />
                                             <span class="input-group-text bg-white">kg</span>
                                         </div>
 
@@ -222,7 +479,7 @@
                     @foreach (var a in existingAssignments)
                     {
                         <tr>
-                            <td class="fw-bold">#ASN-@a.AssignmentID.ToString("D4")</td>
+                            <td class="fw-bold font-mono">#ASN-@a.AssignmentID.ToString("D4")</td>
                             <td class="fw-semibold text-primary font-mono">@(a.DeliveryRequest?.TrackingNumber ?? "N/A")</td>
                             <td>@(a.Driver?.FullName ?? "Unknown")</td>
                             <td>
