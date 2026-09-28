@@ -53,6 +53,11 @@ namespace Fleetify.Services.Implementations
             string? polyline = null;
             string provider = "Local";
 
+            double? originLat = null;
+            double? originLng = null;
+            double? destinationLat = null;
+            double? destinationLng = null;
+
             if (!string.IsNullOrWhiteSpace(request.PickupLocation) && !string.IsNullOrWhiteSpace(request.DropoffLocation))
             {
                 var routeResult = await _mapRoutingService.GetDrivingDistanceAsync(request.PickupLocation, request.DropoffLocation);
@@ -62,10 +67,22 @@ namespace Fleetify.Services.Implementations
                     durationMinutes = routeResult.DurationMinutes;
                     polyline = routeResult.EncodedPolyline;
                     provider = routeResult.Provider;
+                    originLat = routeResult.OriginLat;
+                    originLng = routeResult.OriginLng;
+                    destinationLat = routeResult.DestinationLat;
+                    destinationLng = routeResult.DestinationLng;
                 }
                 else
                 {
                     distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
+                    var pCoord = MapRoutingService.ResolveCityCoordinates(request.PickupLocation);
+                    var dCoord = MapRoutingService.ResolveCityCoordinates(request.DropoffLocation);
+                    if (pCoord.HasValue) { originLat = pCoord.Value.Lat; originLng = pCoord.Value.Lng; }
+                    if (dCoord.HasValue) { destinationLat = dCoord.Value.Lat; destinationLng = dCoord.Value.Lng; }
+                    if (originLat.HasValue && destinationLat.HasValue)
+                    {
+                        polyline = MapRoutingService.EncodePolyline(new[] { (originLat.Value, originLng!.Value), (destinationLat.Value, destinationLng!.Value) });
+                    }
                 }
             }
 
@@ -137,6 +154,10 @@ namespace Fleetify.Services.Implementations
                 EstimatedDeliveryDays = deliveryDays,
                 DurationMinutes = durationMinutes,
                 RoutePolyline = polyline,
+                OriginLat = originLat,
+                OriginLng = originLng,
+                DestinationLat = destinationLat,
+                DestinationLng = destinationLng,
                 Provider = provider
             };
         }
@@ -173,6 +194,10 @@ namespace Fleetify.Services.Implementations
                 double petrolCharge = CalculatePetrolSurcharge(distanceKm);
                 double total = Math.Floor(((baseCost + petrolCharge) * deliveryMultiplier) + privateTransportSurcharge);
 
+                var pCoord = MapRoutingService.ResolveCityCoordinates(request.PickupLocation);
+                var dCoord = MapRoutingService.ResolveCityCoordinates(request.DropoffLocation);
+                string? fallbackPoly = (pCoord.HasValue && dCoord.HasValue) ? MapRoutingService.EncodePolyline(new[] { pCoord.Value, dCoord.Value }) : null;
+
                 return new CostEstimateResult
                 {
                     DistanceKm = Math.Floor(distanceKm),
@@ -191,7 +216,13 @@ namespace Fleetify.Services.Implementations
                     OriginWarehouseName = originWarehouse?.HubName,
                     DestinationWarehouseName = destWarehouse?.HubName,
                     Currency = "Rs.",
-                    EstimatedTotal = total
+                    EstimatedTotal = total,
+                    OriginLat = pCoord?.Lat,
+                    OriginLng = pCoord?.Lng,
+                    DestinationLat = dCoord?.Lat,
+                    DestinationLng = dCoord?.Lng,
+                    RoutePolyline = fallbackPoly,
+                    Provider = "Fallback Matrix"
                 };
             }
         }

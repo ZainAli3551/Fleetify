@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -18,6 +19,41 @@ namespace Fleetify.Services.Implementations
         private readonly IConfiguration _configuration;
         private readonly ILogger<MapRoutingService> _logger;
         private static readonly ConcurrentDictionary<string, RouteDistanceResult> _routeCache = new();
+
+        // Built-in Pakistani Cities & Hubs Coordinate Reference
+        public static readonly Dictionary<string, (double Lat, double Lng)> PakistanCities = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "lahore", (31.5204, 74.3587) },
+            { "karachi", (24.8607, 67.0011) },
+            { "islamabad", (33.6844, 73.0479) },
+            { "rawalpindi", (33.5651, 73.0169) },
+            { "faisalabad", (31.4504, 73.1350) },
+            { "multan", (30.1575, 71.5249) },
+            { "gujranwala", (32.1877, 74.1945) },
+            { "peshawar", (34.0151, 71.5249) },
+            { "quetta", (30.1798, 66.9750) },
+            { "sialkot", (32.4945, 74.5229) },
+            { "kasur", (31.1179, 74.4506) },
+            { "murree", (33.9070, 73.3943) },
+            { "abbottabad", (34.1688, 73.2215) },
+            { "hyderabad", (25.3960, 68.3578) },
+            { "bahawalpur", (29.3956, 71.6836) },
+            { "sargodha", (32.0836, 72.6711) },
+            { "sukkur", (27.7052, 68.8574) },
+            { "jhelum", (32.9425, 73.7257) },
+            { "gujrat", (32.5742, 74.0754) },
+            { "sheikhupura", (31.7131, 73.9783) },
+            { "sahiwal", (30.6682, 73.1114) },
+            { "okara", (30.8081, 73.4458) },
+            { "rahim yar khan", (28.4212, 70.2989) },
+            { "larkana", (27.5590, 68.2120) },
+            { "mardan", (34.1989, 72.0450) },
+            { "swat", (34.7758, 72.3626) },
+            { "mingora", (34.7758, 72.3626) },
+            { "muzaffarabad", (34.3700, 73.4711) },
+            { "mirpur", (33.1478, 73.7519) },
+            { "gwadar", (25.1216, 62.3254) }
+        };
 
         public MapRoutingService(
             HttpClient httpClient,
@@ -122,7 +158,7 @@ namespace Fleetify.Services.Implementations
 
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Add("X-Goog-Api-Key", apiKey);
-            request.Headers.Add("X-Goog-FieldMask", "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline");
+            request.Headers.Add("X-Goog-FieldMask", "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.startLocation,routes.legs.endLocation");
             request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
             var response = await _httpClient.SendAsync(request);
@@ -143,7 +179,7 @@ namespace Fleetify.Services.Implementations
                 var firstRoute = routes[0];
                 int distanceMeters = firstRoute.GetProperty("distanceMeters").GetInt32();
                 string durationStr = firstRoute.GetProperty("duration").GetString() ?? "0s";
-                
+
                 int durationSeconds = 0;
                 var durMatch = Regex.Match(durationStr, @"(\d+)s");
                 if (durMatch.Success && int.TryParse(durMatch.Groups[1].Value, out int sec))
@@ -157,6 +193,45 @@ namespace Fleetify.Services.Implementations
                     polyline = enc.GetString();
                 }
 
+                double? originLat = null;
+                double? originLng = null;
+                double? destLat = null;
+                double? destLng = null;
+
+                if (firstRoute.TryGetProperty("legs", out var legs) && legs.GetArrayLength() > 0)
+                {
+                    var firstLeg = legs[0];
+                    if (firstLeg.TryGetProperty("startLocation", out var sLoc) && sLoc.TryGetProperty("latLng", out var sLatLng))
+                    {
+                        if (sLatLng.TryGetProperty("latitude", out var latProp)) originLat = latProp.GetDouble();
+                        if (sLatLng.TryGetProperty("longitude", out var lngProp)) originLng = lngProp.GetDouble();
+                    }
+                    var lastLeg = legs[legs.GetArrayLength() - 1];
+                    if (lastLeg.TryGetProperty("endLocation", out var eLoc) && eLoc.TryGetProperty("latLng", out var eLatLng))
+                    {
+                        if (eLatLng.TryGetProperty("latitude", out var latProp)) destLat = latProp.GetDouble();
+                        if (eLatLng.TryGetProperty("longitude", out var lngProp)) destLng = lngProp.GetDouble();
+                    }
+                }
+
+                // Fallback coordinates from Pakistani cities dictionary if Google legs are omitted
+                if (originLat == null || originLng == null)
+                {
+                    var pCoord = ResolveCityCoordinates(pickup);
+                    if (pCoord.HasValue) { originLat = pCoord.Value.Lat; originLng = pCoord.Value.Lng; }
+                }
+                if (destLat == null || destLng == null)
+                {
+                    var dCoord = ResolveCityCoordinates(dropoff);
+                    if (dCoord.HasValue) { destLat = dCoord.Value.Lat; destLng = dCoord.Value.Lng; }
+                }
+
+                // If polyline was somehow omitted, generate clean two-point polyline
+                if (string.IsNullOrWhiteSpace(polyline) && originLat.HasValue && originLng.HasValue && destLat.HasValue && destLng.HasValue)
+                {
+                    polyline = EncodePolyline(new[] { (originLat.Value, originLng.Value), (destLat.Value, destLng.Value) });
+                }
+
                 double distanceKm = Math.Round(distanceMeters / 1000.0, 1);
                 int durationMinutes = Math.Max(1, (int)Math.Round(durationSeconds / 60.0));
 
@@ -167,6 +242,10 @@ namespace Fleetify.Services.Implementations
                     DurationMinutes = durationMinutes,
                     Origin = pickup,
                     Destination = dropoff,
+                    OriginLat = originLat,
+                    OriginLng = originLng,
+                    DestinationLat = destLat,
+                    DestinationLng = destLng,
                     EncodedPolyline = polyline,
                     Provider = "Google Maps"
                 };
@@ -181,23 +260,23 @@ namespace Fleetify.Services.Implementations
 
         private async Task<RouteDistanceResult> CalculateOsrmAsync(string pickup, string dropoff)
         {
-            // Geocode Pickup via Nominatim
-            var pCoord = await GeocodeNominatimAsync(pickup);
-            var dCoord = await GeocodeNominatimAsync(dropoff);
+            // Geocode Pickup & Dropoff via Nominatim with fast fallback to dictionary
+            var pCoord = await GeocodeNominatimAsync(pickup) ?? ResolveCityCoordinates(pickup);
+            var dCoord = await GeocodeNominatimAsync(dropoff) ?? ResolveCityCoordinates(dropoff);
 
             if (pCoord == null || dCoord == null)
             {
                 return new RouteDistanceResult
                 {
                     Success = false,
-                    ErrorMessage = "Unable to geocode pickup or dropoff location via Nominatim."
+                    ErrorMessage = "Unable to geocode pickup or dropoff location."
                 };
             }
 
             // OSRM Driving Route
-            string osrmUrl = $"http://router.project-osrm.org/route/v1/driving/{pCoord.Value.lng:F6},{pCoord.Value.lat:F6};{dCoord.Value.lng:F6},{dCoord.Value.lat:F6}?overview=simplified";
+            string osrmUrl = $"http://router.project-osrm.org/route/v1/driving/{pCoord.Value.Lng:F6},{pCoord.Value.Lat:F6};{dCoord.Value.Lng:F6},{dCoord.Value.Lat:F6}?overview=simplified";
             var osrmResponse = await _httpClient.GetAsync(osrmUrl);
-            
+
             if (!osrmResponse.IsSuccessStatusCode)
             {
                 return new RouteDistanceResult
@@ -220,6 +299,11 @@ namespace Fleetify.Services.Implementations
                     geometry = geom.GetString();
                 }
 
+                if (string.IsNullOrWhiteSpace(geometry))
+                {
+                    geometry = EncodePolyline(new[] { pCoord.Value, dCoord.Value });
+                }
+
                 return new RouteDistanceResult
                 {
                     Success = true,
@@ -227,10 +311,10 @@ namespace Fleetify.Services.Implementations
                     DurationMinutes = Math.Max(1, (int)Math.Round(seconds / 60.0)),
                     Origin = pickup,
                     Destination = dropoff,
-                    OriginLat = pCoord.Value.lat,
-                    OriginLng = pCoord.Value.lng,
-                    DestinationLat = dCoord.Value.lat,
-                    DestinationLng = dCoord.Value.lng,
+                    OriginLat = pCoord.Value.Lat,
+                    OriginLng = pCoord.Value.Lng,
+                    DestinationLat = dCoord.Value.Lat,
+                    DestinationLng = dCoord.Value.Lng,
                     EncodedPolyline = geometry,
                     Provider = "OSRM Road Engine"
                 };
@@ -243,17 +327,24 @@ namespace Fleetify.Services.Implementations
             };
         }
 
-        private async Task<(double lat, double lng)?> GeocodeNominatimAsync(string query)
+        private async Task<(double Lat, double Lng)?> GeocodeNominatimAsync(string query)
         {
             try
             {
-                string encoded = Uri.EscapeDataString(query);
-                string url = $"https://nominatim.openstreetmap.org/search?q={encoded}&format=json&limit=1";
-                
-                var res = await _httpClient.GetAsync(url);
+                string search = query;
+                if (!search.Contains("pakistan", StringComparison.OrdinalIgnoreCase))
+                {
+                    search += ", Pakistan";
+                }
+
+                string encoded = Uri.EscapeDataString(search);
+                string url = $"https://nominatim.openstreetmap.org/search?q={encoded}&countrycodes=pk&format=json&limit=1";
+
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(4));
+                var res = await _httpClient.GetAsync(url, cts.Token);
                 if (!res.IsSuccessStatusCode) return null;
 
-                string json = await res.Content.ReadAsStringAsync();
+                string json = await res.Content.ReadAsStringAsync(cts.Token);
                 using var doc = JsonDocument.Parse(json);
                 if (doc.RootElement.GetArrayLength() > 0)
                 {
@@ -268,29 +359,48 @@ namespace Fleetify.Services.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Nominatim geocoding error for {Query}", query);
+                _logger.LogDebug(ex, "Nominatim geocoding timeout or error for {Query}", query);
             }
             return null;
         }
 
-        private RouteDistanceResult CalculateLocalMatrix(string pickup, string dropoff)
+        public RouteDistanceResult CalculateLocalMatrix(string pickup, string dropoff)
         {
-            var p = pickup.ToLower();
-            var d = dropoff.ToLower();
-            double km = 15.0;
+            var p = pickup.ToLowerInvariant();
+            var d = dropoff.ToLowerInvariant();
+            double km = 0;
 
             if ((p.Contains("gujranwala") && d.Contains("lahore")) || (p.Contains("lahore") && d.Contains("gujranwala"))) km = 71.0;
             else if ((p.Contains("lahore") && d.Contains("karachi")) || (p.Contains("karachi") && d.Contains("lahore"))) km = 1215.0;
             else if ((p.Contains("lahore") && d.Contains("islamabad")) || (p.Contains("islamabad") && d.Contains("lahore"))) km = 375.0;
             else if ((p.Contains("gujranwala") && d.Contains("islamabad")) || (p.Contains("islamabad") && d.Contains("gujranwala"))) km = 215.0;
             else if ((p.Contains("gujranwala") && d.Contains("sialkot")) || (p.Contains("sialkot") && d.Contains("gujranwala"))) km = 52.0;
-            else
+            else if ((p.Contains("lahore") && d.Contains("kasur")) || (p.Contains("kasur") && d.Contains("lahore"))) km = 55.0;
+            else if ((p.Contains("islamabad") && d.Contains("rawalpindi")) || (p.Contains("rawalpindi") && d.Contains("islamabad"))) km = 18.0;
+            else if ((p.Contains("lahore") && d.Contains("faisalabad")) || (p.Contains("faisalabad") && d.Contains("lahore"))) km = 180.0;
+            else if ((p.Contains("lahore") && d.Contains("multan")) || (p.Contains("multan") && d.Contains("lahore"))) km = 345.0;
+            else if ((p.Contains("islamabad") && d.Contains("peshawar")) || (p.Contains("peshawar") && d.Contains("islamabad"))) km = 185.0;
+            else if ((p.Contains("karachi") && d.Contains("hyderabad")) || (p.Contains("hyderabad") && d.Contains("karachi"))) km = 160.0;
+
+            var originCoord = ResolveCityCoordinates(pickup) ?? (31.5204, 74.3587); // Lahore default
+            var destCoord = ResolveCityCoordinates(dropoff) ?? (33.6844, 73.0479); // Islamabad default
+
+            if (km <= 0)
             {
-                int seed = Math.Abs((p + "|" + d).GetHashCode());
-                km = 12.0 + (seed % 45);
+                double haversine = CalculateHaversineDistance(originCoord.Lat, originCoord.Lng, destCoord.Lat, destCoord.Lng);
+                if (haversine > 1.0)
+                {
+                    km = Math.Round(haversine * 1.25, 1); // 25% road curvature
+                }
+                else
+                {
+                    int seed = Math.Abs((p + "|" + d).GetHashCode());
+                    km = 12.0 + (seed % 45);
+                }
             }
 
             int minutes = Math.Max(1, (int)Math.Round(km * 1.15));
+            string polyline = EncodePolyline(new[] { originCoord, destCoord });
 
             return new RouteDistanceResult
             {
@@ -299,8 +409,69 @@ namespace Fleetify.Services.Implementations
                 DurationMinutes = minutes,
                 Origin = pickup,
                 Destination = dropoff,
-                Provider = "Local Matrix Fallback"
+                OriginLat = originCoord.Lat,
+                OriginLng = originCoord.Lng,
+                DestinationLat = destCoord.Lat,
+                DestinationLng = destCoord.Lng,
+                EncodedPolyline = polyline,
+                Provider = "Fleetify Route Engine"
             };
+        }
+
+        public static (double Lat, double Lng)? ResolveCityCoordinates(string? address)
+        {
+            if (string.IsNullOrWhiteSpace(address)) return null;
+            var clean = address.ToLowerInvariant();
+            foreach (var kvp in PakistanCities)
+            {
+                if (clean.Contains(kvp.Key))
+                {
+                    return kvp.Value;
+                }
+            }
+            return null;
+        }
+
+        public static double CalculateHaversineDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371; // Earth radius in km
+            double dLat = ToRadians(lat2 - lat1);
+            double dLon = ToRadians(lon2 - lon1);
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                       Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
+                       Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
+        private static double ToRadians(double angle) => (Math.PI / 180) * angle;
+
+        public static string EncodePolyline(IEnumerable<(double Lat, double Lng)> points)
+        {
+            var str = new StringBuilder();
+            void EncodeDiff(int diff)
+            {
+                int shifted = diff < 0 ? ~(diff << 1) : (diff << 1);
+                while (shifted >= 0x20)
+                {
+                    str.Append((char)((0x20 | (shifted & 0x1f)) + 63));
+                    shifted >>= 5;
+                }
+                str.Append((char)(shifted + 63));
+            }
+
+            int lastLat = 0;
+            int lastLng = 0;
+            foreach (var pt in points)
+            {
+                int lat = (int)Math.Round(pt.Lat * 1e5);
+                int lng = (int)Math.Round(pt.Lng * 1e5);
+                EncodeDiff(lat - lastLat);
+                EncodeDiff(lng - lastLng);
+                lastLat = lat;
+                lastLng = lng;
+            }
+            return str.ToString();
         }
     }
 }

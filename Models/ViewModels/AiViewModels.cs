@@ -41,6 +41,10 @@ namespace Fleetify.Models.ViewModels
         public string EstimatedDeliveryDays { get; set; } = "1-2 business days";
         public int DurationMinutes { get; set; }
         public string? RoutePolyline { get; set; }
+        public double? OriginLat { get; set; }
+        public double? OriginLng { get; set; }
+        public double? DestinationLat { get; set; }
+        public double? DestinationLng { get; set; }
         public string Provider { get; set; } = "Default";
     }
 
