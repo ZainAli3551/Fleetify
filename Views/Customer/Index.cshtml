@@ -175,53 +175,34 @@
                                 </div>
                             </div>
 
-                            <!-- Origin & Destination Warehouse Options -->
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold text-secondary d-block">Origin Handling</label>
-                                    <div class="d-flex flex-column gap-2">
-                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
-                                            <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.OriginType" id="originDoorstep" value="DoorstepPickup" checked onchange="toggleOriginType()">
-                                            <label class="form-check-label ms-2 small fw-semibold text-dark" for="originDoorstep">
-                                                <i class="bi bi-house-door text-primary me-1"></i> Doorstep Pickup
-                                                <span class="text-muted d-block fw-normal x-small">Our courier will pick up parcel from your address.</span>
-                                            </label>
-                                        </div>
-                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
-                                            <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.OriginType" id="originWarehouse" value="WarehouseDropoff" onchange="toggleOriginType()">
-                                            <label class="form-check-label ms-2 small fw-semibold text-dark" for="originWarehouse">
-                                                <i class="bi bi-building text-success me-1"></i> Warehouse Dropoff
-                                                <span class="text-muted d-block fw-normal x-small">You will drop off parcel at our local warehouse yourself.</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div id="originWarehouseNotice" class="alert alert-light border small py-2 px-3 mt-2 d-none">
-                                        <i class="bi bi-info-circle text-primary me-1"></i>
-                                        <span id="originWarehouseText">Drop parcel at nearest Fleetify Central Warehouse Hub.</span>
-                                    </div>
-                                </div>
+                            <!-- Origin Handling: Standard Doorstep Pickup -->
+                            <input type="hidden" asp-for="NewDelivery.OriginType" id="originDoorstep" value="DoorstepPickup" />
 
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold text-secondary d-block">Destination Handling</label>
-                                    <div class="d-flex flex-column gap-2">
-                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
+                            <!-- Destination Handling Options -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-secondary d-block">Destination Handling</label>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check p-3 border rounded-3 bg-light-subtle h-100">
                                             <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.DestinationType" id="destDoorstep" value="DoorstepDelivery" checked>
                                             <label class="form-check-label ms-2 small fw-semibold text-dark" for="destDoorstep">
                                                 <i class="bi bi-geo-alt-fill text-danger me-1"></i> Doorstep Delivery
-                                                <span class="text-muted d-block fw-normal x-small">Deliver directly to recipient's address.</span>
+                                                <span class="text-muted d-block fw-normal x-small mt-1">Deliver directly to recipient's address.</span>
                                             </label>
                                         </div>
-                                        <div class="form-check p-2 border rounded-3 bg-light-subtle">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check p-3 border rounded-3 bg-light-subtle h-100">
                                             <input class="form-check-input ms-1" type="radio" asp-for="NewDelivery.DestinationType" id="destWarehouse" value="WarehousePickup">
                                             <label class="form-check-label ms-2 small fw-semibold text-dark" for="destWarehouse">
                                                 <i class="bi bi-box-arrow-in-down-right text-info me-1"></i> Warehouse Self-Pickup
-                                                <span class="text-muted d-block fw-normal x-small">Recipient picks up directly from destination hub warehouse.</span>
+                                                <span class="text-muted d-block fw-normal x-small mt-1">Recipient picks up directly from destination hub warehouse.</span>
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="text-muted x-small mt-2">
-                                        <i class="bi bi-bell text-secondary me-1"></i>You can also confirm or update your preference when shipment arrives at destination warehouse.
-                                    </div>
+                                </div>
+                                <div class="text-muted x-small mt-2">
+                                    <i class="bi bi-bell text-secondary me-1"></i>You can also confirm or update your preference when shipment arrives at destination warehouse.
                                 </div>
                             </div>
 
@@ -1040,7 +1021,7 @@
             const weight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
             const vehicle = document.getElementById('vehicleType')?.value || 'Truck';
             const route = document.getElementById('deliveryType')?.value || 'Normal';
-            const originType = document.querySelector('input[name="NewDelivery.OriginType"]:checked')?.value || 'DoorstepPickup';
+            const originType = document.getElementById('originDoorstep')?.value || 'DoorstepPickup';
             const destType = document.querySelector('input[name="NewDelivery.DestinationType"]:checked')?.value || 'DoorstepDelivery';
 
             fetch('/api/ai/estimate-cost', {
@@ -1176,8 +1157,7 @@
             const vehicleText = vehSel ? vehSel.options[vehSel.selectedIndex].text : 'Truck (Up to 5,000 kg)';
             const total = document.getElementById('estTotal')?.innerText || 'Rs. 0';
 
-            const originRadio = document.querySelector('input[name="NewDelivery.OriginType"]:checked');
-            const originText = (originRadio && originRadio.value === 'WarehouseDropoff') ? 'Warehouse Dropoff (Self)' : 'Doorstep Pickup (Courier)';
+            const originText = 'Doorstep Pickup (Courier)';
 
             const destRadio = document.querySelector('input[name="NewDelivery.DestinationType"]:checked');
             const destText = (destRadio && destRadio.value === 'WarehousePickup') ? 'Warehouse Self-Pickup' : 'Doorstep Delivery (Address)';
