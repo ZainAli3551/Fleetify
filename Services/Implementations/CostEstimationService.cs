@@ -110,14 +110,14 @@ namespace Fleetify.Services.Implementations
             var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
 
             // Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier, + 15% extra for out-of-network special delivery, floored to previous whole number
-            double baseCost = distanceKm * weight * ratePerKmKg;
-            double petrolCharge = CalculatePetrolSurcharge(distanceKm);
+            double flooredDistance = Math.Floor(distanceKm);
+            double flooredWeight = Math.Floor(weight);
+
+            double baseCost = flooredDistance * weight * ratePerKmKg;
+            double petrolCharge = CalculatePetrolSurcharge(flooredDistance);
             double subtotal = (baseCost + petrolCharge) * deliveryMultiplier;
             double specialDeliverySurcharge = isSpecialDelivery ? Math.Round(subtotal * 0.15) : 0.0;
             double total = Math.Floor(subtotal + specialDeliverySurcharge);
-
-            double flooredDistance = Math.Floor(distanceKm);
-            double flooredWeight = Math.Floor(weight);
 
             string deliveryDays = "4 to 6 days";
             if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
@@ -192,8 +192,9 @@ namespace Fleetify.Services.Implementations
                 var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
                 var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
 
-                double baseCost = distanceKm * weight * ratePerKmKg;
-                double petrolCharge = CalculatePetrolSurcharge(distanceKm);
+                double flooredDistance = Math.Floor(distanceKm);
+                double baseCost = flooredDistance * weight * ratePerKmKg;
+                double petrolCharge = CalculatePetrolSurcharge(flooredDistance);
                 double subtotal = (baseCost + petrolCharge) * deliveryMultiplier;
                 double specialDeliverySurcharge = isSpecialDelivery ? Math.Round(subtotal * 0.15) : 0.0;
                 double total = Math.Floor(subtotal + specialDeliverySurcharge);
