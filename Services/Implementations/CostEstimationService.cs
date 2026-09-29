@@ -32,7 +32,11 @@ namespace Fleetify.Services.Implementations
             if (distanceKm < 20.0) return 500.0;
             if (distanceKm < 50.0) return 700.0;
             if (distanceKm < 100.0) return 1000.0;
-            return 2500.0; // 100km to 200km+
+            if (distanceKm < 200.0) return 1700.0;
+            if (distanceKm < 500.0) return 2500.0;
+            if (distanceKm < 1000.0) return 3000.0;
+            if (distanceKm < 2000.0) return 4200.0;
+            return 4200.0; // 2000km+
         }
 
         public static double GetDeliveryMultiplier(string? deliveryType)
@@ -99,8 +103,8 @@ namespace Fleetify.Services.Implementations
             var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
             var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
             bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(request.PickupLocation);
-            bool hasDestWarehouse = WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
-            bool isSpecialDelivery = request.IsPrivateTransport || WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse;
+            bool hasDestWarehouse = string.IsNullOrWhiteSpace(request.DropoffLocation) || WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
+            bool isSpecialDelivery = request.IsPrivateTransport || (!string.IsNullOrWhiteSpace(request.DropoffLocation) && (WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse));
 
             var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
             var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
@@ -182,8 +186,8 @@ namespace Fleetify.Services.Implementations
                 var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
                 var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
                 bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(request.PickupLocation);
-                bool hasDestWarehouse = WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
-                bool isSpecialDelivery = request.IsPrivateTransport || WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse;
+                bool hasDestWarehouse = string.IsNullOrWhiteSpace(request.DropoffLocation) || WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
+                bool isSpecialDelivery = request.IsPrivateTransport || (!string.IsNullOrWhiteSpace(request.DropoffLocation) && (WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse));
 
                 var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
                 var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
