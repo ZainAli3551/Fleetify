@@ -129,18 +129,61 @@
                         <form asp-action="CreateDelivery" method="post" id="deliveryForm">
                             @Html.AntiForgeryToken()
 
-                            <!-- Main Handling Grid: Pickup Handling (Left) and Drop-off Handling (Right) -->
-                            <div class="row g-4 mb-3">
-                                <!-- 1. PICKUP SECTION -->
+                            <!-- 1. TOP ROW: TWO DROPDOWNS FOR ORIGIN WAREHOUSE AND DESTINATION WAREHOUSE -->
+                            <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label small fw-bold text-dark mb-0">
-                                            <i class="bi bi-box-arrow-up text-primary me-1"></i>Pickup Handling
-                                        </label>
-                                    </div>
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        <i class="bi bi-building text-primary me-1"></i>Origin Warehouse
+                                    </label>
+                                    <select id="originWarehouseSelect" class="form-select rounded-3 py-2 fw-semibold" onchange="onOriginWarehouseChanged()">
+                                        <option value="Fleetify GT Road Hub, Climax Town, Main GT Road, Gujranwala" data-city="Gujranwala" selected>Fleetify GT Road Hub - Gujranwala</option>
+                                        <option value="Fleetify Central Hub, Multan Road, Near Thokar Niaz Baig, Lahore" data-city="Lahore">Fleetify Central Hub - Lahore</option>
+                                        <option value="Fleetify South Hub, Plot 42, Korangi Industrial Area, Karachi" data-city="Karachi">Fleetify South Hub - Karachi</option>
+                                        <option value="Fleetify North Hub, Sector I-9/2 Industrial Area, Islamabad" data-city="Islamabad">Fleetify North Hub - Islamabad</option>
+                                        <option value="Fleetify Twin Cities Hub, Westridge 1, Main Peshawar Road, Rawalpindi" data-city="Rawalpindi">Fleetify Twin Cities Hub - Rawalpindi</option>
+                                        <option value="Fleetify Textile Hub, Small Industrial Estate, Sargodha Road, Faisalabad" data-city="Faisalabad">Fleetify Textile Hub - Faisalabad</option>
+                                        <option value="Fleetify South Punjab Hub, Industrial Estate Phase 2, Khanewal Road, Multan" data-city="Multan">Fleetify South Punjab Hub - Multan</option>
+                                        <option value="Fleetify Khyber Hub, Industrial Estate, Jamrud Road, Hayatabad, Peshawar" data-city="Peshawar">Fleetify Khyber Hub - Peshawar</option>
+                                        <option value="Fleetify Export Hub, Sambrial Road, Near Dry Port, Sialkot" data-city="Sialkot">Fleetify Export Hub - Sialkot</option>
+                                        <option value="Fleetify Balochistan Hub, Joint Road, Near Railway Station, Quetta" data-city="Quetta">Fleetify Balochistan Hub - Quetta</option>
+                                    </select>
+                                    <span class="text-muted d-block x-small mt-1"><i class="bi bi-geo-alt me-1"></i>Fleetify warehouse serving your pickup region.</span>
+                                </div>
 
-                                    <!-- Two compact, side-by-side selectable blocks for Doorstep Pickup and Warehouse Drop-off -->
-                                    <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        <i class="bi bi-building text-danger me-1"></i>Destination Warehouse
+                                    </label>
+                                    <select id="destWarehouseSelect" class="form-select rounded-3 py-2 fw-semibold" onchange="onDestWarehouseChanged()">
+                                        <optgroup label="Fleetify Hub Warehouses">
+                                            <option value="Fleetify Central Hub, Multan Road, Near Thokar Niaz Baig, Lahore" data-city="Lahore" selected>Fleetify Central Hub - Lahore</option>
+                                            <option value="Fleetify South Hub, Plot 42, Korangi Industrial Area, Karachi" data-city="Karachi">Fleetify South Hub - Karachi</option>
+                                            <option value="Fleetify North Hub, Sector I-9/2 Industrial Area, Islamabad" data-city="Islamabad">Fleetify North Hub - Islamabad</option>
+                                            <option value="Fleetify Twin Cities Hub, Westridge 1, Main Peshawar Road, Rawalpindi" data-city="Rawalpindi">Fleetify Twin Cities Hub - Rawalpindi</option>
+                                            <option value="Fleetify Textile Hub, Small Industrial Estate, Sargodha Road, Faisalabad" data-city="Faisalabad">Fleetify Textile Hub - Faisalabad</option>
+                                            <option value="Fleetify South Punjab Hub, Industrial Estate Phase 2, Khanewal Road, Multan" data-city="Multan">Fleetify South Punjab Hub - Multan</option>
+                                            <option value="Fleetify GT Road Hub, Climax Town, Main GT Road, Gujranwala" data-city="Gujranwala">Fleetify GT Road Hub - Gujranwala</option>
+                                            <option value="Fleetify Khyber Hub, Industrial Estate, Jamrud Road, Hayatabad, Peshawar" data-city="Peshawar">Fleetify Khyber Hub - Peshawar</option>
+                                            <option value="Fleetify Export Hub, Sambrial Road, Near Dry Port, Sialkot" data-city="Sialkot">Fleetify Export Hub - Sialkot</option>
+                                            <option value="Fleetify Balochistan Hub, Joint Road, Near Railway Station, Quetta" data-city="Quetta">Fleetify Balochistan Hub - Quetta</option>
+                                        </optgroup>
+                                        <optgroup label="Special Delivery Areas (No Warehouse - 15% Surcharge)">
+                                            <option value="Sahiwal, Pakistan" data-city="Sahiwal" data-no-warehouse="true">Sahiwal (No Warehouse - Special Delivery +15%)</option>
+                                            <option value="Okara, Pakistan" data-city="Okara" data-no-warehouse="true">Okara (No Warehouse - Special Delivery +15%)</option>
+                                            <option value="Kasur, Pakistan" data-city="Kasur" data-no-warehouse="true">Kasur (No Warehouse - Special Delivery +15%)</option>
+                                            <option value="Sukkur, Pakistan" data-city="Sukkur" data-no-warehouse="true">Sukkur (No Warehouse - Special Delivery +15%)</option>
+                                        </optgroup>
+                                    </select>
+                                    <span class="text-muted d-block x-small mt-1"><i class="bi bi-flag me-1"></i>Destination warehouse hub or delivery region.</span>
+                                </div>
+                            </div>
+
+                            <!-- 2. BELOW DROPDOWNS: SELECTION BLOCKS & DYNAMIC ADDRESS FIELDS -->
+                            <div class="row g-3 mb-3">
+                                <!-- Left Column: Pickup Selection Blocks & Dynamic Pickup Address -->
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-secondary mb-1 d-block">Pickup Mode</label>
+                                    <div class="row g-2 mb-2">
                                         <div class="col-6">
                                             <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="originDoorstep" id="cardOriginDoorstep">
                                                 <div class="d-flex align-items-center gap-2">
@@ -157,7 +200,7 @@
                                                 <div class="d-flex align-items-center gap-2">
                                                     <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.OriginType" id="originWarehouse" value="WarehouseDropoff" onchange="toggleOriginPickupMode()">
                                                     <div class="lh-sm">
-                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-building text-info me-1"></i>Warehouse Drop-off</span>
+                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-building text-info me-1"></i>Warehouse Dropoff</span>
                                                         <span class="text-muted x-small d-block mt-0.5">You drop off at hub</span>
                                                     </div>
                                                 </div>
@@ -165,46 +208,33 @@
                                         </div>
                                     </div>
 
-                                    <!-- Pickup Address: Appears ONLY when Doorstep Pickup is selected, hidden for Warehouse Drop-off -->
+                                    <!-- Specific Pickup Address Field (Appears ONLY when Doorstep Pickup is selected) -->
                                     <div id="pickupAddrContainer">
-                                        <label class="form-label small fw-semibold text-secondary">Pickup Address (Sender Location)</label>
+                                        <label class="form-label small fw-semibold text-secondary">Specific Pickup Address (Street / House #)</label>
                                         <input asp-for="NewDelivery.PickupLocation" id="pickupAddr" class="form-control rounded-3 py-2" placeholder="e.g. Shaheenabad, Gujranwala" autocomplete="off" list="pakistanCitiesList" required />
                                         <span class="text-muted d-block x-small mt-1"><i class="bi bi-geo-alt me-1"></i>Courier will arrive at this address for pickup.</span>
                                     </div>
 
-                                    <!-- Warehouse Drop-off Hub: Appears when Warehouse Drop-off is selected -->
-                                    <div id="originWarehouseContainer" class="d-none">
-                                        <label class="form-label small fw-semibold text-secondary">Select Origin Drop-off Warehouse</label>
-                                        <select id="originWarehouseSelect" class="form-select rounded-3 py-2" onchange="onOriginWarehouseChanged()">
-                                            <option value="Fleetify GT Road Hub, Climax Town, Main GT Road, Gujranwala" selected>Fleetify GT Road Hub - Gujranwala</option>
-                                            <option value="Fleetify Central Hub, Multan Road, Near Thokar Niaz Baig, Lahore">Fleetify Central Hub - Lahore</option>
-                                            <option value="Fleetify South Hub, Plot 42, Korangi Industrial Area, Karachi">Fleetify South Hub - Karachi</option>
-                                            <option value="Fleetify North Hub, Sector I-9/2 Industrial Area, Islamabad">Fleetify North Hub - Islamabad</option>
-                                            <option value="Fleetify Twin Cities Hub, Westridge 1, Main Peshawar Road, Rawalpindi">Fleetify Twin Cities Hub - Rawalpindi</option>
-                                            <option value="Fleetify Textile Hub, Small Industrial Estate, Sargodha Road, Faisalabad">Fleetify Textile Hub - Faisalabad</option>
-                                            <option value="Fleetify South Punjab Hub, Industrial Estate Phase 2, Khanewal Road, Multan">Fleetify South Punjab Hub - Multan</option>
-                                            <option value="Fleetify Khyber Hub, Industrial Estate, Jamrud Road, Hayatabad, Peshawar">Fleetify Khyber Hub - Peshawar</option>
-                                            <option value="Fleetify Export Hub, Sambrial Road, Near Dry Port, Sialkot">Fleetify Export Hub - Sialkot</option>
-                                            <option value="Fleetify Balochistan Hub, Joint Road, Near Railway Station, Quetta">Fleetify Balochistan Hub - Quetta</option>
-                                        </select>
-                                        <span class="text-muted d-block x-small mt-1"><i class="bi bi-info-circle me-1"></i>Drop off your parcel directly at this Fleetify warehouse.</span>
+                                    <!-- Warehouse Drop-off Hub Confirmation Info (Appears when Warehouse Dropoff is selected) -->
+                                    <div id="originWarehouseInfo" class="alert alert-light border rounded-3 p-2.5 d-none mb-0">
+                                        <div class="d-flex align-items-center gap-2 text-primary small">
+                                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                            <div>
+                                                <strong class="d-block text-dark x-small">Drop-off Hub Confirmed:</strong>
+                                                <span id="originWarehouseNameDisplay" class="x-small text-secondary">Fleetify GT Road Hub - Gujranwala</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- 2. DROP-OFF SECTION -->
+                                <!-- Right Column: Drop-off Selection Blocks & Dynamic Drop-off Address -->
                                 <div class="col-md-6">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label small fw-bold text-dark mb-0">
-                                            <i class="bi bi-box-arrow-down text-danger me-1"></i>Drop-off Handling
-                                        </label>
-                                    </div>
-
-                                    <!-- Two compact, side-by-side selectable blocks for Doorstep Delivery and Warehouse Self Pickup -->
-                                    <div class="row g-2 mb-3">
+                                    <label class="form-label small fw-bold text-secondary mb-1 d-block">Delivery Mode</label>
+                                    <div class="row g-2 mb-2">
                                         <div class="col-6">
                                             <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="destDoorstep" id="cardDestDoorstep">
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destDoorstep" value="DoorstepDelivery" checked onchange="toggleDestinationMode()">
+                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destDoorstep" value="DoorstepDelivery" checked onchange="toggleDestinationDeliveryMode()">
                                                     <div class="lh-sm">
                                                         <span class="fw-bold text-dark d-block small"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Doorstep Delivery</span>
                                                         <span class="text-muted x-small d-block mt-0.5">Deliver to recipient</span>
@@ -215,9 +245,9 @@
                                         <div class="col-6">
                                             <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="destWarehouse" id="cardDestWarehouse">
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destWarehouse" value="WarehousePickup" onchange="toggleDestinationMode()">
+                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destWarehouse" value="WarehousePickup" onchange="toggleDestinationDeliveryMode()">
                                                     <div class="lh-sm">
-                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-box-arrow-in-down-right text-info me-1"></i>Warehouse Self-Pickup</span>
+                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-box-arrow-in-down-right text-info me-1"></i>Warehouse Self Pickup</span>
                                                         <span class="text-muted x-small d-block mt-0.5">Pick up from hub</span>
                                                     </div>
                                                 </div>
@@ -225,18 +255,30 @@
                                         </div>
                                     </div>
 
-                                    <!-- Drop-off Address: PERMANENTLY VISIBLE -->
+                                    <!-- Specific Drop-off Address Field (Appears ONLY when Doorstep Delivery is selected) -->
                                     <div id="dropoffAddrContainer">
-                                        <label class="form-label small fw-semibold text-secondary">Dropoff Address (Destination City / Address)</label>
+                                        <label class="form-label small fw-semibold text-secondary">Specific Drop-off Address (Street / House #)</label>
                                         <input asp-for="NewDelivery.DropoffLocation" id="dropoffAddr" class="form-control rounded-3 py-2" placeholder="e.g. Data Darbar, Lahore" autocomplete="off" list="dropoffCitiesList" required />
-                                        
-                                        <!-- Warning Notice: Triggered ONLY conditionally when selecting city without warehouse while choosing warehouse operations -->
-                                        <div id="specialDeliveryNotice" class="alert alert-warning border border-warning-subtle rounded-3 small p-2 mt-2 d-none">
-                                            <div class="d-flex align-items-start gap-2">
-                                                <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 mt-0.5"></i>
-                                                <div class="x-small">
-                                                    <strong>Notice:</strong> Fleetify does not operate a warehouse in <span id="specialCityName" class="fw-bold">this city</span>. Warehouse self-pickup is not available here; a special delivery will be arranged with an additional <strong>15% charge</strong>.
-                                                </div>
+                                        <span class="text-muted d-block x-small mt-1"><i class="bi bi-flag me-1"></i>Courier will deliver parcel directly to this doorstep.</span>
+                                    </div>
+
+                                    <!-- Warehouse Self-Pickup Hub Confirmation Info (Appears when Warehouse Self-Pickup is selected) -->
+                                    <div id="destWarehouseInfo" class="alert alert-light border rounded-3 p-2.5 d-none mb-0">
+                                        <div class="d-flex align-items-center gap-2 text-primary small">
+                                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                            <div>
+                                                <strong class="d-block text-dark x-small">Self-Pickup Hub Confirmed:</strong>
+                                                <span id="destWarehouseNameDisplay" class="x-small text-secondary">Fleetify Central Hub - Lahore</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Warning Notice (Triggered ONLY conditionally when selecting city without warehouse while choosing warehouse operations) -->
+                                    <div id="specialDeliveryNotice" class="alert alert-warning border border-warning-subtle rounded-3 small p-2 mt-2 d-none">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 mt-0.5"></i>
+                                            <div class="x-small">
+                                                <strong>Notice:</strong> Fleetify does not operate a warehouse in <span id="specialCityName" class="fw-bold">this city</span>. Warehouse self-pickup is not available here; please choose <strong>Doorstep Delivery</strong> (special delivery with an additional <strong>15% charge</strong>).
                                             </div>
                                         </div>
                                     </div>
@@ -958,23 +1000,22 @@
         function toggleOriginPickupMode() {
             const isDoorstep = document.getElementById('originDoorstep')?.checked;
             const pickupContainer = document.getElementById('pickupAddrContainer');
-            const warehouseContainer = document.getElementById('originWarehouseContainer');
+            const warehouseInfo = document.getElementById('originWarehouseInfo');
             const pickupInput = document.getElementById('pickupAddr');
             const whSelect = document.getElementById('originWarehouseSelect');
 
             if (isDoorstep) {
                 if (pickupContainer) pickupContainer.classList.remove('d-none');
-                if (warehouseContainer) warehouseContainer.classList.add('d-none');
+                if (warehouseInfo) warehouseInfo.classList.add('d-none');
                 if (pickupInput) {
                     pickupInput.required = true;
-                    // If the input was set to the warehouse hub, clear it so user types their own address
                     if (whSelect && pickupInput.value === whSelect.value) {
                         pickupInput.value = '';
                     }
                 }
             } else {
                 if (pickupContainer) pickupContainer.classList.add('d-none');
-                if (warehouseContainer) warehouseContainer.classList.remove('d-none');
+                if (warehouseInfo) warehouseInfo.classList.remove('d-none');
                 if (pickupInput) {
                     pickupInput.required = false;
                     if (whSelect) {
@@ -982,16 +1023,66 @@
                     }
                 }
             }
-            debouncedUpdate();
+            onOriginWarehouseChanged();
         }
 
         function onOriginWarehouseChanged() {
-            const isWarehouse = document.getElementById('originWarehouse')?.checked;
             const whSelect = document.getElementById('originWarehouseSelect');
+            const isWarehouse = document.getElementById('originWarehouse')?.checked;
             const pickupInput = document.getElementById('pickupAddr');
+            const nameDisplay = document.getElementById('originWarehouseNameDisplay');
+
+            if (whSelect && nameDisplay) {
+                nameDisplay.innerText = whSelect.options[whSelect.selectedIndex]?.text || whSelect.value;
+            }
             if (isWarehouse && whSelect && pickupInput) {
                 pickupInput.value = whSelect.value;
             }
+            debouncedUpdate();
+        }
+
+        function toggleDestinationDeliveryMode() {
+            const isDoorstep = document.getElementById('destDoorstep')?.checked;
+            const dropoffContainer = document.getElementById('dropoffAddrContainer');
+            const destWarehouseInfo = document.getElementById('destWarehouseInfo');
+            const dropoffInput = document.getElementById('dropoffAddr');
+            const destSelect = document.getElementById('destWarehouseSelect');
+
+            if (isDoorstep) {
+                if (dropoffContainer) dropoffContainer.classList.remove('d-none');
+                if (destWarehouseInfo) destWarehouseInfo.classList.add('d-none');
+                if (dropoffInput) {
+                    dropoffInput.required = true;
+                    if (destSelect && dropoffInput.value === destSelect.value) {
+                        dropoffInput.value = '';
+                    }
+                }
+            } else {
+                if (dropoffContainer) dropoffContainer.classList.add('d-none');
+                if (destWarehouseInfo) destWarehouseInfo.classList.remove('d-none');
+                if (dropoffInput) {
+                    dropoffInput.required = false;
+                    if (destSelect) {
+                        dropoffInput.value = destSelect.value;
+                    }
+                }
+            }
+            onDestWarehouseChanged();
+        }
+
+        function onDestWarehouseChanged() {
+            const destSelect = document.getElementById('destWarehouseSelect');
+            const isWarehouse = document.getElementById('destWarehouse')?.checked;
+            const dropoffInput = document.getElementById('dropoffAddr');
+            const nameDisplay = document.getElementById('destWarehouseNameDisplay');
+
+            if (destSelect && nameDisplay) {
+                nameDisplay.innerText = destSelect.options[destSelect.selectedIndex]?.text || destSelect.value;
+            }
+            if (isWarehouse && destSelect && dropoffInput) {
+                dropoffInput.value = destSelect.value;
+            }
+            updateWarehouseWarningNotice(lastEstimateData);
             debouncedUpdate();
         }
 
@@ -1114,8 +1205,16 @@
 
         // Instant client-side preview for recognized Pakistani cities while typing
         function instantClientMapPreview() {
-            const pickup = document.getElementById('pickupAddr')?.value || '';
-            const dropoff = document.getElementById('dropoffAddr')?.value || '';
+            const isOriginDoorstep = document.getElementById('originDoorstep')?.checked;
+            const originWh = document.getElementById('originWarehouseSelect')?.value || '';
+            const pickupVal = document.getElementById('pickupAddr')?.value || '';
+            const pickup = isOriginDoorstep ? (pickupVal || originWh) : originWh;
+
+            const isDestDoorstep = document.getElementById('destDoorstep')?.checked;
+            const destWh = document.getElementById('destWarehouseSelect')?.value || '';
+            const dropoffVal = document.getElementById('dropoffAddr')?.value || '';
+            const dropoff = isDestDoorstep ? (dropoffVal || destWh) : destWh;
+
             const pCoord = resolveClientCoords(pickup);
             const dCoord = resolveClientCoords(dropoff);
 
@@ -1135,22 +1234,34 @@
             const isDoorstep = document.getElementById('originDoorstep')?.checked;
             const originType = isDoorstep ? 'DoorstepPickup' : 'WarehouseDropoff';
             let pickup = document.getElementById('pickupAddr')?.value || '';
+            const whSelect = document.getElementById('originWarehouseSelect');
 
-            if (!isDoorstep) {
-                const whSelect = document.getElementById('originWarehouseSelect');
-                if (whSelect) {
-                    pickup = whSelect.value;
-                    if (document.getElementById('pickupAddr')) {
-                        document.getElementById('pickupAddr').value = pickup;
-                    }
+            if (!isDoorstep && whSelect) {
+                pickup = whSelect.value;
+                if (document.getElementById('pickupAddr')) {
+                    document.getElementById('pickupAddr').value = pickup;
                 }
+            } else if (isDoorstep && !pickup && whSelect) {
+                pickup = whSelect.value;
             }
 
-            const dropoff = document.getElementById('dropoffAddr')?.value || '';
+            const isDestDoorstep = document.getElementById('destDoorstep')?.checked;
+            const destType = isDestDoorstep ? 'DoorstepDelivery' : 'WarehousePickup';
+            let dropoff = document.getElementById('dropoffAddr')?.value || '';
+            const destWhSelect = document.getElementById('destWarehouseSelect');
+
+            if (!isDestDoorstep && destWhSelect) {
+                dropoff = destWhSelect.value;
+                if (document.getElementById('dropoffAddr')) {
+                    document.getElementById('dropoffAddr').value = dropoff;
+                }
+            } else if (isDestDoorstep && !dropoff && destWhSelect) {
+                dropoff = destWhSelect.value;
+            }
+
             const weight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
             const vehicle = document.getElementById('vehicleType')?.value || 'Truck';
             const route = document.getElementById('deliveryType')?.value || 'Normal';
-            const destType = document.querySelector('input[name="NewDelivery.DestinationType"]:checked')?.value || 'DoorstepDelivery';
 
             const specialCities = ['sahiwal', 'okara', 'kasur', 'kasoor', 'sukkur'];
             const dropLower = dropoff.toLowerCase();
@@ -1269,45 +1380,42 @@
         }
 
         function updateWarehouseWarningNotice(data) {
-            const dropoffInput = document.getElementById('dropoffAddr');
-            const dropoffVal = dropoffInput ? dropoffInput.value.trim() : '';
             const specialNotice = document.getElementById('specialDeliveryNotice');
             const specialCitySpan = document.getElementById('specialCityName');
-
             if (!specialNotice) return;
-
-            // If dropoff input is completely empty or just placeholder, never show warning
-            if (!dropoffVal || dropoffVal.length === 0) {
-                specialNotice.classList.add('d-none');
-                return;
-            }
 
             // Check if user chose warehouse operations:
             // "trigger the warning notice 'Fleetify does not operate a warehouse in [City]' only conditionally when the user selects a city without a warehouse while choosing warehouse operations"
             const destWarehouseRadio = document.getElementById('destWarehouse');
             const isWarehouseOp = destWarehouseRadio && destWarehouseRadio.checked;
 
-            // If user did NOT choose warehouse operations (e.g. Doorstep Delivery), do NOT show warehouse warning notice!
+            // If user did NOT choose warehouse operations (e.g. Doorstep Delivery is selected), do NOT show warehouse warning notice!
             if (!isWarehouseOp) {
                 specialNotice.classList.add('d-none');
                 return;
             }
 
-            // User chose Warehouse Self-Pickup. Check if the selected drop-off city has a warehouse or not:
+            // In Warehouse Self-Pickup mode, check the selected destination warehouse / city:
+            const destWhSelect = document.getElementById('destWarehouseSelect');
+            const selectedOpt = destWhSelect ? destWhSelect.options[destWhSelect.selectedIndex] : null;
+            const isNoWarehouseAttr = selectedOpt?.getAttribute('data-no-warehouse') === 'true';
+
+            const dropoffInput = document.getElementById('dropoffAddr');
+            const dropoffVal = (dropoffInput && dropoffInput.value ? dropoffInput.value : (destWhSelect ? destWhSelect.value : '')).trim();
+
             const warehouseCities = ['lahore', 'karachi', 'islamabad', 'rawalpindi', 'faisalabad', 'multan', 'gujranwala', 'peshawar', 'sialkot', 'quetta'];
             const specialCities = ['sahiwal', 'okara', 'kasur', 'kasoor', 'sukkur'];
 
             const dropLower = dropoffVal.toLowerCase();
             const hasWarehouse = warehouseCities.some(c => dropLower.includes(c));
             const matchedSpecial = specialCities.find(c => dropLower.includes(c));
-            const isCityWithoutWarehouse = matchedSpecial || (!hasWarehouse && dropLower.length >= 3);
+            const isCityWithoutWarehouse = isNoWarehouseAttr || matchedSpecial || (!hasWarehouse && dropLower.length >= 3);
 
             // Only show if user chose warehouse operations AND city has no warehouse!
             if (isCityWithoutWarehouse && !hasWarehouse) {
                 specialNotice.classList.remove('d-none');
-                let displayCity = matchedSpecial 
-                    ? (matchedSpecial.charAt(0).toUpperCase() + matchedSpecial.slice(1)) 
-                    : (data?.destinationCity || dropoffVal.split(',')[0].trim());
+                let displayCity = selectedOpt?.getAttribute('data-city')
+                    || (matchedSpecial ? (matchedSpecial.charAt(0).toUpperCase() + matchedSpecial.slice(1)) : (data?.destinationCity || dropoffVal.split(',')[0].trim()));
                 if (displayCity.toLowerCase() === 'kasoor') displayCity = 'Kasur';
                 if (specialCitySpan) specialCitySpan.innerText = displayCity;
             } else {
@@ -1316,8 +1424,7 @@
         }
 
         function toggleDestinationMode() {
-            updateWarehouseWarningNotice(lastEstimateData);
-            updateAiEstimate();
+            toggleDestinationDeliveryMode();
         }
 
         function debouncedUpdate() {
@@ -1335,10 +1442,37 @@
             }
 
             const isDoorstep = document.getElementById('originDoorstep')?.checked;
+            const originWhSelect = document.getElementById('originWarehouseSelect');
+            const pickupInput = document.getElementById('pickupAddr');
+
+            if (!isDoorstep && originWhSelect && pickupInput) {
+                pickupInput.value = originWhSelect.value;
+            }
+
+            const isDestDoorstep = document.getElementById('destDoorstep')?.checked;
+            const destWhSelect = document.getElementById('destWarehouseSelect');
+            const dropoffInput = document.getElementById('dropoffAddr');
+
+            if (!isDestDoorstep && destWhSelect && dropoffInput) {
+                dropoffInput.value = destWhSelect.value;
+            }
+
+            const destSelectedOpt = destWhSelect?.selectedOptions[0];
+            const isNoWarehouse = destSelectedOpt?.getAttribute('data-no-warehouse') === 'true';
+            if (!isDestDoorstep && isNoWarehouse) {
+                const cityName = destSelectedOpt?.getAttribute('data-city') || 'this city';
+                alert(`Fleetify does not operate a warehouse in ${cityName}. Warehouse self-pickup is not available here; please choose Doorstep Delivery instead.`);
+                return;
+            }
+
             const pickup = isDoorstep 
-                ? (document.getElementById('pickupAddr')?.value || 'Doorstep Location')
-                : (document.getElementById('originWarehouseSelect')?.selectedOptions[0]?.text || 'Hub Warehouse');
-            const dropoff = document.getElementById('dropoffAddr')?.value || 'Not specified';
+                ? (pickupInput?.value || 'Doorstep Location')
+                : (originWhSelect?.selectedOptions[0]?.text || 'Origin Hub');
+
+            const dropoff = isDestDoorstep 
+                ? (dropoffInput?.value || 'Doorstep Destination')
+                : (destWhSelect?.selectedOptions[0]?.text || 'Destination Hub');
+
             const rawWeight = parseFloat(document.getElementById('packageWeight')?.value) || 2.0;
             const weight = Math.floor(rawWeight);
             const typeSel = document.getElementById('deliveryType');
@@ -1349,10 +1483,11 @@
 
             const originText = isDoorstep 
                 ? 'Doorstep Pickup (Courier)' 
-                : 'Warehouse Drop-off (' + (document.getElementById('originWarehouseSelect')?.selectedOptions[0]?.text || 'Hub') + ')';
+                : 'Warehouse Dropoff (' + (originWhSelect?.selectedOptions[0]?.text || 'Hub') + ')';
 
-            const destRadio = document.querySelector('input[name="NewDelivery.DestinationType"]:checked');
-            const destText = (destRadio && destRadio.value === 'WarehousePickup') ? 'Warehouse Self-Pickup' : 'Doorstep Delivery (Address)';
+            const destText = isDestDoorstep 
+                ? 'Doorstep Delivery (Address)' 
+                : 'Warehouse Self Pickup (' + (destWhSelect?.selectedOptions[0]?.text || 'Hub') + ')';
 
             document.getElementById('modalPickupText').innerText = pickup;
             document.getElementById('modalDropoffText').innerText = dropoff;
@@ -1372,7 +1507,7 @@
 
             const specialCities = ['sahiwal', 'okara', 'kasur', 'kasoor', 'sukkur'];
             const dropLower = dropoff.toLowerCase();
-            const matchedSpecial = specialCities.find(c => dropLower.includes(c));
+            const matchedSpecial = specialCities.find(c => dropLower.includes(c)) || isNoWarehouse;
             const isSpecial = (lastEstimateData && (lastEstimateData.isSpecialDelivery || lastEstimateData.isPrivateTransport)) || !!matchedSpecial;
 
             const specialRow = document.getElementById('modalSpecialRow');
@@ -1429,8 +1564,9 @@
         document.getElementById('originDoorstep')?.addEventListener('change', toggleOriginPickupMode);
         document.getElementById('originWarehouse')?.addEventListener('change', toggleOriginPickupMode);
         document.getElementById('originWarehouseSelect')?.addEventListener('change', onOriginWarehouseChanged);
-        document.getElementById('destDoorstep')?.addEventListener('change', toggleDestinationMode);
-        document.getElementById('destWarehouse')?.addEventListener('change', toggleDestinationMode);
+        document.getElementById('destDoorstep')?.addEventListener('change', toggleDestinationDeliveryMode);
+        document.getElementById('destWarehouse')?.addEventListener('change', toggleDestinationDeliveryMode);
+        document.getElementById('destWarehouseSelect')?.addEventListener('change', onDestWarehouseChanged);
 
         // Fix map tile rendering when switching between tabs
         document.getElementById('new-delivery-tab')?.addEventListener('shown.bs.tab', () => {
@@ -1443,6 +1579,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             initRouteMap();
             toggleOriginPickupMode();
+            toggleDestinationDeliveryMode();
             updateWarehouseWarningNotice(null);
             updateAiEstimate();
         });
