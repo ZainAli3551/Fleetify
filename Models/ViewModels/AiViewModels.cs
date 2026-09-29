@@ -40,7 +40,7 @@ namespace Fleetify.Models.ViewModels
         public string? DestinationWarehouseName { get; set; }
         public string Currency { get; set; } = "Rs.";
         public double EstimatedTotal { get; set; }
-        public string EstimatedDeliveryDays { get; set; } = "1-2 business days";
+        public string EstimatedDeliveryDays { get; set; } = "4 to 6 days";
         public int DurationMinutes { get; set; }
         public string? RoutePolyline { get; set; }
         public double? OriginLat { get; set; }

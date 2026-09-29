@@ -338,9 +338,9 @@
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-secondary">Delivery Type</label>
                                     <select asp-for="NewDelivery.RouteType" id="deliveryType" class="form-select rounded-3 py-2 fw-semibold text-dark">
-                                        <option value="Normal" selected>Normal Delivery</option>
-                                        <option value="Fast">Fast Delivery</option>
-                                        <option value="Express">Express Delivery</option>
+                                        <option value="Normal" selected>Normal Delivery (4 to 6 days)</option>
+                                        <option value="Fast">Fast Delivery (2 to 3 days)</option>
+                                        <option value="Express">Express Delivery (1 to 2 days)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
@@ -410,7 +410,7 @@
                             <i class="bi bi-clock-history fs-5"></i>
                             <div>
                                 <span class="d-block text-secondary x-small">Estimated Delivery</span>
-                                <strong id="estDeliveryDays">1-2 business days</strong>
+                                <strong id="estDeliveryDays">4 to 6 days</strong>
                             </div>
                         </div>
 
@@ -723,6 +723,10 @@
                         <strong class="text-dark" id="modalTypeText">Normal Delivery</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">Estimated Time:</span>
+                        <strong class="text-primary font-mono" id="modalDeliveryDaysText">4 to 6 days</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
                         <span class="text-secondary">Vehicle Selected:</span>
                         <span class="badge bg-primary text-white" id="modalVehicleText"><i class="bi bi-truck me-1"></i>Truck</span>
                     </div>
@@ -799,9 +803,9 @@
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary">Delivery Type</label>
                         <select id="editRouteType" name="RouteType" class="form-select rounded-3 py-2 fw-semibold">
-                            <option value="Normal">Normal Delivery</option>
-                            <option value="Fast">Fast Delivery</option>
-                            <option value="Express">Express Delivery</option>
+                            <option value="Normal">Normal Delivery (4 to 6 days)</option>
+                            <option value="Fast">Fast Delivery (2 to 3 days)</option>
+                            <option value="Express">Express Delivery (1 to 2 days)</option>
                         </select>
                     </div>
                     <div class="mb-2">
@@ -1495,6 +1499,12 @@
             if (document.getElementById('modalTypeText')) {
                 document.getElementById('modalTypeText').innerText = deliveryType;
             }
+            const estDays = (lastEstimateData && lastEstimateData.estimatedDeliveryDays) 
+                ? lastEstimateData.estimatedDeliveryDays 
+                : (document.getElementById('estDeliveryDays')?.innerText || '4 to 6 days');
+            if (document.getElementById('modalDeliveryDaysText')) {
+                document.getElementById('modalDeliveryDaysText').innerText = estDays;
+            }
             if (document.getElementById('modalVehicleText')) {
                 document.getElementById('modalVehicleText').innerText = vehicleText;
             }
@@ -1559,7 +1569,18 @@
             debouncedUpdate();
         });
         document.getElementById('packageWeight')?.addEventListener('input', debouncedUpdate);
-        document.getElementById('deliveryType')?.addEventListener('change', updateAiEstimate);
+        function getEstimatedDaysForType(type) {
+            if (!type) return "4 to 6 days";
+            const lower = type.toLowerCase();
+            if (lower.includes("express")) return "1 to 2 days";
+            if (lower.includes("fast")) return "2 to 3 days";
+            return "4 to 6 days";
+        }
+        document.getElementById('deliveryType')?.addEventListener('change', function() {
+            const daysEl = document.getElementById('estDeliveryDays');
+            if (daysEl) daysEl.innerText = getEstimatedDaysForType(this.value);
+            updateAiEstimate();
+        });
         document.getElementById('vehicleType')?.addEventListener('change', updateAiEstimate);
         document.getElementById('originDoorstep')?.addEventListener('change', toggleOriginPickupMode);
         document.getElementById('originWarehouse')?.addEventListener('change', toggleOriginPickupMode);

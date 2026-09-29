@@ -115,22 +115,18 @@ namespace Fleetify.Services.Implementations
             double flooredDistance = Math.Floor(distanceKm);
             double flooredWeight = Math.Floor(weight);
 
-            string deliveryDays = "1-2 business days";
+            string deliveryDays = "4 to 6 days";
             if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
             {
-                deliveryDays = "Same-day express delivery";
+                deliveryDays = "1 to 2 days";
             }
             else if (deliveryType.Equals("Fast", StringComparison.OrdinalIgnoreCase))
             {
-                deliveryDays = "Next-day fast delivery";
+                deliveryDays = "2 to 3 days";
             }
-            else if (flooredDistance > 400)
+            else
             {
-                deliveryDays = "3-5 business days";
-            }
-            else if (flooredDistance > 100)
-            {
-                deliveryDays = "2-3 business days";
+                deliveryDays = "4 to 6 days";
             }
 
             return new CostEstimateResult
@@ -201,6 +197,15 @@ namespace Fleetify.Services.Implementations
                 var pCoord = MapRoutingService.ResolveCityCoordinates(request.PickupLocation);
                 var dCoord = MapRoutingService.ResolveCityCoordinates(request.DropoffLocation);
                 string? fallbackPoly = (pCoord.HasValue && dCoord.HasValue) ? MapRoutingService.EncodePolyline(new[] { pCoord.Value, dCoord.Value }) : null;
+                string fallbackDeliveryDays = "4 to 6 days";
+                if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
+                {
+                    fallbackDeliveryDays = "1 to 2 days";
+                }
+                else if (deliveryType.Equals("Fast", StringComparison.OrdinalIgnoreCase))
+                {
+                    fallbackDeliveryDays = "2 to 3 days";
+                }
 
                 return new CostEstimateResult
                 {
@@ -211,6 +216,7 @@ namespace Fleetify.Services.Implementations
                     PetrolCharge = petrolCharge,
                     DeliveryType = deliveryType,
                     DeliveryMultiplier = deliveryMultiplier,
+                    EstimatedDeliveryDays = fallbackDeliveryDays,
                     IsPrivateTransport = isSpecialDelivery,
                     PrivateTransportSurcharge = specialDeliverySurcharge,
                     IsSpecialDelivery = isSpecialDelivery,
