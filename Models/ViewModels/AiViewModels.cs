@@ -30,6 +30,8 @@ namespace Fleetify.Models.ViewModels
         public double DeliveryMultiplier { get; set; } = 1.0;
         public bool IsPrivateTransport { get; set; } = false;
         public double PrivateTransportSurcharge { get; set; } = 0.0;
+        public bool IsSpecialDelivery { get; set; } = false;
+        public double SpecialDeliverySurcharge { get; set; } = 0.0;
         public string OriginCity { get; set; } = string.Empty;
         public string DestinationCity { get; set; } = string.Empty;
         public bool HasOriginWarehouse { get; set; } = true;

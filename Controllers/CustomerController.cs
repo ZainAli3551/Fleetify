@@ -253,7 +253,7 @@ namespace Fleetify.Controllers
             }
 
             string extraNotice = deliveryRequest.IsPrivateTransport 
-                ? " (Note: Dedicated Private Transport rate applied as hub warehouse is not in city)" 
+                ? " (Note: Special delivery surcharge (+15%) applied as warehouse is not in destination city)" 
                 : "";
 
             TempData["SuccessMessage"] = $"Delivery request submitted successfully! Tracking number is {trackingNumber}. Total: Rs. {costEstimate.EstimatedTotal:F0}{extraNotice} (Editable or cancellable within 1 hour).";

@@ -95,21 +95,22 @@ namespace Fleetify.Services.Implementations
             if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
             double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
-            // Warehouse Network & Dedicated Private Transport Check
+            // Warehouse Network & Special Delivery Check
             var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
             var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
-            bool hasOriginWarehouse = WarehouseNetworkService.HasWarehouse(request.PickupLocation);
+            bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(request.PickupLocation);
             bool hasDestWarehouse = WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
-            bool isPrivateTransport = request.IsPrivateTransport || (!hasOriginWarehouse || !hasDestWarehouse);
-            double privateTransportSurcharge = isPrivateTransport ? 1500.0 : 0.0;
+            bool isSpecialDelivery = request.IsPrivateTransport || WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse;
 
             var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
             var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
 
-            // Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier + PrivateTransportSurcharge, floored to previous whole number
+            // Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier, + 15% extra for out-of-network special delivery, floored to previous whole number
             double baseCost = distanceKm * weight * ratePerKmKg;
             double petrolCharge = CalculatePetrolSurcharge(distanceKm);
-            double total = Math.Floor(((baseCost + petrolCharge) * deliveryMultiplier) + privateTransportSurcharge);
+            double subtotal = (baseCost + petrolCharge) * deliveryMultiplier;
+            double specialDeliverySurcharge = isSpecialDelivery ? Math.Round(subtotal * 0.15) : 0.0;
+            double total = Math.Floor(subtotal + specialDeliverySurcharge);
 
             double flooredDistance = Math.Floor(distanceKm);
             double flooredWeight = Math.Floor(weight);
@@ -141,8 +142,10 @@ namespace Fleetify.Services.Implementations
                 PetrolCharge = petrolCharge,
                 DeliveryType = deliveryType,
                 DeliveryMultiplier = deliveryMultiplier,
-                IsPrivateTransport = isPrivateTransport,
-                PrivateTransportSurcharge = privateTransportSurcharge,
+                IsPrivateTransport = isSpecialDelivery,
+                PrivateTransportSurcharge = specialDeliverySurcharge,
+                IsSpecialDelivery = isSpecialDelivery,
+                SpecialDeliverySurcharge = specialDeliverySurcharge,
                 OriginCity = originCity,
                 DestinationCity = destCity,
                 HasOriginWarehouse = hasOriginWarehouse,
@@ -182,17 +185,18 @@ namespace Fleetify.Services.Implementations
 
                 var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
                 var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
-                bool hasOriginWarehouse = WarehouseNetworkService.HasWarehouse(request.PickupLocation);
+                bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(request.PickupLocation);
                 bool hasDestWarehouse = WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
-                bool isPrivateTransport = request.IsPrivateTransport || (!hasOriginWarehouse || !hasDestWarehouse);
-                double privateTransportSurcharge = isPrivateTransport ? 1500.0 : 0.0;
+                bool isSpecialDelivery = request.IsPrivateTransport || WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse;
 
                 var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
                 var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
 
                 double baseCost = distanceKm * weight * ratePerKmKg;
                 double petrolCharge = CalculatePetrolSurcharge(distanceKm);
-                double total = Math.Floor(((baseCost + petrolCharge) * deliveryMultiplier) + privateTransportSurcharge);
+                double subtotal = (baseCost + petrolCharge) * deliveryMultiplier;
+                double specialDeliverySurcharge = isSpecialDelivery ? Math.Round(subtotal * 0.15) : 0.0;
+                double total = Math.Floor(subtotal + specialDeliverySurcharge);
 
                 var pCoord = MapRoutingService.ResolveCityCoordinates(request.PickupLocation);
                 var dCoord = MapRoutingService.ResolveCityCoordinates(request.DropoffLocation);
@@ -207,8 +211,10 @@ namespace Fleetify.Services.Implementations
                     PetrolCharge = petrolCharge,
                     DeliveryType = deliveryType,
                     DeliveryMultiplier = deliveryMultiplier,
-                    IsPrivateTransport = isPrivateTransport,
-                    PrivateTransportSurcharge = privateTransportSurcharge,
+                    IsPrivateTransport = isSpecialDelivery,
+                    PrivateTransportSurcharge = specialDeliverySurcharge,
+                    IsSpecialDelivery = isSpecialDelivery,
+                    SpecialDeliverySurcharge = specialDeliverySurcharge,
                     OriginCity = originCity,
                     DestinationCity = destCity,
                     HasOriginWarehouse = hasOriginWarehouse,

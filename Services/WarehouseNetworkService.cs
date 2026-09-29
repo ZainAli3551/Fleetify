@@ -174,6 +174,19 @@ namespace Fleetify.Services
             return !string.IsNullOrWhiteSpace(detected) && Warehouses.ContainsKey(detected);
         }
 
+        public static readonly string[] SpecialDeliveryCities = new[] { "Sahiwal", "Okara", "Kasur", "Kasoor", "Sukkur" };
+
+        public static bool IsSpecialDeliveryCity(string? cityOrLocation)
+        {
+            if (string.IsNullOrWhiteSpace(cityOrLocation)) return false;
+            var loc = cityOrLocation.Trim();
+            foreach (var city in SpecialDeliveryCities)
+            {
+                if (loc.Contains(city, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return !HasWarehouse(cityOrLocation);
+        }
+
         public static WarehouseInfo? GetWarehouse(string? cityOrLocation)
         {
             var detected = DetectCity(cityOrLocation);
