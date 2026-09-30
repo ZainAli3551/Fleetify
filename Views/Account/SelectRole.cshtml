@@ -2,229 +2,227 @@
     ViewData["Title"] = "Intelligent Logistics & Fleet Management";
 }
 
-<!-- Custom Styles for High-End Landing Page -->
+<!-- Custom High-End Styling for Public Landing Page -->
 <style>
-    /* Hero Ambient Lighting & Gradients */
+    /* Hero Container & Multi-Layered Cosmic Dark Aesthetic */
     .landing-hero {
-        background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.18) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
-                    linear-gradient(135deg, #090e17 0%, #0f172a 50%, #111827 100%);
+        background: radial-gradient(circle at 15% 25%, rgba(37, 99, 235, 0.22) 0%, transparent 45%),
+                    radial-gradient(circle at 85% 75%, rgba(79, 70, 229, 0.20) 0%, transparent 45%),
+                    radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.12) 0%, transparent 55%),
+                    linear-gradient(135deg, #070b14 0%, #0c1220 50%, #0f172a 100%);
         color: #ffffff;
         position: relative;
         overflow: hidden;
         border-radius: 1.5rem;
-        margin-top: -1rem;
+        box-shadow: 0 20px 45px -15px rgba(2, 6, 23, 0.4);
     }
 
     .landing-hero::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-        background-size: 28px 28px;
-        opacity: 0.35;
+        background-size: 32px 32px;
+        opacity: 0.4;
         pointer-events: none;
     }
 
-    /* Glassmorphism Cards */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.85);
+    /* Modern Glassmorphic Container */
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.94);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(226, 232, 240, 0.85);
+        box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.06);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .glass-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 35px -12px rgba(37, 99, 235, 0.16);
+    .glass-panel:hover {
+        box-shadow: 0 20px 35px -12px rgba(37, 99, 235, 0.14);
         border-color: rgba(147, 197, 253, 0.8);
     }
 
-    /* Portal Cards Hero Variant */
-    .portal-card {
-        position: relative;
-        border-radius: 1.25rem;
-        overflow: hidden;
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .portal-card:hover {
-        transform: translateY(-8px);
-    }
-
-    .portal-admin {
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        border: 1px solid rgba(99, 102, 241, 0.25);
-    }
-
-    .portal-admin:hover {
-        box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.25);
-        border-color: #6366f1;
-    }
-
-    .portal-customer {
-        background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
-        border: 1px solid rgba(16, 185, 129, 0.25);
-    }
-
-    .portal-customer:hover {
-        box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.25);
-        border-color: #10b981;
-    }
-
-    /* Glow Badges */
-    .badge-glow-blue {
-        background: rgba(37, 99, 235, 0.15);
-        color: #60a5fa;
-        border: 1px solid rgba(96, 165, 250, 0.3);
-    }
-
-    .badge-glow-green {
-        background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
-        border: 1px solid rgba(52, 211, 153, 0.3);
+    /* Live Route Showcase Card */
+    .route-telemetry-card {
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
     /* Tracking Search Bar */
-    .hero-search-bar {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+    .hero-tracking-bar {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         border-radius: 9999px;
         padding: 6px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         transition: all 0.25s ease;
     }
 
-    .hero-search-bar:focus-within {
+    .hero-tracking-bar:focus-within {
         border-color: #60a5fa;
-        background: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 8px 32px 0 rgba(37, 99, 235, 0.35);
+        background: rgba(255, 255, 255, 0.18);
+        box-shadow: 0 10px 35px rgba(37, 99, 235, 0.4);
     }
 
-    .hero-search-bar input {
+    .hero-tracking-bar input {
         background: transparent;
         border: none;
         color: #ffffff;
         padding-left: 1.25rem;
     }
 
-    .hero-search-bar input::placeholder {
-        color: rgba(255, 255, 255, 0.6);
+    .hero-tracking-bar input::placeholder {
+        color: rgba(255, 255, 255, 0.65);
     }
 
-    .hero-search-bar input:focus {
+    .hero-tracking-bar input:focus {
         outline: none;
         box-shadow: none;
         color: #ffffff;
     }
 
-    /* Feature Icon Bubbles */
-    .icon-bubble {
-        width: 58px;
-        height: 58px;
-        border-radius: 14px;
+    /* Service Cards */
+    .service-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        padding: 2rem 1.75rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        height: 100%;
+    }
+
+    .service-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 35px -12px rgba(37, 99, 235, 0.14);
+        border-color: #93c5fd;
+    }
+
+    /* Icon Circles */
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.6rem;
+        font-size: 1.75rem;
     }
 
-    /* Floating Metric Pill */
-    .metric-pill {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 1rem;
-        padding: 0.85rem 1.25rem;
-        backdrop-filter: blur(8px);
-    }
-
-    /* Interactive Hub Badges */
-    .hub-badge {
+    /* Hub Badges */
+    .hub-pill {
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
-        padding: 0.4rem 0.85rem;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
         border-radius: 9999px;
-        font-size: 0.82rem;
-        font-weight: 500;
+        font-size: 0.85rem;
+        font-weight: 600;
         background: #ffffff;
         border: 1px solid #e2e8f0;
         color: #334155;
-        transition: all 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
-    .hub-badge:hover {
+    .hub-pill:hover {
         background: #eff6ff;
         color: #2563eb;
         border-color: #bfdbfe;
         transform: translateY(-2px);
+        box-shadow: 0 6px 14px -3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Glowing Status Dot */
+    .status-pulse {
+        width: 10px;
+        height: 10px;
+        background-color: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulseAnimation 2s infinite;
+    }
+
+    @@keyframes pulseAnimation {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 </style>
 
-<div class="container-fluid px-lg-5 py-3">
+<div class="container-fluid px-lg-5 py-2">
 
-    <!-- 1. HERO SECTION -->
-    <div class="landing-hero p-4 p-md-5 mb-5 shadow-lg">
+    <!-- 1. HERO SECTION (FULL WIDTH & MODERN) -->
+    <section class="landing-hero p-4 p-md-5 mb-5">
         <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
             <div class="col-lg-7 text-center text-lg-start">
                 
-                <!-- Status Pill -->
-                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill badge-glow-blue mb-3 small">
-                    <span class="spinner-grow spinner-grow-sm text-info" style="width: 8px; height: 8px;" role="status"></span>
+                <!-- Live Network Badge -->
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill mb-3" style="background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(96, 165, 250, 0.35); font-size: 0.8rem; color: #93c5fd;">
+                    <span class="status-pulse"></span>
                     <span class="fw-semibold">Fleetify Nationwide Network Active</span>
-                    <span class="text-white-50">|</span>
-                    <span class="text-white-50">10 Major City Hubs</span>
+                    <span class="opacity-50">|</span>
+                    <span class="opacity-75">10 Connected Hubs</span>
                 </div>
 
-                <!-- Main Punchy Title -->
-                <h1 class="display-4 fw-bold text-white mb-3 lh-sm">
-                    Next-Gen Intelligent Fleet Operations &amp; Express Logistics
+                <!-- Hero Title -->
+                <h1 class="display-4 fw-bold text-white mb-3 lh-sm" style="letter-spacing: -0.03em;">
+                    Intelligent Fleet Operations &amp; Nationwide Logistics
                 </h1>
                 
                 <!-- Subtitle -->
-                <p class="fs-5 text-light opacity-75 mb-4 pe-lg-4" style="max-width: 620px;">
-                    Experience seamless doorstep pickups, central warehouse drop-offs, and live GPS route visualization with precision AI-powered cost estimation.
+                <p class="fs-5 text-light opacity-75 mb-4 pe-lg-3" style="max-width: 640px; font-weight: 400; line-height: 1.6;">
+                    Connect your cargo across Pakistan with precision GPS route visualizer, central warehouse facilities, doorstep courier pickups, and automated AI rate calculations.
                 </p>
 
-                <!-- Hero Live Tracking Search Bar -->
-                <div class="pe-lg-4 mb-4" style="max-width: 580px;">
-                    <form action="/Customer/Track" method="get" class="hero-search-bar d-flex align-items-center">
+                <!-- Hero Action CTAs -->
+                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start gap-3 mb-4">
+                    <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#authChoiceModal" data-auth-mode="login">
+                        <span>Get Started / Sign In</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                    <a href="#rate-calculator" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-semibold d-flex align-items-center gap-2">
+                        <i class="bi bi-calculator"></i>
+                        <span>Calculate Rates</span>
+                    </a>
+                </div>
+
+                <!-- Live Tracking Search Bar right on Hero -->
+                <div id="track" class="pe-lg-3 mb-4" style="max-width: 580px;">
+                    <form action="/Customer/Track" method="get" class="hero-tracking-bar d-flex align-items-center">
                         <i class="bi bi-search text-info fs-5 ms-3"></i>
                         <input type="text" name="trackingNumber" class="form-control" placeholder="Enter Tracking # (e.g. FLT-2026-XXXXXX)" required autocomplete="off" />
-                        <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 text-white fw-semibold d-flex align-items-center gap-2 flex-shrink-0 shadow-sm">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 text-white fw-bold d-flex align-items-center gap-1.5 flex-shrink-0 shadow-sm">
                             <span>Track</span>
                             <i class="bi bi-arrow-right"></i>
                         </button>
                     </form>
-                    <span class="x-small text-white-50 ms-3 mt-1.5 d-block">
-                        <i class="bi bi-shield-check text-success me-1"></i>Track any ongoing shipment live without signing in.
+                    <span class="x-small text-white-50 ms-3 mt-1.5 d-block text-center text-lg-start">
+                        <i class="bi bi-shield-check text-success me-1"></i>Track any ongoing shipment live across Pakistan without signing in.
                     </span>
                 </div>
 
-                <!-- Quick Metrics Grid -->
-                <div class="row g-3 pe-lg-4 pt-2">
+                <!-- Trust Metrics Strip -->
+                <div class="row g-3 pe-lg-3 pt-2 text-center text-lg-start">
                     <div class="col-4">
-                        <div class="metric-pill text-center text-lg-start">
-                            <h4 class="fw-bold text-white mb-0">10+</h4>
+                        <div class="p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 class="fw-bold text-white mb-0 font-mono">10+</h4>
                             <span class="x-small text-white-50">Central Hubs</span>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="metric-pill text-center text-lg-start">
-                            <h4 class="fw-bold text-white mb-0">99.4%</h4>
-                            <span class="x-small text-white-50">On-Time Arrival</span>
+                        <div class="p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 class="fw-bold text-white mb-0 font-mono">99.4%</h4>
+                            <span class="x-small text-white-50">On-Time Dispatch</span>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="metric-pill text-center text-lg-start">
-                            <h4 class="fw-bold text-white mb-0">1-Hour</h4>
+                        <div class="p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 class="fw-bold text-white mb-0 font-mono">1-Hour</h4>
                             <span class="x-small text-white-50">Edit / Cancel Lock</span>
                         </div>
                     </div>
@@ -232,163 +230,80 @@
 
             </div>
 
-            <!-- Right Hero Illustration / Visual Showcase -->
+            <!-- Right Hero Card: Live Telemetry & Active Route Showcase -->
             <div class="col-lg-5 text-center">
                 <div class="position-relative mx-auto" style="max-width: 440px;">
-                    <!-- Floating Map & Route Visualizer Preview Card -->
-                    <div class="card border-0 rounded-4 shadow-lg p-3 text-dark bg-white position-relative" style="z-index: 3;">
-                        <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-2">
+                    <div class="card route-telemetry-card rounded-4 p-4 text-white text-start">
+                        <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-secondary border-opacity-25 mb-3">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-primary text-white rounded-pill px-2.5 py-1">
-                                    <i class="bi bi-broadcast me-1"></i>Live Route
+                                <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 small">
+                                    <i class="bi bi-broadcast me-1"></i>Live Telemetry
                                 </span>
-                                <span class="small fw-bold text-secondary">Gujranwala &rarr; Karachi</span>
+                                <span class="small fw-semibold text-light">Intercity Transit</span>
                             </div>
-                            <span class="badge bg-success-subtle text-success small font-mono">1,259 km</span>
+                            <span class="badge bg-success-subtle text-success font-mono small px-2.5 py-1">GPS Active</span>
                         </div>
-                        
-                        <div class="p-3 bg-light rounded-3 text-start mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="x-small text-muted">Delivery Speed</span>
-                                <span class="badge bg-primary text-white x-small">Normal Delivery</span>
+
+                        <!-- Route Details -->
+                        <div class="mb-3">
+                            <div class="d-flex align-items-start gap-2 mb-2">
+                                <i class="bi bi-geo-alt-fill text-success fs-5 mt-0.5"></i>
+                                <div>
+                                    <span class="x-small text-white-50 d-block">Origin Hub</span>
+                                    <strong class="text-white small">Fleetify GT Road Hub - Gujranwala</strong>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <strong class="small text-dark">Estimated Transit</strong>
-                                <span class="fw-bold text-primary font-mono small">4 to 6 days</span>
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-flag-fill text-danger fs-5 mt-0.5"></i>
+                                <div>
+                                    <span class="x-small text-white-50 d-block">Destination Hub</span>
+                                    <strong class="text-white small">Fleetify South Hub - Karachi</strong>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center pt-1 px-1">
-                            <div class="text-start">
-                                <span class="x-small text-muted d-block">Calculated Total</span>
-                                <strong class="fs-4 text-primary fw-bold font-mono">Rs. 7,977</strong>
+                        <!-- Telemetry Stats Box -->
+                        <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08);">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <span class="x-small text-white-50 d-block">Road Distance</span>
+                                    <strong class="text-white font-mono fs-5">1,259 km</strong>
+                                </div>
+                                <div class="col-6">
+                                    <span class="x-small text-white-50 d-block">Estimated Transit</span>
+                                    <strong class="text-info font-mono fs-5">4 to 6 days</strong>
+                                </div>
                             </div>
-                            <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-                                Ship This Route &rarr;
-                            </a>
+                        </div>
+
+                        <!-- Calculated Total Strip -->
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                            <div>
+                                <span class="x-small text-white-50 d-block">Formula Accurate Total</span>
+                                <h3 class="fw-bold text-info mb-0 font-mono">Rs. 7,977</h3>
+                            </div>
+                            <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3 py-1.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#authChoiceModal">
+                                Book Delivery &rarr;
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Glowing Decorative Underlay -->
-                    <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 rounded-circle" style="background: radial-gradient(circle, rgba(37, 99, 235, 0.45) 0%, transparent 70%); filter: blur(30px); z-index: 1;"></div>
+                    <!-- Glowing Decorative Backdrop Glow -->
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 rounded-circle" style="background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, transparent 65%); filter: blur(35px); z-index: 1;"></div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
 
-    <!-- 2. CORE PORTAL SELECTOR (MODULE 1 & MODULE 2) -->
-    <div class="mb-5">
-        <div class="text-center mb-4">
-            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">ACCESS CONTROL</span>
-            <h2 class="fw-bold text-dark mb-1">Choose Your Portal to Begin</h2>
-            <p class="text-secondary small">Select your designated environment to access fleet management or customer services.</p>
-        </div>
-
-        <div class="row justify-content-center g-4">
-            <!-- Module 1: Admin Operations Portal -->
-            <div class="col-md-6 col-lg-5">
-                <a asp-controller="Account" asp-action="Login" asp-route-role="Admin" class="text-decoration-none">
-                    <div class="card h-100 portal-card portal-admin shadow-sm p-4 p-lg-4 text-start">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="icon-bubble bg-indigo-subtle text-indigo">
-                                <i class="bi bi-shield-lock-fill text-primary"></i>
-                            </div>
-                            <span class="badge bg-indigo-subtle text-indigo rounded-pill px-3 py-1 font-mono small fw-semibold">MODULE 1</span>
-                        </div>
-                        
-                        <h3 class="fw-bold text-dark mb-2">Fleet Operations Portal</h3>
-                        <p class="text-muted small mb-4">
-                            Central command center for authorized fleet administrators. Full dispatch management, automated driver routing, and enterprise analytics.
-                        </p>
-
-                        <!-- Key Admin Features -->
-                        <ul class="list-unstyled small text-secondary mb-4 space-y-2">
-                            <li class="mb-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-primary"></i>
-                                <span><strong>Driver &amp; Fleet Assignments:</strong> Automated and manual vehicle dispatches</span>
-                            </li>
-                            <li class="mb-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-primary"></i>
-                                <span><strong>On-Call Backup Directory:</strong> Instant replacement driver directory</span>
-                            </li>
-                            <li class="mb-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-primary"></i>
-                                <span><strong>AI Maintenance Diagnostics:</strong> Proactive fleet health alerts</span>
-                            </li>
-                            <li class="d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-primary"></i>
-                                <span><strong>24/7 Live Support Desk:</strong> Real-time customer chat management</span>
-                            </li>
-                        </ul>
-
-                        <div class="mt-auto pt-2">
-                            <button class="btn btn-primary w-100 rounded-pill py-2.5 text-white fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm">
-                                <span>Enter Admin Operations</span>
-                                <i class="bi bi-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Module 2: Customer / User Portal -->
-            <div class="col-md-6 col-lg-5">
-                <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="text-decoration-none">
-                    <div class="card h-100 portal-card portal-customer shadow-sm p-4 p-lg-4 text-start">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="icon-bubble bg-success-subtle text-success">
-                                <i class="bi bi-box-seam-fill"></i>
-                            </div>
-                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 font-mono small fw-semibold">MODULE 2</span>
-                        </div>
-                        
-                        <h3 class="fw-bold text-dark mb-2">Customer Shipping Portal</h3>
-                        <p class="text-muted small mb-4">
-                            Effortless parcel bookings for individuals and businesses. Choose doorstep collection or warehouse dropoff with transparent pricing.
-                        </p>
-
-                        <!-- Key Customer Features -->
-                        <ul class="list-unstyled small text-secondary mb-4 space-y-2">
-                            <li class="mb-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                <span><strong>Dual Pickup Modes:</strong> Doorstep rider pickup or warehouse drop-off</span>
-                            </li>
-                            <li class="mb-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                <span><strong>1-Hour Edit &amp; Cancel Policy:</strong> Guaranteed modification window</span>
-                            </li>
-                            <li class="mb-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                <span><strong>Real-time Route Map:</strong> Live GPS tracking from origin to destination</span>
-                            </li>
-                            <li class="d-flex align-items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                <span><strong>Arrival Preferences:</strong> Choose hub self-pickup or doorstep drop</span>
-                            </li>
-                        </ul>
-
-                        <div class="mt-auto pt-2">
-                            <button class="btn btn-success w-100 rounded-pill py-2.5 text-white fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background-color: #10b981; border-color: #10b981;">
-                                <span>Enter Customer Portal</span>
-                                <i class="bi bi-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- 3. INTERACTIVE INSTANT RATE ESTIMATOR WIDGET -->
-    <div class="card glass-card border-0 rounded-4 p-4 p-lg-5 mb-5 shadow-sm">
+    <!-- 2. INTERACTIVE LIVE RATE CALCULATOR (FEATURE SPOTLIGHT) -->
+    <section id="rate-calculator" class="glass-panel rounded-4 p-4 p-lg-5 mb-5 shadow-sm">
         <div class="row align-items-center g-4">
             <div class="col-lg-5">
                 <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">LIVE ESTIMATOR</span>
-                <h3 class="fw-bold text-dark mb-2">Check Delivery Cost in Real-Time</h3>
+                <h2 class="fw-bold text-dark mb-2">Instant Delivery Rate Calculator</h2>
                 <p class="text-secondary small mb-4">
-                    Calculate fair, formula-accurate delivery rates across all 10 hubs and special delivery routes before booking.
+                    Calculate fair, formula-accurate delivery rates across all 10 hubs and special delivery routes before booking your parcel.
                 </p>
 
                 <div class="row g-3">
@@ -444,14 +359,14 @@
                 </div>
             </div>
 
-            <!-- Result Card (Right side) -->
+            <!-- Result Card -->
             <div class="col-lg-7">
                 <div class="card border-0 rounded-4 p-4 text-white shadow-lg" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-50">
                         <span class="badge bg-primary text-white rounded-pill px-3 py-1">
                             <i class="bi bi-lightning-charge-fill me-1"></i>Instant AI Quote
                         </span>
-                        <span id="estProviderBadge" class="small text-white-50">Verified Road Distance</span>
+                        <span class="small text-white-50"><i class="bi bi-check-circle-fill text-success me-1"></i>Verified Distance</span>
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -482,36 +397,83 @@
                             <span class="x-small text-white-50 d-block">Total Estimated Cost</span>
                             <h2 class="fw-bold text-info mb-0 font-mono" id="previewTotal">Rs. 7,977</h2>
                         </div>
-                        <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="btn btn-primary rounded-pill px-4 py-2.5 text-white fw-semibold shadow-sm d-flex align-items-center gap-2">
-                            <span>Book at this Rate</span>
-                            <i class="bi bi-arrow-right"></i>
-                        </a>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#authChoiceModal">
+                            <span>Book Delivery &rarr;</span>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
 
-    <!-- 4. NATIONWIDE HUB NETWORK COVERAGE -->
-    <div class="mb-5">
+    <!-- 3. CORE LOGISTICS SERVICES -->
+    <section id="services" class="mb-5">
         <div class="text-center mb-4">
-            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">HUB INFRASTRUCTURE</span>
-            <h3 class="fw-bold text-dark mb-1">Fleetify Central Hubs Across Pakistan</h3>
-            <p class="text-secondary small">Strategically located industrial transit facilities ensuring fast turnaround and zero delays.</p>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">SERVICES &amp; CAPABILITIES</span>
+            <h2 class="fw-bold text-dark mb-1">Engineered for Reliable Shipping</h2>
+            <p class="text-secondary small">Comprehensive freight and express delivery solutions tailored for corporate and personal parcels.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box bg-primary-subtle text-primary mb-3">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Central Hub Logistics</h4>
+                    <p class="text-muted small mb-0">
+                        Direct intercity freight transport connecting our 10 industrial transit hubs with dedicated tracking barcodes and secured warehouse intake.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box bg-success-subtle text-success mb-3">
+                        <i class="bi bi-door-open"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Doorstep Pickup &amp; Delivery</h4>
+                    <p class="text-muted small mb-0">
+                        Rider doorstep arrival right at your scheduled date and time. No need to visit the warehouse; our fleet handles collection and doorstep handover.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box bg-warning-subtle text-warning mb-3">
+                        <i class="bi bi-stopwatch"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Flexible Speed Tiers</h4>
+                    <p class="text-muted small mb-0">
+                        Choose between Normal Delivery (4–6 days), Fast Delivery (2–3 days), and Express Delivery (1–2 days) based on urgency and schedule.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- 4. NATIONWIDE 10 HUB INFRASTRUCTURE -->
+    <section id="hubs" class="mb-5">
+        <div class="text-center mb-4">
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">NATIONWIDE REACH</span>
+            <h2 class="fw-bold text-dark mb-1">Fleetify Central Hubs Across Pakistan</h2>
+            <p class="text-secondary small">Strategically positioned industrial facilities guaranteeing quick turnarounds and zero transit bottlenecks.</p>
         </div>
 
         <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Lahore (Central Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Karachi (South Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Islamabad (North Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Rawalpindi (Twin Cities Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Faisalabad (Textile Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Multan (South Punjab Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Gujranwala (GT Road Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Peshawar (Khyber Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Sialkot (Export Hub)</span>
-            <span class="hub-badge"><i class="bi bi-geo-alt-fill text-primary"></i>Quetta (Balochistan Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Lahore (Central Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Karachi (South Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Islamabad (North Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Rawalpindi (Twin Cities Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Faisalabad (Textile Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Multan (South Punjab Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Gujranwala (GT Road Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Peshawar (Khyber Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Sialkot (Export Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Quetta (Balochistan Hub)</span>
         </div>
 
         <div class="text-center">
@@ -519,51 +481,70 @@
                 <i class="bi bi-truck me-1 text-warning"></i>Also servicing dedicated out-of-network routes: Sahiwal, Okara, Kasur, Sukkur (+15% dedicated transport).
             </span>
         </div>
-    </div>
+    </section>
 
 
-    <!-- 5. KEY VALUE PILLARS (WHY FLEETIFY) -->
-    <div class="row g-4 mb-5">
+    <!-- 5. FLEETIFY VALUE PILLARS -->
+    <section class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="card glass-card border-0 rounded-4 p-4 text-center h-100">
-                <div class="icon-bubble bg-primary-subtle text-primary mx-auto mb-3">
-                    <i class="bi bi-stopwatch"></i>
-                </div>
-                <h5 class="fw-bold text-dark mb-2">Flexible Speed Tiers</h5>
-                <p class="text-muted small mb-0">Normal (4–6 days), Fast (2–3 days), and Express (1–2 days) options matched to your deadline.</p>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card glass-card border-0 rounded-4 p-4 text-center h-100">
-                <div class="icon-bubble bg-success-subtle text-success mx-auto mb-3">
-                    <i class="bi bi-door-open"></i>
-                </div>
-                <h5 class="fw-bold text-dark mb-2">Doorstep or Hub</h5>
-                <p class="text-muted small mb-0">Rider doorstep pickup or direct warehouse drop-off and self-pickup with dedicated barcode tagging.</p>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card glass-card border-0 rounded-4 p-4 text-center h-100">
-                <div class="icon-bubble bg-warning-subtle text-warning mx-auto mb-3">
+            <div class="service-card text-center">
+                <div class="icon-box bg-primary-subtle text-primary mx-auto mb-3">
                     <i class="bi bi-hourglass-split"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-2">1-Hour Guarantee</h5>
-                <p class="text-muted small mb-0">Edit parcel weight, delivery type, or cancel completely within 60 minutes of booking with zero penalty.</p>
+                <p class="text-muted small mb-0">Modify parcel details, adjust weight, or cancel completely within 60 minutes with zero penalties.</p>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="card glass-card border-0 rounded-4 p-4 text-center h-100">
-                <div class="icon-bubble bg-info-subtle text-info mx-auto mb-3">
-                    <i class="bi bi-cpu"></i>
+            <div class="service-card text-center">
+                <div class="icon-box bg-success-subtle text-success mx-auto mb-3">
+                    <i class="bi bi-shield-check"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">AI-Driven Routing</h5>
-                <p class="text-muted small mb-0">Smart GPS routing, transparent distance rate formula, and automated vehicle health diagnostics.</p>
+                <h5 class="fw-bold text-dark mb-2">Exact Rate Formula</h5>
+                <p class="text-muted small mb-0">Transparent distance and weight algorithm ensuring fair pricing with zero hidden surcharges.</p>
             </div>
         </div>
-    </div>
+
+        <div class="col-md-3">
+            <div class="service-card text-center">
+                <div class="icon-box bg-info-subtle text-info mx-auto mb-3">
+                    <i class="bi bi-broadcast"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Real-Time Telemetry</h5>
+                <p class="text-muted small mb-0">Live GPS route tracking from origin pickup all the way to final recipient destination handover.</p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="service-card text-center">
+                <div class="icon-box bg-warning-subtle text-warning mx-auto mb-3">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">AI Diagnostic Support</h5>
+                <p class="text-muted small mb-0">Predictive maintenance diagnostics for our fleet and 24/7 AI-assisted customer helpdesk.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- 6. HIGH-CONVERTING BOTTOM CTA BANNER -->
+    <section class="landing-hero p-4 p-md-5 text-center text-white mb-4">
+        <div class="position-relative" style="z-index: 2; max-width: 720px; margin: 0 auto;">
+            <h2 class="display-6 fw-bold mb-3">Ready to Ship with Complete Confidence?</h2>
+            <p class="fs-5 text-light opacity-75 mb-4">
+                Join thousands of businesses and individuals utilizing Fleetify for dependable, formula-accurate logistics across Pakistan.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#authChoiceModal">
+                    <span>Create Free Account &rarr;</span>
+                </button>
+                <a href="#rate-calculator" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-semibold">
+                    <span>Calculate Rates</span>
+                </a>
+            </div>
+        </div>
+    </section>
 
 </div>
 

@@ -7,12 +7,22 @@
     <div class="row justify-content-center">
         <div class="col-md-5 col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 auth-card bg-white">
-                <div class="text-center mb-4">
-                    <a asp-controller="Account" asp-action="SelectRole" class="d-inline-block mb-3 text-decoration-none">
-                        <img src="~/images/fleetify-logo.png" alt="Fleetify Logo" style="height: 55px; object-fit: contain;" />
+                <div class="text-center mb-3">
+                    <a asp-controller="Home" asp-action="Index" class="d-inline-block mb-3 text-decoration-none">
+                        <img src="~/images/fleetify-logo.png" alt="Fleetify Logo" style="height: 52px; object-fit: contain;" />
                     </a>
                     <h3 class="fw-bold text-dark mb-1">Welcome Back</h3>
-                    <p class="text-muted small">Sign in as <span class="fw-semibold text-primary">@Model.Role</span></p>
+                    <p class="text-muted small mb-0">Select your account portal to sign in</p>
+                </div>
+
+                <!-- Interactive Role Selector Segmented Switcher -->
+                <div class="role-selector-toggle d-flex p-1 mb-4">
+                    <a asp-action="Login" asp-route-role="Customer" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-sm rounded-pill flex-fill py-2 fw-semibold @(Model.Role == "Customer" ? "btn-primary shadow-sm text-white" : "text-secondary")">
+                        <i class="bi bi-box-seam me-1"></i> Customer
+                    </a>
+                    <a asp-action="Login" asp-route-role="Admin" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-sm rounded-pill flex-fill py-2 fw-semibold @(Model.Role == "Admin" ? "btn-primary shadow-sm text-white" : "text-secondary")">
+                        <i class="bi bi-shield-lock me-1"></i> Fleet Admin
+                    </a>
                 </div>
 
                 <form asp-action="Login" method="post">

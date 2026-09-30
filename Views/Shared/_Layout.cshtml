@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Fleetify</title>
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <!-- Bootstrap Icons -->
@@ -20,13 +20,13 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="bg-light-blue font-sans">
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom shadow-xs py-2">
+    <header class="sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-glass py-2.5">
             <div class="container-fluid px-lg-5">
                 <a class="navbar-brand d-flex align-items-center py-1" asp-controller="Home" asp-action="Index">
                     <img src="~/images/fleetify-logo.png" alt="Fleetify" class="brand-logo" />
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -83,17 +83,31 @@
                     }
                     else
                     {
-                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-1">
                             <li class="nav-item">
-                                <a class="nav-link text-secondary" asp-controller="Account" asp-action="SelectRole">Select Role</a>
+                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#services">Services</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-outline-primary btn-sm rounded-pill px-3" asp-controller="Account" asp-action="Login">Sign In</a>
+                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#rate-calculator">Rate Calculator</a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-primary btn-sm rounded-pill px-3 text-white" asp-controller="Account" asp-action="Register">Sign Up</a>
+                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#hubs">Network Hubs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#track">Track Shipment</a>
                             </li>
                         </ul>
+
+                        <div class="d-flex align-items-center gap-2 ms-auto">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-2 fw-bold d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#authChoiceModal" data-auth-mode="login">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span>Sign In</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 py-2 text-white fw-bold shadow-sm d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#authChoiceModal" data-auth-mode="register">
+                                <i class="bi bi-person-plus-fill"></i>
+                                <span>Sign Up</span>
+                            </button>
+                        </div>
                     }
                 </div>
             </div>
@@ -176,6 +190,75 @@
             <button id="supportChatSend" type="button" class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Send message">
                 <i class="bi bi-send-fill" style="font-size: 0.85rem;"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- AUTHENTICATION ROLE SELECTION MODAL -->
+    <div class="modal fade" id="authChoiceModal" tabindex="-1" aria-labelledby="authChoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow-xl overflow-hidden" style="box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4 px-md-5 d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono small fw-semibold mb-2">FLEETIFY PORTAL ACCESS</span>
+                        <h4 class="modal-title fw-bold text-dark mb-1" id="authChoiceModalLabel">Select Your Account Type</h4>
+                        <p class="text-secondary small mb-0">Choose whether you are shipping parcels or managing logistics operations.</p>
+                    </div>
+                    <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 p-md-5 pt-3">
+                    <div class="row g-3">
+                        <!-- Option 1: Customer / Shipper -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border rounded-4 p-4 text-start transition-hover" style="background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%); border-color: rgba(16, 185, 129, 0.3) !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="rounded-3 bg-success-subtle text-success p-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                        <i class="bi bi-box-seam-fill fs-3"></i>
+                                    </div>
+                                    <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1 font-mono x-small fw-semibold">USER / CLIENT</span>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-1">Customer / Shipper</h5>
+                                <p class="text-muted small mb-4" style="min-height: 48px;">
+                                    Book parcel deliveries, choose doorstep pickup or warehouse drop-off, track real-time shipments, and manage arrivals.
+                                </p>
+                                <div class="d-flex flex-column gap-2 mt-auto">
+                                    <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="btn btn-success rounded-pill py-2 text-white fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-1.5" style="background-color: #10b981; border-color: #10b981;">
+                                        <span>Sign In as Customer</span>
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                    <a asp-controller="Account" asp-action="Register" asp-route-role="Customer" class="btn btn-outline-success rounded-pill py-1.5 fw-semibold small text-center" style="border-color: #10b981; color: #047857;">
+                                        Create New Customer Account
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 2: Fleet Admin Operations -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border rounded-4 p-4 text-start transition-hover" style="background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%); border-color: rgba(99, 102, 241, 0.3) !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="rounded-3 bg-indigo-subtle text-indigo p-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                        <i class="bi bi-shield-lock-fill fs-3 text-primary"></i>
+                                    </div>
+                                    <span class="badge bg-indigo-subtle text-indigo rounded-pill px-2.5 py-1 font-mono x-small fw-semibold">ADMINISTRATION</span>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-1">Fleet Administrator</h5>
+                                <p class="text-muted small mb-4" style="min-height: 48px;">
+                                    Authorized fleet operations, company &amp; backup driver dispatching, live GPS fleet map, AI vehicle diagnostics, and 24/7 support desk.
+                                </p>
+                                <div class="d-flex flex-column gap-2 mt-auto">
+                                    <a asp-controller="Account" asp-action="Login" asp-route-role="Admin" class="btn btn-primary rounded-pill py-2 text-white fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-1.5">
+                                        <span>Sign In as Admin</span>
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                    <a asp-controller="Account" asp-action="Register" asp-route-role="Admin" class="btn btn-outline-primary rounded-pill py-1.5 fw-semibold small text-center">
+                                        Register Fleet Staff
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
