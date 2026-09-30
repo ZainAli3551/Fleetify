@@ -6,15 +6,15 @@
 <style>
     /* Hero Container & Multi-Layered Cosmic Dark Aesthetic */
     .landing-hero {
-        background: radial-gradient(circle at 15% 25%, rgba(37, 99, 235, 0.22) 0%, transparent 45%),
-                    radial-gradient(circle at 85% 75%, rgba(79, 70, 229, 0.20) 0%, transparent 45%),
-                    radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.12) 0%, transparent 55%),
-                    linear-gradient(135deg, #070b14 0%, #0c1220 50%, #0f172a 100%);
+        background: radial-gradient(circle at 15% 25%, rgba(37, 99, 235, 0.28) 0%, transparent 45%),
+                    radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.20) 0%, transparent 45%),
+                    radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.18) 0%, transparent 55%),
+                    linear-gradient(135deg, #060913 0%, #0a1124 50%, #0e1938 100%);
         color: #ffffff;
         position: relative;
         overflow: hidden;
         border-radius: 1.5rem;
-        box-shadow: 0 20px 45px -15px rgba(2, 6, 23, 0.4);
+        box-shadow: 0 25px 60px -15px rgba(2, 6, 23, 0.5);
     }
 
     .landing-hero::before {
@@ -181,10 +181,10 @@
 
                 <!-- Hero Action CTAs -->
                 <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start gap-3 mb-4">
-                    <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#authChoiceModal" data-auth-mode="login">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2">
                         <span>Get Started / Sign In</span>
                         <i class="bi bi-arrow-right"></i>
-                    </button>
+                    </a>
                     <a href="#rate-calculator" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-semibold d-flex align-items-center gap-2">
                         <i class="bi bi-calculator"></i>
                         <span>Calculate Rates</span>
@@ -282,9 +282,9 @@
                                 <span class="x-small text-white-50 d-block">Formula Accurate Total</span>
                                 <h3 class="fw-bold text-info mb-0 font-mono">Rs. 7,977</h3>
                             </div>
-                            <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3 py-1.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#authChoiceModal">
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-info btn-sm rounded-pill px-3 py-1.5 fw-semibold">
                                 Book Delivery &rarr;
-                            </button>
+                            </a>
                         </div>
                     </div>
 
@@ -397,9 +397,9 @@
                             <span class="x-small text-white-50 d-block">Total Estimated Cost</span>
                             <h2 class="fw-bold text-info mb-0 font-mono" id="previewTotal">Rs. 7,977</h2>
                         </div>
-                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#authChoiceModal">
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2">
                             <span>Book Delivery &rarr;</span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -536,9 +536,9 @@
                 Join thousands of businesses and individuals utilizing Fleetify for dependable, formula-accurate logistics across Pakistan.
             </p>
             <div class="d-flex justify-content-center gap-3">
-                <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#authChoiceModal">
+                <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm">
                     <span>Create Free Account &rarr;</span>
-                </button>
+                </a>
                 <a href="#rate-calculator" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-semibold">
                     <span>Calculate Rates</span>
                 </a>

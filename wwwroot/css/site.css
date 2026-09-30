@@ -1,23 +1,44 @@
-/* Fleetify High-End Modern Logistics Styling */
+/* Fleetify Ultra-Modern Logistics Design System & Luxury Palette */
 :root {
+    /* Brand Color Architecture */
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
-    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
-    --emerald-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --bg-light-blue: #f8fafc;
-    --card-border-radius: 1rem;
-    --shadow-soft: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
-    --shadow-hover: 0 20px 30px -10px rgba(37, 99, 235, 0.15);
+    --primary-gradient: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #0284c7 100%);
+    --primary-glow: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+    --dark-nebula-gradient: linear-gradient(135deg, #070b14 0%, #0c1427 50%, #101c3d 100%);
+
+    /* Luxury Accents */
+    --accent-cyan: #06b6d4;
+    --accent-indigo: #4f46e5;
+    --accent-emerald: #10b981;
+    --emerald-gradient: linear-gradient(135deg, #059669 0%, #10b981 100%);
+
+    /* Surfaces & Backgrounds */
+    --bg-light-blue: #f4f7fb;
+    --bg-surface: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border-subtle: #e2e8f0;
+
+    /* Shadows & Elevation */
+    --shadow-soft: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+    --shadow-hover: 0 20px 40px -10px rgba(37, 99, 235, 0.22);
+    --shadow-glow: 0 0 35px rgba(37, 99, 235, 0.3);
+
+    --card-border-radius: 1.25rem;
 }
 
 body {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--bg-light-blue);
-    color: #1e293b;
+    color: var(--text-primary);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+    -webkit-font-smoothing: antialiased;
 }
 
 main {
@@ -26,32 +47,37 @@ main {
 
 /* Glassmorphism Navbar */
 .navbar-glass {
-    background: rgba(255, 255, 255, 0.92) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.90) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 4px 25px -4px rgba(15, 23, 42, 0.04);
     transition: all 0.25s ease;
 }
 
-/* Premium Typography & Headings */
+/* Typography & Headings */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
     letter-spacing: -0.025em;
     font-weight: 700;
+    color: var(--text-primary);
 }
 
 /* Primary Button Upgrades */
 .btn-primary {
     background: var(--primary-gradient) !important;
     border: none !important;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+    color: #ffffff !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+    font-weight: 600;
+    letter-spacing: -0.01em;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-primary:hover {
-    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.38) !important;
-    transform: translateY(-1.5px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45) !important;
+    transform: translateY(-2px);
+    color: #ffffff !important;
 }
 
 .btn-primary:active {
@@ -59,20 +85,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-outline-primary {
-    border-color: #93c5fd !important;
-    color: #2563eb !important;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1.5px solid #3b82f6 !important;
+    color: #1d4ed8 !important;
+    background: rgba(37, 99, 235, 0.04) !important;
+    font-weight: 600;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-outline-primary:hover {
-    background-color: #eff6ff !important;
+    background: #2563eb !important;
     border-color: #2563eb !important;
-    color: #1d4ed8 !important;
-    transform: translateY(-1px);
+    color: #ffffff !important;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.25);
+    transform: translateY(-2px);
 }
 
 .shadow-xs {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.shadow-2xl {
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 30px rgba(37, 99, 235, 0.08);
 }
 
 .font-mono {
@@ -83,17 +116,18 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.75rem;
 }
 
-/* Subtle Color Backgrounds */
+/* Color Helpers */
+.text-cyan {
+    color: #38bdf8 !important;
+}
+
+.bg-cyan-subtle {
+    background-color: #ecfeff !important;
+    color: #0891b2 !important;
+}
+
 .bg-light-blue {
-    background-color: #f8fafc;
-}
-
-.bg-purple-subtle {
-    background-color: #f5f3ff;
-}
-
-.text-purple {
-    color: #7c3aed;
+    background-color: var(--bg-light-blue);
 }
 
 .bg-indigo-subtle {
@@ -114,46 +148,20 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--shadow-hover);
 }
 
-/* Role Selector Segmented Toggle */
-.role-selector-toggle {
-    background-color: #f1f5f9;
-    padding: 4px;
-    border-radius: 9999px;
-    border: 1px solid #e2e8f0;
-}
-
-.role-selector-toggle .btn {
-    transition: all 0.2s ease;
-}
-
-.role-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.15) !important;
-}
-
-.role-icon-wrapper {
-    width: 68px;
-    height: 68px;
-}
-
-.auth-icon-wrapper {
-    width: 60px;
-    height: 60px;
-}
-
-.auth-card {
-    background: #ffffff;
-}
-
-/* Sub-navigation link hover */
-.hover-primary:hover {
-    color: var(--primary-color) !important;
-}
-
 /* Form Controls Polish */
+.form-control, .form-select {
+    border: 1.5px solid #cbd5e1;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
 .form-control:focus, .form-select:focus {
-    border-color: #93c5fd;
-    box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.12);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    background-color: #ffffff;
 }
 
 /* Table styling */
@@ -187,7 +195,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar-brand:hover .brand-logo {
-    transform: scale(1.06);
+    transform: scale(1.05);
 }
 
 /* Floating AI Support Chat Widget */
@@ -199,7 +207,8 @@ h1, h2, h3, h4, h5, h6 {
     width: 58px;
     height: 58px;
     border-radius: 50%;
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+    background: var(--primary-gradient) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.38);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,7 +218,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .support-chat-trigger:hover {
     transform: scale(1.08) translateY(-2px);
-    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.5);
 }
 
 .support-chat-modal {
@@ -262,3 +271,99 @@ h1, h2, h3, h4, h5, h6 {
     color: #0284c7;
 }
 
+/* ========================================================
+   AUTHENTICATION SPLIT-SCREEN & SELECT ROLE STYLING
+   ======================================================== */
+.auth-split-card {
+    background: #ffffff;
+    border-radius: 1.5rem !important;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.18), 0 0 35px rgba(37, 99, 235, 0.08);
+    max-width: 1060px;
+}
+
+.auth-image-col {
+    background-image: url('/images/fleet-auth-banner.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 640px;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-image-col::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(7, 11, 22, 0.45) 0%, rgba(7, 11, 22, 0.82) 60%, rgba(5, 8, 18, 0.97) 100%);
+    z-index: 1;
+}
+
+.auth-glass-pill {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.auth-stat-card {
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    transition: all 0.25s ease;
+}
+
+.auth-stat-card:hover {
+    background: rgba(15, 23, 42, 0.82);
+    border-color: rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
+}
+
+.role-select-box {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+}
+
+.role-option-btn {
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    padding: 0.75rem 0.5rem;
+    border-radius: 0.85rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    text-align: center;
+}
+
+.role-option-btn:hover {
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+}
+
+.role-option-btn.active {
+    border-color: #2563eb !important;
+    background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15) !important;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10b981;
+    box-shadow: 0 0 10px #10b981;
+    display: inline-block;
+    animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.3);
+    }
+}

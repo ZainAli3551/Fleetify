@@ -1,85 +1,229 @@
 @model Fleetify.Models.ViewModels.RegisterViewModel
 @{
-    ViewData["Title"] = $"Create {Model.Role} Account";
+    ViewData["Title"] = $"Create Account - {Model.Role} Portal";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5 col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 auth-card bg-white">
-                <div class="text-center mb-3">
-                    <a asp-controller="Home" asp-action="Index" class="d-inline-block mb-3 text-decoration-none">
-                        <img src="~/images/fleetify-logo.png" alt="Fleetify Logo" style="height: 52px; object-fit: contain;" />
+<div class="container py-4 py-lg-5">
+    <div class="card border-0 shadow-2xl rounded-5 overflow-hidden auth-split-card mx-auto">
+        <div class="row g-0">
+            <!-- Left Column: Realistic Fleet Banner & Brand Story -->
+            <div class="col-lg-6 d-none d-lg-flex position-relative auth-image-col text-white p-5 flex-column justify-content-between">
+                <div class="position-relative" style="z-index: 2;">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill auth-glass-pill mb-4">
+                        <span class="pulse-dot"></span>
+                        <span class="x-small fw-bold text-uppercase tracking-wider text-cyan">Enterprise Fleet Logistics</span>
+                    </div>
+                    <div>
+                        <a asp-controller="Home" asp-action="Index" class="text-decoration-none">
+                            <img src="~/images/fleetify-logo-white-bg.png" alt="Fleetify" style="height: 42px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.35);" />
+                        </a>
+                    </div>
+                </div>
+
+                <div class="position-relative my-auto py-4" style="z-index: 2;">
+                    <span class="badge bg-primary-subtle text-cyan border border-info border-opacity-25 rounded-pill px-3 py-1 font-mono x-small fw-semibold mb-3 d-inline-block">
+                        INSTANT FLEET ONBOARDING
+                    </span>
+                    <h2 class="display-6 fw-bold mb-3 text-white lh-sm">
+                        Join Pakistan's Most Advanced Logistics Platform
+                    </h2>
+                    <p class="text-light opacity-90 mb-4" style="font-size: 0.95rem; line-height: 1.65; max-width: 480px;">
+                        Start booking parcel deliveries with verified doorstep pickup, or step into enterprise fleet management with automated AI routing and live vehicle telemetry.
+                    </p>
+
+                    <!-- Trust Metric Badges -->
+                    <div class="row g-2.5">
+                        <div class="col-6">
+                            <div class="auth-stat-card p-3 rounded-3">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
+                                        <i class="bi bi-shield-check fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-white font-mono small">Verified Safety</strong>
+                                        <span class="text-white-50 x-small">100% Insured Freight</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="auth-stat-card p-3 rounded-3">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
+                                        <i class="bi bi-clock-history fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-white font-mono small">Instant Booking</strong>
+                                        <span class="text-white-50 x-small">2-Minute Setup</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="auth-stat-card p-3 rounded-3">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
+                                        <i class="bi bi-calculator fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-white font-mono small">Transparent Rates</strong>
+                                        <span class="text-white-50 x-small">Formula Accurate</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="auth-stat-card p-3 rounded-3">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
+                                        <i class="bi bi-headset fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-white font-mono small">24/7 Support</strong>
+                                        <span class="text-white-50 x-small">AI &amp; Human Helpdesk</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="position-relative pt-3 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center x-small text-white-50" style="z-index: 2;">
+                    <span>&copy; @DateTime.UtcNow.Year Fleetify Logistics</span>
+                    <span><i class="bi bi-lock-fill text-success me-1"></i>SSL Encrypted Registration</span>
+                </div>
+            </div>
+
+            <!-- Right Column: Registration Details & Role Selection Box -->
+            <div class="col-lg-6 bg-white p-4 p-md-5 d-flex flex-column justify-content-center">
+                <div class="text-center text-lg-start mb-4">
+                    <a asp-controller="Home" asp-action="Index" class="d-inline-block d-lg-none mb-3 text-decoration-none">
+                        <img src="~/images/fleetify-logo.png" alt="Fleetify" style="height: 48px;" />
                     </a>
                     <h3 class="fw-bold text-dark mb-1">Create Account</h3>
-                    <p class="text-muted small mb-0">Select your account portal to sign up</p>
+                    <p class="text-secondary small mb-0">Select your account role to get started with Fleetify.</p>
                 </div>
 
-                <!-- Interactive Role Selector Segmented Switcher -->
-                <div class="role-selector-toggle d-flex p-1 mb-4">
-                    <a asp-action="Register" asp-route-role="Customer" class="btn btn-sm rounded-pill flex-fill py-2 fw-semibold @(Model.Role == "Customer" ? "btn-primary shadow-sm text-white" : "text-secondary")">
-                        <i class="bi bi-box-seam me-1"></i> Customer
-                    </a>
-                    <a asp-action="Register" asp-route-role="Admin" class="btn btn-sm rounded-pill flex-fill py-2 fw-semibold @(Model.Role == "Admin" ? "btn-primary shadow-sm text-white" : "text-secondary")">
-                        <i class="bi bi-shield-lock me-1"></i> Fleet Admin
-                    </a>
+                <!-- Box to Select Role -->
+                <div class="role-select-box p-2.5 rounded-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2 px-1">
+                        <span class="x-small fw-bold text-uppercase text-secondary" style="letter-spacing: 0.05em;">
+                            <i class="bi bi-person-badge me-1 text-primary"></i>Select Your Role
+                        </span>
+                        <span id="roleIndicatorBadge" class="badge rounded-pill @(Model.Role == "Admin" ? "bg-indigo-subtle text-indigo" : "bg-success-subtle text-success") font-mono x-small">
+                            @(Model.Role == "Admin" ? "Fleet Administrator" : "Customer / Shipper")
+                        </span>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="button" class="btn w-100 role-option-btn @(Model.Role == "Customer" ? "active" : "")" id="btnRoleCustomer" onclick="chooseRole('Customer')">
+                                <div class="d-flex align-items-center justify-content-center gap-1.5 mb-0.5">
+                                    <i class="bi bi-box-seam-fill text-success fs-5"></i>
+                                    <span class="fw-bold text-dark">Customer</span>
+                                </div>
+                                <span class="role-desc text-muted x-small d-block">Shipper &amp; Tracking</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn w-100 role-option-btn @(Model.Role == "Admin" ? "active" : "")" id="btnRoleAdmin" onclick="chooseRole('Admin')">
+                                <div class="d-flex align-items-center justify-content-center gap-1.5 mb-0.5">
+                                    <i class="bi bi-shield-lock-fill text-primary fs-5"></i>
+                                    <span class="fw-bold text-dark">Fleet Admin</span>
+                                </div>
+                                <span class="role-desc text-muted x-small d-block">Operations &amp; Dispatch</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <form asp-action="Register" method="post">
+                <!-- Registration Form -->
+                <form asp-action="Register" method="post" id="registerForm">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="Role" />
+                    <input type="hidden" asp-for="Role" id="inputRole" />
 
-                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 px-3 small rounded-3 mb-3"></div>
+                    }
 
-                    <div class="mb-3">
-                        <label asp-for="FullName" class="form-label small text-secondary fw-medium">Full Name</label>
-                        <input asp-for="FullName" class="form-control rounded-3 py-2" placeholder="e.g. Ibrahim Sian" />
-                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label small fw-semibold text-secondary">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input asp-for="FullName" class="form-control border-start-0 rounded-end-3 py-2" placeholder="e.g. Ibrahim Sian" />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label small fw-semibold text-secondary">Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input asp-for="PhoneNumber" class="form-control border-start-0 rounded-end-3 py-2" placeholder="+92 300 1234567" />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Email" class="form-label small text-secondary fw-medium">Email</label>
-                        <input asp-for="Email" class="form-control rounded-3 py-2" placeholder="name@example.com" />
+                        <label asp-for="Email" class="form-label small fw-semibold text-secondary">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input asp-for="Email" class="form-control border-start-0 rounded-end-3 py-2" placeholder="name@example.com" autocomplete="email" />
+                        </div>
                         <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="PhoneNumber" class="form-label small text-secondary fw-medium">Phone Number</label>
-                        <input asp-for="PhoneNumber" class="form-control rounded-3 py-2" placeholder="+92 300 1234567" />
-                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                    <!-- Customer Specific Field: Address -->
+                    <div class="mb-3 @(Model.Role == "Customer" ? "" : "d-none")" id="customerAddressGroup">
+                        <label asp-for="Address" class="form-label small fw-semibold text-secondary">Default Pickup/Dropoff Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                                <i class="bi bi-geo-alt"></i>
+                            </span>
+                            <input asp-for="Address" class="form-control border-start-0 rounded-end-3 py-2" placeholder="123 Main St, Gujranwala" />
+                        </div>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
                     </div>
 
-                    @if (Model.Role == "Customer")
-                    {
-                        <div class="mb-3">
-                            <label asp-for="Address" class="form-label small text-secondary fw-medium">Default Pickup/Dropoff Address</label>
-                            <input asp-for="Address" class="form-control rounded-3 py-2" placeholder="123 Main St, Gujranwala" />
-                        </div>
-                    }
-                    else if (Model.Role == "Driver")
-                    {
-                        <div class="mb-3">
-                            <label asp-for="LicenseNumber" class="form-label small text-secondary fw-medium">Driver License Number</label>
-                            <input asp-for="LicenseNumber" class="form-control rounded-3 py-2" placeholder="PK-DL-98765" />
-                        </div>
-                    }
+                    <!-- Admin Specific Note -->
+                    <div class="alert alert-info py-2 px-3 rounded-3 small mb-3 @(Model.Role == "Admin" ? "" : "d-none")" id="adminNoticeGroup">
+                        <i class="bi bi-shield-lock-fill me-1.5 text-primary"></i>
+                        <span>Fleet Administrator accounts grant full operational control over drivers, vehicle telemetry, and route assignments.</span>
+                    </div>
 
                     <div class="mb-4">
-                        <label asp-for="Password" class="form-label small text-secondary fw-medium">Password</label>
-                        <input asp-for="Password" type="password" class="form-control rounded-3 py-2" placeholder="••••••••" />
+                        <label asp-for="Password" class="form-label small fw-semibold text-secondary">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input asp-for="Password" type="password" class="form-control border-start-0 rounded-end-3 py-2" placeholder="Min. 6 characters" autocomplete="new-password" />
+                        </div>
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
 
                     <div class="d-grid mb-4">
-                        <button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold text-white">Create Account</button>
+                        <button type="submit" id="submitBtn" class="btn btn-primary btn-lg rounded-pill py-2.5 fw-bold text-white shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <span id="submitBtnText">Create @(Model.Role == "Admin" ? "Fleet Admin" : "Customer") Account</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
                     </div>
 
                     <div class="text-center small">
-                        <p class="mb-2">
+                        <p class="mb-2 text-secondary">
                             Already have an account?
-                            <a asp-action="Login" asp-route-role="@Model.Role" class="text-primary text-decoration-none fw-semibold">Sign in</a>
+                            <a id="loginLink" asp-action="Login" asp-route-role="@Model.Role" class="text-primary text-decoration-none fw-bold">Sign in here</a>
                         </p>
-                        <a asp-action="SelectRole" class="text-secondary text-decoration-none">— Change role</a>
+                        <a asp-controller="Account" asp-action="SelectRole" class="text-muted text-decoration-none x-small">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Fleetify Overview
+                        </a>
                     </div>
                 </form>
             </div>
@@ -89,4 +233,38 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function chooseRole(selectedRole) {
+            document.getElementById('inputRole').value = selectedRole;
+            const btnCustomer = document.getElementById('btnRoleCustomer');
+            const btnAdmin = document.getElementById('btnRoleAdmin');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const roleBadge = document.getElementById('roleIndicatorBadge');
+            const customerAddressGroup = document.getElementById('customerAddressGroup');
+            const adminNoticeGroup = document.getElementById('adminNoticeGroup');
+            const loginLink = document.getElementById('loginLink');
+
+            if (selectedRole === 'Admin') {
+                btnAdmin.classList.add('active');
+                btnCustomer.classList.remove('active');
+                submitBtnText.textContent = 'Create Fleet Admin Account';
+                roleBadge.className = 'badge rounded-pill bg-indigo-subtle text-indigo font-mono x-small';
+                roleBadge.textContent = 'Fleet Administrator';
+                customerAddressGroup.classList.add('d-none');
+                adminNoticeGroup.classList.remove('d-none');
+                if (loginLink) loginLink.href = '/Account/Login?role=Admin';
+                history.replaceState(null, '', '/Account/Register?role=Admin');
+            } else {
+                btnCustomer.classList.add('active');
+                btnAdmin.classList.remove('active');
+                submitBtnText.textContent = 'Create Customer Account';
+                roleBadge.className = 'badge rounded-pill bg-success-subtle text-success font-mono x-small';
+                roleBadge.textContent = 'Customer / Shipper';
+                customerAddressGroup.classList.remove('d-none');
+                adminNoticeGroup.classList.add('d-none');
+                if (loginLink) loginLink.href = '/Account/Login?role=Customer';
+                history.replaceState(null, '', '/Account/Register?role=Customer');
+            }
+        }
+    </script>
 }
