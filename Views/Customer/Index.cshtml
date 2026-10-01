@@ -129,86 +129,171 @@
                         <form asp-action="CreateDelivery" method="post" id="deliveryForm">
                             @Html.AntiForgeryToken()
 
-                            <!-- 1. TOP ROW: TWO DROPDOWNS FOR ORIGIN WAREHOUSE AND DESTINATION WAREHOUSE -->
+                            <!-- 1. TOP SECTION: ORIGIN WAREHOUSE & PICKUP MODE (LEFT) + DESTINATION WAREHOUSE & DELIVERY MODE (RIGHT) -->
                             <div class="row g-3 mb-3">
+                                <!-- Left Column: Origin Warehouse & Pickup Mode directly underneath -->
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">
-                                        <i class="bi bi-building text-primary me-1"></i>Origin Warehouse
-                                    </label>
-                                    <select id="originWarehouseSelect" name="NewDelivery.OriginWarehouse" class="form-select rounded-3 py-2 fw-semibold" onchange="onOriginWarehouseChanged()">
-                                        <option value="Fleetify GT Road Hub, Shaheenabad, near Gulshan Park / GT Road, Gujranwala" data-city="Gujranwala" data-doorstep-default="Shaheenabad, near Gulshan Park / GT Road, Gujranwala" selected>Fleetify GT Road Hub – Gujranwala: Shaheenabad, near Gulshan Park / GT Road</option>
-                                        <option value="Fleetify Central Hub, Thokar Niaz Baig, near Multan Road Bypass, Lahore" data-city="Lahore" data-doorstep-default="Thokar Niaz Baig, near Multan Road Bypass, Lahore">Fleetify Central Hub – Lahore: Thokar Niaz Baig, near Multan Road Bypass</option>
-                                        <option value="Fleetify South Hub, S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi" data-city="Karachi" data-doorstep-default="S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi">Fleetify South Hub – Karachi: S.I.T.E. Industrial Area, near Habib Bank Chowrangi</option>
-                                        <option value="Fleetify North Hub, I-9 Industrial Area, near Sector I-9/3, Islamabad" data-city="Islamabad" data-doorstep-default="I-9 Industrial Area, near Sector I-9/3, Islamabad">Fleetify North Hub – Islamabad: I-9 Industrial Area, near Sector I-9/3</option>
-                                        <option value="Fleetify Twin Cities Hub, Murree Road, near Faizabad Interchange, Rawalpindi" data-city="Rawalpindi" data-doorstep-default="Murree Road, near Faizabad Interchange, Rawalpindi">Fleetify Twin Cities Hub – Rawalpindi: Murree Road, near Faizabad Interchange</option>
-                                        <option value="Fleetify Textile Hub, Sargodha Road, near Millat Chowk, Faisalabad" data-city="Faisalabad" data-doorstep-default="Sargodha Road, near Millat Chowk, Faisalabad">Fleetify Textile Hub – Faisalabad: Sargodha Road, near Millat Chowk</option>
-                                        <option value="Fleetify South Punjab Hub, Khanewal Road, near Industrial Estate, Multan" data-city="Multan" data-doorstep-default="Khanewal Road, near Industrial Estate, Multan">Fleetify South Punjab Hub – Multan: Khanewal Road, near Industrial Estate</option>
-                                        <option value="Fleetify Khyber Hub, Hayatabad Industrial Estate, near Phase 7, Peshawar" data-city="Peshawar" data-doorstep-default="Hayatabad Industrial Estate, near Phase 7, Peshawar">Fleetify Khyber Hub – Peshawar: Hayatabad Industrial Estate, near Phase 7</option>
-                                        <option value="Fleetify Export Hub, Wazirabad Road, near Sambrial, Sialkot" data-city="Sialkot" data-doorstep-default="Wazirabad Road, near Sambrial, Sialkot">Fleetify Export Hub – Sialkot: Wazirabad Road, near Sambrial</option>
-                                        <option value="Fleetify Balochistan Hub, Zarghoon Road, near Quetta Cantt, Quetta" data-city="Quetta" data-doorstep-default="Zarghoon Road, near Quetta Cantt, Quetta">Fleetify Balochistan Hub – Quetta: Zarghoon Road, near Quetta Cantt</option>
-                                    </select>
-                                    <span class="text-muted d-block x-small mt-1"><i class="bi bi-geo-alt me-1"></i>Fleetify warehouse serving your pickup region.</span>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">
-                                        <i class="bi bi-building text-danger me-1"></i>Destination Warehouse
-                                    </label>
-                                    <select id="destWarehouseSelect" name="NewDelivery.DestinationWarehouse" class="form-select rounded-3 py-2 fw-semibold" onchange="onDestWarehouseChanged()">
-                                        <optgroup label="Fleetify Hub Warehouses">
-                                            <option value="Fleetify Central Hub, Thokar Niaz Baig, near Multan Road Bypass, Lahore" data-city="Lahore" data-doorstep-default="Thokar Niaz Baig, near Multan Road Bypass, Lahore" selected>Fleetify Central Hub – Lahore: Thokar Niaz Baig, near Multan Road Bypass</option>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="bi bi-building text-primary me-1"></i>Origin Warehouse
+                                        </label>
+                                        <select id="originWarehouseSelect" name="NewDelivery.OriginWarehouse" class="form-select rounded-3 py-2 fw-semibold" onchange="onOriginWarehouseChanged()">
+                                            <option value="Fleetify GT Road Hub, Shaheenabad, near Gulshan Park / GT Road, Gujranwala" data-city="Gujranwala" data-doorstep-default="Shaheenabad, near Gulshan Park / GT Road, Gujranwala" selected>Fleetify GT Road Hub – Gujranwala: Shaheenabad, near Gulshan Park / GT Road</option>
+                                            <option value="Fleetify Central Hub, Thokar Niaz Baig, near Multan Road Bypass, Lahore" data-city="Lahore" data-doorstep-default="Thokar Niaz Baig, near Multan Road Bypass, Lahore">Fleetify Central Hub – Lahore: Thokar Niaz Baig, near Multan Road Bypass</option>
                                             <option value="Fleetify South Hub, S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi" data-city="Karachi" data-doorstep-default="S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi">Fleetify South Hub – Karachi: S.I.T.E. Industrial Area, near Habib Bank Chowrangi</option>
                                             <option value="Fleetify North Hub, I-9 Industrial Area, near Sector I-9/3, Islamabad" data-city="Islamabad" data-doorstep-default="I-9 Industrial Area, near Sector I-9/3, Islamabad">Fleetify North Hub – Islamabad: I-9 Industrial Area, near Sector I-9/3</option>
                                             <option value="Fleetify Twin Cities Hub, Murree Road, near Faizabad Interchange, Rawalpindi" data-city="Rawalpindi" data-doorstep-default="Murree Road, near Faizabad Interchange, Rawalpindi">Fleetify Twin Cities Hub – Rawalpindi: Murree Road, near Faizabad Interchange</option>
                                             <option value="Fleetify Textile Hub, Sargodha Road, near Millat Chowk, Faisalabad" data-city="Faisalabad" data-doorstep-default="Sargodha Road, near Millat Chowk, Faisalabad">Fleetify Textile Hub – Faisalabad: Sargodha Road, near Millat Chowk</option>
                                             <option value="Fleetify South Punjab Hub, Khanewal Road, near Industrial Estate, Multan" data-city="Multan" data-doorstep-default="Khanewal Road, near Industrial Estate, Multan">Fleetify South Punjab Hub – Multan: Khanewal Road, near Industrial Estate</option>
-                                            <option value="Fleetify GT Road Hub, Shaheenabad, near Gulshan Park / GT Road, Gujranwala" data-city="Gujranwala" data-doorstep-default="Shaheenabad, near Gulshan Park / GT Road, Gujranwala">Fleetify GT Road Hub – Gujranwala: Shaheenabad, near Gulshan Park / GT Road</option>
                                             <option value="Fleetify Khyber Hub, Hayatabad Industrial Estate, near Phase 7, Peshawar" data-city="Peshawar" data-doorstep-default="Hayatabad Industrial Estate, near Phase 7, Peshawar">Fleetify Khyber Hub – Peshawar: Hayatabad Industrial Estate, near Phase 7</option>
                                             <option value="Fleetify Export Hub, Wazirabad Road, near Sambrial, Sialkot" data-city="Sialkot" data-doorstep-default="Wazirabad Road, near Sambrial, Sialkot">Fleetify Export Hub – Sialkot: Wazirabad Road, near Sambrial</option>
                                             <option value="Fleetify Balochistan Hub, Zarghoon Road, near Quetta Cantt, Quetta" data-city="Quetta" data-doorstep-default="Zarghoon Road, near Quetta Cantt, Quetta">Fleetify Balochistan Hub – Quetta: Zarghoon Road, near Quetta Cantt</option>
-                                        </optgroup>
-                                        <optgroup label="Special Delivery Areas (No Warehouse - 15% Surcharge)">
-                                            <option value="GT Road, near Pakpattan Chowk, Sahiwal, Pakistan" data-city="Sahiwal" data-doorstep-default="GT Road, near Pakpattan Chowk, Sahiwal" data-no-warehouse="true">Sahiwal: GT Road, near Pakpattan Chowk (No Warehouse - Special Delivery +15%)</option>
-                                            <option value="M.A. Jinnah Road, near General Bus Stand, Okara, Pakistan" data-city="Okara" data-doorstep-default="M.A. Jinnah Road, near General Bus Stand, Okara" data-no-warehouse="true">Okara: M.A. Jinnah Road, near General Bus Stand (No Warehouse - Special Delivery +15%)</option>
-                                            <option value="Railway Road, near Steel Bagh, Kasur, Pakistan" data-city="Kasur" data-doorstep-default="Railway Road, near Steel Bagh, Kasur" data-no-warehouse="true">Kasur: Railway Road, near Steel Bagh (No Warehouse - Special Delivery +15%)</option>
-                                            <option value="Military Road, near Sukkur Bypass, Sukkur, Pakistan" data-city="Sukkur" data-doorstep-default="Military Road, near Sukkur Bypass, Sukkur" data-no-warehouse="true">Sukkur: Military Road, near Sukkur Bypass (No Warehouse - Special Delivery +15%)</option>
-                                        </optgroup>
-                                    </select>
-                                    <span class="text-muted d-block x-small mt-1"><i class="bi bi-flag me-1"></i>Destination warehouse hub or delivery region.</span>
+                                        </select>
+                                        <span class="text-muted d-block x-small mt-1"><i class="bi bi-geo-alt me-1"></i>Fleetify warehouse serving your pickup region.</span>
+                                    </div>
+
+                                    <!-- Pickup Mode Directly Under Origin Warehouse -->
+                                    <div class="mt-2">
+                                        <label class="form-label small fw-bold text-secondary mb-1 d-block">Pickup Mode</label>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="originDoorstep" id="cardOriginDoorstep">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.OriginType" id="originDoorstep" value="DoorstepPickup" checked onchange="toggleOriginPickupMode()">
+                                                        <div class="lh-sm">
+                                                            <span class="fw-bold text-dark d-block small"><i class="bi bi-house-door-fill text-primary me-1"></i>Doorstep Pickup</span>
+                                                            <span class="text-muted x-small d-block mt-0.5">Rider picks up from you</span>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="originWarehouse" id="cardOriginWarehouse">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.OriginType" id="originWarehouse" value="WarehouseDropoff" onchange="toggleOriginPickupMode()">
+                                                        <div class="lh-sm">
+                                                            <span class="fw-bold text-dark d-block small"><i class="bi bi-building text-info me-1"></i>Warehouse Dropoff</span>
+                                                            <span class="text-muted x-small d-block mt-0.5">You drop off at hub</span>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Specific Pickup Address Field (Appears ONLY when Doorstep Pickup is selected, NO dropdown options) -->
+                                        <div id="pickupAddrContainer">
+                                            <label class="form-label small fw-semibold text-secondary">Specific Pickup Address (Street / Landmark)</label>
+                                            <input asp-for="NewDelivery.PickupLocation" id="pickupAddr" class="form-control rounded-3 py-2" placeholder="e.g. House #, Street, Area / Landmark" value="Shaheenabad, near Gulshan Park / GT Road, Gujranwala" autocomplete="off" required />
+                                            <span class="text-muted d-block x-small mt-1"><i class="bi bi-geo-alt me-1"></i>Courier will arrive at this exact address for pickup.</span>
+
+                                            <!-- Conditional Pickup Date (Appears ONLY when Doorstep Pickup is selected) -->
+                                            <div id="pickupDateContainer" class="mt-2">
+                                                <label class="form-label small fw-semibold text-secondary mb-1">Pickup Date</label>
+                                                <input asp-for="NewDelivery.PickupDate" id="pickupDate" type="date" class="form-control rounded-3 py-2" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
+                                                <span class="text-muted d-block x-small mt-1"><i class="bi bi-calendar-event me-1"></i>Date rider will arrive at your address.</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Warehouse Drop-off Hub Confirmation Info -->
+                                        <div id="originWarehouseInfo" class="alert alert-light border rounded-3 p-2.5 d-none mb-0">
+                                            <div class="d-flex align-items-center gap-2 text-primary small">
+                                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                                <div>
+                                                    <strong class="d-block text-dark x-small">Drop-off Hub Confirmed:</strong>
+                                                    <span id="originWarehouseNameDisplay" class="x-small text-secondary">Fleetify GT Road Hub – Gujranwala: Shaheenabad, near Gulshan Park / GT Road</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column: Destination Warehouse & Delivery Mode directly underneath -->
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            <i class="bi bi-building text-danger me-1"></i>Destination Warehouse
+                                        </label>
+                                        <select id="destWarehouseSelect" name="NewDelivery.DestinationWarehouse" class="form-select rounded-3 py-2 fw-semibold" onchange="onDestWarehouseChanged()">
+                                            <optgroup label="Fleetify Hub Warehouses">
+                                                <option value="Fleetify Central Hub, Thokar Niaz Baig, near Multan Road Bypass, Lahore" data-city="Lahore" data-doorstep-default="Thokar Niaz Baig, near Multan Road Bypass, Lahore" selected>Fleetify Central Hub – Lahore: Thokar Niaz Baig, near Multan Road Bypass</option>
+                                                <option value="Fleetify South Hub, S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi" data-city="Karachi" data-doorstep-default="S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi">Fleetify South Hub – Karachi: S.I.T.E. Industrial Area, near Habib Bank Chowrangi</option>
+                                                <option value="Fleetify North Hub, I-9 Industrial Area, near Sector I-9/3, Islamabad" data-city="Islamabad" data-doorstep-default="I-9 Industrial Area, near Sector I-9/3, Islamabad">Fleetify North Hub – Islamabad: I-9 Industrial Area, near Sector I-9/3</option>
+                                                <option value="Fleetify Twin Cities Hub, Murree Road, near Faizabad Interchange, Rawalpindi" data-city="Rawalpindi" data-doorstep-default="Murree Road, near Faizabad Interchange, Rawalpindi">Fleetify Twin Cities Hub – Rawalpindi: Murree Road, near Faizabad Interchange</option>
+                                                <option value="Fleetify Textile Hub, Sargodha Road, near Millat Chowk, Faisalabad" data-city="Faisalabad" data-doorstep-default="Sargodha Road, near Millat Chowk, Faisalabad">Fleetify Textile Hub – Faisalabad: Sargodha Road, near Millat Chowk</option>
+                                                <option value="Fleetify South Punjab Hub, Khanewal Road, near Industrial Estate, Multan" data-city="Multan" data-doorstep-default="Khanewal Road, near Industrial Estate, Multan">Fleetify South Punjab Hub – Multan: Khanewal Road, near Industrial Estate</option>
+                                                <option value="Fleetify GT Road Hub, Shaheenabad, near Gulshan Park / GT Road, Gujranwala" data-city="Gujranwala" data-doorstep-default="Shaheenabad, near Gulshan Park / GT Road, Gujranwala">Fleetify GT Road Hub – Gujranwala: Shaheenabad, near Gulshan Park / GT Road</option>
+                                                <option value="Fleetify Khyber Hub, Hayatabad Industrial Estate, near Phase 7, Peshawar" data-city="Peshawar" data-doorstep-default="Hayatabad Industrial Estate, near Phase 7, Peshawar">Fleetify Khyber Hub – Peshawar: Hayatabad Industrial Estate, near Phase 7</option>
+                                                <option value="Fleetify Export Hub, Wazirabad Road, near Sambrial, Sialkot" data-city="Sialkot" data-doorstep-default="Wazirabad Road, near Sambrial, Sialkot">Fleetify Export Hub – Sialkot: Wazirabad Road, near Sambrial</option>
+                                                <option value="Fleetify Balochistan Hub, Zarghoon Road, near Quetta Cantt, Quetta" data-city="Quetta" data-doorstep-default="Zarghoon Road, near Quetta Cantt, Quetta">Fleetify Balochistan Hub – Quetta: Zarghoon Road, near Quetta Cantt</option>
+                                            </optgroup>
+                                            <optgroup label="Special Delivery Areas (No Warehouse - 15% Surcharge)">
+                                                <option value="GT Road, near Pakpattan Chowk, Sahiwal, Pakistan" data-city="Sahiwal" data-doorstep-default="GT Road, near Pakpattan Chowk, Sahiwal" data-no-warehouse="true">Sahiwal: GT Road, near Pakpattan Chowk (No Warehouse - Special Delivery +15%)</option>
+                                                <option value="M.A. Jinnah Road, near General Bus Stand, Okara, Pakistan" data-city="Okara" data-doorstep-default="M.A. Jinnah Road, near General Bus Stand, Okara" data-no-warehouse="true">Okara: M.A. Jinnah Road, near General Bus Stand (No Warehouse - Special Delivery +15%)</option>
+                                                <option value="Railway Road, near Steel Bagh, Kasur, Pakistan" data-city="Kasur" data-doorstep-default="Railway Road, near Steel Bagh, Kasur" data-no-warehouse="true">Kasur: Railway Road, near Steel Bagh (No Warehouse - Special Delivery +15%)</option>
+                                                <option value="Military Road, near Sukkur Bypass, Sukkur, Pakistan" data-city="Sukkur" data-doorstep-default="Military Road, near Sukkur Bypass, Sukkur" data-no-warehouse="true">Sukkur: Military Road, near Sukkur Bypass (No Warehouse - Special Delivery +15%)</option>
+                                            </optgroup>
+                                        </select>
+                                        <span class="text-muted d-block x-small mt-1"><i class="bi bi-flag me-1"></i>Destination warehouse hub or delivery region.</span>
+                                    </div>
+
+                                    <!-- Delivery Mode Directly Under Destination Warehouse -->
+                                    <div class="mt-2">
+                                        <label class="form-label small fw-bold text-secondary mb-1 d-block">Delivery Mode</label>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="destDoorstep" id="cardDestDoorstep">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destDoorstep" value="DoorstepDelivery" checked onchange="toggleDestinationDeliveryMode()">
+                                                        <div class="lh-sm">
+                                                            <span class="fw-bold text-dark d-block small"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Doorstep Delivery</span>
+                                                            <span class="text-muted x-small d-block mt-0.5">Deliver to recipient</span>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="destWarehouse" id="cardDestWarehouse">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destWarehouse" value="WarehousePickup" onchange="toggleDestinationDeliveryMode()">
+                                                        <div class="lh-sm">
+                                                            <span class="fw-bold text-dark d-block small"><i class="bi bi-box-arrow-in-down-right text-info me-1"></i>Warehouse Self Pickup</span>
+                                                            <span class="text-muted x-small d-block mt-0.5">Pick up from hub</span>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Specific Drop-off Address Field (Appears ONLY when Doorstep Delivery is selected, NO dropdown options) -->
+                                        <div id="dropoffAddrContainer">
+                                            <label class="form-label small fw-semibold text-secondary">Specific Drop-off Address (Street / Landmark)</label>
+                                            <input asp-for="NewDelivery.DropoffLocation" id="dropoffAddr" class="form-control rounded-3 py-2" placeholder="e.g. House #, Street, Area / Landmark" value="Thokar Niaz Baig, near Multan Road Bypass, Lahore" autocomplete="off" required />
+                                            <span class="text-muted d-block x-small mt-1"><i class="bi bi-flag me-1"></i>Courier will deliver parcel directly to this doorstep location.</span>
+                                        </div>
+
+                                        <!-- Warehouse Self-Pickup Hub Confirmation Info -->
+                                        <div id="destWarehouseInfo" class="alert alert-light border rounded-3 p-2.5 d-none mb-0">
+                                            <div class="d-flex align-items-center gap-2 text-primary small">
+                                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                                <div>
+                                                    <strong class="d-block text-dark x-small">Self-Pickup Hub Confirmed:</strong>
+                                                    <span id="destWarehouseNameDisplay" class="x-small text-secondary">Fleetify Central Hub – Lahore: Thokar Niaz Baig, near Multan Road Bypass</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Warning Notice -->
+                                        <div id="specialDeliveryNotice" class="alert alert-warning border border-warning-subtle rounded-3 small p-2 mt-2 d-none">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 mt-0.5"></i>
+                                                <div class="x-small">
+                                                    <strong>Notice:</strong> Fleetify does not operate a warehouse in <span id="specialCityName" class="fw-bold">this city</span>. Warehouse self-pickup is not available here; please choose <strong>Doorstep Delivery</strong> (special delivery with an additional <strong>15% charge</strong>).
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <!-- Pickup Cities Datalist -->
-                            <datalist id="pakistanCitiesList">
-                                <option value="Shaheenabad, near Gulshan Park / GT Road, Gujranwala" label="Gujranwala Hub: Shaheenabad, near Gulshan Park" />
-                                <option value="Thokar Niaz Baig, near Multan Road Bypass, Lahore" label="Lahore Central Hub: Thokar Niaz Baig" />
-                                <option value="S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi" label="Karachi South Hub: S.I.T.E. Industrial Area" />
-                                <option value="I-9 Industrial Area, near Sector I-9/3, Islamabad" label="Islamabad North Hub: I-9 Industrial Area" />
-                                <option value="Murree Road, near Faizabad Interchange, Rawalpindi" label="Rawalpindi Hub: Murree Road / Faizabad" />
-                                <option value="Sargodha Road, near Millat Chowk, Faisalabad" label="Faisalabad Hub: Sargodha Road / Millat Chowk" />
-                                <option value="Khanewal Road, near Industrial Estate, Multan" label="Multan Hub: Khanewal Road" />
-                                <option value="Hayatabad Industrial Estate, near Phase 7, Peshawar" label="Peshawar Hub: Hayatabad Industrial Estate" />
-                                <option value="Wazirabad Road, near Sambrial, Sialkot" label="Sialkot Hub: Wazirabad Road / Sambrial" />
-                                <option value="Zarghoon Road, near Quetta Cantt, Quetta" label="Quetta Hub: Zarghoon Road" />
-                            </datalist>
-
-                            <!-- Dropoff Cities Datalist: Warehouse Hubs & Special Delivery Cities (Sahiwal, Okara, Kasur, Sukkur) -->
-                            <datalist id="dropoffCitiesList">
-                                <option value="Thokar Niaz Baig, near Multan Road Bypass, Lahore" label="Lahore Central Hub: Thokar Niaz Baig" />
-                                <option value="Shaheenabad, near Gulshan Park / GT Road, Gujranwala" label="Gujranwala Hub: Shaheenabad" />
-                                <option value="S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi" label="Karachi South Hub: S.I.T.E." />
-                                <option value="I-9 Industrial Area, near Sector I-9/3, Islamabad" label="Islamabad North Hub: I-9" />
-                                <option value="Murree Road, near Faizabad Interchange, Rawalpindi" label="Rawalpindi Hub: Faizabad" />
-                                <option value="Sargodha Road, near Millat Chowk, Faisalabad" label="Faisalabad Hub: Millat Chowk" />
-                                <option value="Khanewal Road, near Industrial Estate, Multan" label="Multan Hub: Khanewal Road" />
-                                <option value="Hayatabad Industrial Estate, near Phase 7, Peshawar" label="Peshawar Hub: Hayatabad Phase 7" />
-                                <option value="Wazirabad Road, near Sambrial, Sialkot" label="Sialkot Hub: Sambrial" />
-                                <option value="Zarghoon Road, near Quetta Cantt, Quetta" label="Quetta Hub: Zarghoon Road" />
-                                <option value="GT Road, near Pakpattan Chowk, Sahiwal" label="Sahiwal: GT Road, near Pakpattan Chowk (+15%)" />
-                                <option value="M.A. Jinnah Road, near General Bus Stand, Okara" label="Okara: M.A. Jinnah Road, near General Bus Stand (+15%)" />
-                                <option value="Railway Road, near Steel Bagh, Kasur" label="Kasur: Railway Road, near Steel Bagh (+15%)" />
-                                <option value="Military Road, near Sukkur Bypass, Sukkur" label="Sukkur: Military Road, near Sukkur Bypass (+15%)" />
-                            </datalist>
 
                             <!-- Package Information -->
                             <div class="row g-3 mb-3">
@@ -355,119 +440,7 @@
                                 </select>
                             </div>
 
-                            <!-- REPOSITIONED: Pickup Mode & Delivery Mode (At the very end of the form, directly below Delivery Type) -->
-                            <div class="row g-3 mb-4" id="serviceModesContainer">
-                                <!-- Left Column: Pickup Selection Blocks & Dynamic Pickup Address -->
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-secondary mb-1 d-block">Pickup Mode</label>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="originDoorstep" id="cardOriginDoorstep">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.OriginType" id="originDoorstep" value="DoorstepPickup" checked onchange="toggleOriginPickupMode()">
-                                                    <div class="lh-sm">
-                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-house-door-fill text-primary me-1"></i>Doorstep Pickup</span>
-                                                        <span class="text-muted x-small d-block mt-0.5">Rider picks up from you</span>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="originWarehouse" id="cardOriginWarehouse">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.OriginType" id="originWarehouse" value="WarehouseDropoff" onchange="toggleOriginPickupMode()">
-                                                    <div class="lh-sm">
-                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-building text-info me-1"></i>Warehouse Dropoff</span>
-                                                        <span class="text-muted x-small d-block mt-0.5">You drop off at hub</span>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
 
-                                    <!-- Specific Pickup Address Field (Appears ONLY when Doorstep Pickup is selected) -->
-                                    <div id="pickupAddrContainer">
-                                        <label class="form-label small fw-semibold text-secondary">Specific Pickup Address (Street / Landmark)</label>
-                                        <input asp-for="NewDelivery.PickupLocation" id="pickupAddr" class="form-control rounded-3 py-2" placeholder="e.g. Shaheenabad, near Gulshan Park / GT Road, Gujranwala" value="Shaheenabad, near Gulshan Park / GT Road, Gujranwala" autocomplete="off" list="pakistanCitiesList" required />
-                                        <span class="text-muted d-block x-small mt-1"><i class="bi bi-geo-alt me-1"></i>Courier will arrive at this exact address for pickup.</span>
-
-                                        <!-- Conditional Pickup Date (Appears ONLY when Doorstep Pickup is selected) -->
-                                        <div id="pickupDateContainer" class="mt-2">
-                                            <label class="form-label small fw-semibold text-secondary mb-1">Pickup Date</label>
-                                            <input asp-for="NewDelivery.PickupDate" id="pickupDate" type="date" class="form-control rounded-3 py-2" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
-                                            <span class="text-muted d-block x-small mt-1"><i class="bi bi-calendar-event me-1"></i>Date rider will arrive at your address.</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Warehouse Drop-off Hub Confirmation Info (Appears when Warehouse Dropoff is selected) -->
-                                    <div id="originWarehouseInfo" class="alert alert-light border rounded-3 p-2.5 d-none mb-0">
-                                        <div class="d-flex align-items-center gap-2 text-primary small">
-                                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                                            <div>
-                                                <strong class="d-block text-dark x-small">Drop-off Hub Confirmed:</strong>
-                                                <span id="originWarehouseNameDisplay" class="x-small text-secondary">Fleetify GT Road Hub – Gujranwala: Shaheenabad, near Gulshan Park / GT Road</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Right Column: Drop-off Selection Blocks & Dynamic Drop-off Address -->
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-secondary mb-1 d-block">Delivery Mode</label>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="destDoorstep" id="cardDestDoorstep">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destDoorstep" value="DoorstepDelivery" checked onchange="toggleDestinationDeliveryMode()">
-                                                    <div class="lh-sm">
-                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Doorstep Delivery</span>
-                                                        <span class="text-muted x-small d-block mt-0.5">Deliver to recipient</span>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="selectable-option-card d-block p-2.5 rounded-3 border h-100 position-relative cursor-pointer" for="destWarehouse" id="cardDestWarehouse">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <input class="form-check-input mt-0 flex-shrink-0" type="radio" asp-for="NewDelivery.DestinationType" id="destWarehouse" value="WarehousePickup" onchange="toggleDestinationDeliveryMode()">
-                                                    <div class="lh-sm">
-                                                        <span class="fw-bold text-dark d-block small"><i class="bi bi-box-arrow-in-down-right text-info me-1"></i>Warehouse Self Pickup</span>
-                                                        <span class="text-muted x-small d-block mt-0.5">Pick up from hub</span>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <!-- Specific Drop-off Address Field (Appears ONLY when Doorstep Delivery is selected) -->
-                                    <div id="dropoffAddrContainer">
-                                        <label class="form-label small fw-semibold text-secondary">Specific Drop-off Address (Street / Landmark)</label>
-                                        <input asp-for="NewDelivery.DropoffLocation" id="dropoffAddr" class="form-control rounded-3 py-2" placeholder="e.g. Thokar Niaz Baig, near Multan Road Bypass, Lahore" value="Thokar Niaz Baig, near Multan Road Bypass, Lahore" autocomplete="off" list="dropoffCitiesList" required />
-                                        <span class="text-muted d-block x-small mt-1"><i class="bi bi-flag me-1"></i>Courier will deliver parcel directly to this doorstep location.</span>
-                                    </div>
-
-                                    <!-- Warehouse Self-Pickup Hub Confirmation Info (Appears when Warehouse Self-Pickup is selected) -->
-                                    <div id="destWarehouseInfo" class="alert alert-light border rounded-3 p-2.5 d-none mb-0">
-                                        <div class="d-flex align-items-center gap-2 text-primary small">
-                                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                                            <div>
-                                                <strong class="d-block text-dark x-small">Self-Pickup Hub Confirmed:</strong>
-                                                <span id="destWarehouseNameDisplay" class="x-small text-secondary">Fleetify Central Hub – Lahore: Thokar Niaz Baig, near Multan Road Bypass</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Warning Notice (Triggered ONLY conditionally when selecting city without warehouse while choosing warehouse operations) -->
-                                    <div id="specialDeliveryNotice" class="alert alert-warning border border-warning-subtle rounded-3 small p-2 mt-2 d-none">
-                                        <div class="d-flex align-items-start gap-2">
-                                            <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 mt-0.5"></i>
-                                            <div class="x-small">
-                                                <strong>Notice:</strong> Fleetify does not operate a warehouse in <span id="specialCityName" class="fw-bold">this city</span>. Warehouse self-pickup is not available here; please choose <strong>Doorstep Delivery</strong> (special delivery with an additional <strong>15% charge</strong>).
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
                             <input type="hidden" asp-for="NewDelivery.VehicleType" id="vehicleType" value="Truck" />
                             <input type="hidden" id="distanceKm" name="NewDelivery.EstimatedDistanceKm" value="15" />
