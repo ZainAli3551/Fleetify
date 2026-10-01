@@ -185,11 +185,11 @@
                                     <div class="d-inline-flex gap-2 align-items-center justify-content-end">
                                         @if (!s.WarehouseArrivalNotified && s.RequestedStatus != "Delivered")
                                         {
-                                            <form asp-action="MarkWarehouseArrival" method="post" class="d-inline">
+                                            <form asp-action="ConfirmWarehouseArrival" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="requestId" value="@s.RequestID" />
-                                                <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold text-dark shadow-xs" title="Notify customer that parcel has reached destination hub">
-                                                    <i class="bi bi-bell-fill me-1"></i>Notify Hub Arrival
+                                                <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold text-white shadow-xs" title="Confirm delivery / parcel warehouse arrival and notify user via Gmail">
+                                                    <i class="bi bi-building-check me-1"></i>Confirm Delivery (Warehouse Arrival)
                                                 </button>
                                             </form>
                                         }
@@ -303,9 +303,18 @@
                                 </td>
                                 <td class="fw-bold text-dark">Rs. @Math.Floor(req.EstimatedCost).ToString("F0")</td>
                                 <td class="text-end">
-                                    <form asp-action="AssignDelivery" method="post" class="d-inline-flex gap-2 align-items-center justify-content-end">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="requestId" value="@req.RequestID" />
+                                    <div class="d-inline-flex gap-2 align-items-center justify-content-end flex-wrap">
+                                        <form asp-action="ConfirmWarehouseArrival" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="requestId" value="@req.RequestID" />
+                                            <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-2.5" title="Confirm warehouse arrival and notify customer via Gmail">
+                                                <i class="bi bi-building-check me-1"></i>Confirm Arrival
+                                            </button>
+                                        </form>
+
+                                        <form asp-action="AssignDelivery" method="post" class="d-inline-flex gap-2 align-items-center justify-content-end">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="requestId" value="@req.RequestID" />
 
                                         <select name="driverId" required class="form-select form-select-sm rounded-pill" style="max-width: 175px;">
                                             <option value="">-- Choose Driver --</option>
@@ -341,6 +350,7 @@
                                             Assign
                                         </button>
                                     </form>
+                                    </div>
                                 </td>
                             </tr>
                         }

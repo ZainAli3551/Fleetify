@@ -22,6 +22,7 @@ namespace Fleetify.Controllers
         private readonly IAuthService _authService;
         private readonly ISupportService _supportService;
         private readonly ICostEstimationService _costService;
+        private readonly IEmailService _emailService;
 
         public AdminController(
             FleetifyDbContext context,
@@ -29,7 +30,8 @@ namespace Fleetify.Controllers
             INotificationService notificationService,
             IAuthService authService,
             ISupportService supportService,
-            ICostEstimationService costService)
+            ICostEstimationService costService,
+            IEmailService emailService)
         {
             _context = context;
             _maintenanceService = maintenanceService;
@@ -37,6 +39,7 @@ namespace Fleetify.Controllers
             _authService = authService;
             _supportService = supportService;
             _costService = costService;
+            _emailService = emailService;
         }
 
         // GET: /Admin (Figure 21: Admin Dashboard)
@@ -278,7 +281,7 @@ namespace Fleetify.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Send notification to Driver and Customer
+            // Send in-portal notification to Driver
             await _notificationService.CreateNotificationAsync(
                 "Driver",
                 driverId,
@@ -287,15 +290,27 @@ namespace Fleetify.Controllers
                 assignment.AssignmentID
             );
 
-            await _notificationService.CreateNotificationAsync(
-                "Customer",
-                deliveryRequest.UserID,
-                "Delivery Assigned",
-                $"Your shipment {deliveryRequest.TrackingNumber} has been assigned to driver {driver.FullName}.",
-                deliveryRequest.RequestID
-            );
+            // Send notification to Customer via Gmail (not on customer portal)
+            var customer = await _context.Users.FindAsync(deliveryRequest.UserID);
+            if (customer != null && !string.IsNullOrWhiteSpace(customer.Email))
+            {
+                string subject = $"Fleetify: Shipment {deliveryRequest.TrackingNumber} Assigned to Driver";
+                string body = $@"Dear {customer.FullName},
 
-            TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} successfully assigned to {driver.FullName}!";
+Aap ki shipment {deliveryRequest.TrackingNumber} driver {driver.FullName} ko assign kar di gayi hai.
+
+Tracking Number: {deliveryRequest.TrackingNumber}
+Assigned Driver: {driver.FullName}
+Fleet Vehicle: {vehicle.VehicleNumber} ({vehicle.VehicleType})
+Route: {deliveryRequest.PickupLocation} -> {deliveryRequest.DropoffLocation}
+Current Status: Assigned
+
+Yeh status update aap ke registered Gmail address par bheja gaya hai.";
+
+                await _emailService.SendEmailAsync(customer.Email, subject, body);
+            }
+
+            TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} successfully assigned to {driver.FullName}! Gmail notification sent to customer ({customer?.Email}).";
             return RedirectToAction(nameof(Assignments));
         }
 
@@ -369,30 +384,47 @@ namespace Fleetify.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Send notification to Customer
-            if (weightChanged)
+            // Send notification to Customer via Gmail (not on customer portal)
+            if (deliveryRequest.User != null && !string.IsNullOrWhiteSpace(deliveryRequest.User.Email))
             {
-                await _notificationService.CreateNotificationAsync(
-                    "Customer",
-                    deliveryRequest.UserID,
-                    "Updated Delivery Cost Notification",
-                    $"The driver verified the actual weight as {finalWeight:F1} kg (previously declared: {oldWeight:F1} kg). Your delivery cost has been updated and finalized to Rs. {Math.Floor(newCost):F0}.",
-                    deliveryRequest.RequestID
-                );
-            }
-            else
-            {
-                await _notificationService.CreateNotificationAsync(
-                    "Customer",
-                    deliveryRequest.UserID,
-                    "Delivery Cost Finalized",
-                    $"Your parcel weight of {finalWeight:F1} kg has been verified by the driver upon pickup. Your delivery cost is finalized at Rs. {Math.Floor(newCost):F0}.",
-                    deliveryRequest.RequestID
-                );
+                string subject = weightChanged 
+                    ? $"Fleetify: Shipment {deliveryRequest.TrackingNumber} - Updated Cost & Weight Verified"
+                    : $"Fleetify: Shipment {deliveryRequest.TrackingNumber} - Delivery Cost Finalized";
+                string body = weightChanged
+                    ? $@"Dear {deliveryRequest.User.FullName},
+
+Driver ne parcel ka actual weight {finalWeight:F1} kg verify kiya hai (previously declared: {oldWeight:F1} kg). Aap ki delivery cost update karke Rs. {Math.Floor(newCost):F0} finalize kar di gayi hai.
+
+Tracking Number: {deliveryRequest.TrackingNumber}
+Verified Weight: {finalWeight:F1} kg
+Final Amount: Rs. {Math.Floor(newCost):F0}
+Status: {deliveryRequest.RequestedStatus}
+
+Yeh notification aap ke registered Gmail address par bheja gaya hai."
+                    : $@"Dear {deliveryRequest.User.FullName},
+
+Aap ke parcel ka weight {finalWeight:F1} kg verify ho chuka hai aur delivery cost Rs. {Math.Floor(newCost):F0} finalize kar di gayi hai.
+
+Tracking Number: {deliveryRequest.TrackingNumber}
+Verified Weight: {finalWeight:F1} kg
+Final Amount: Rs. {Math.Floor(newCost):F0}
+Status: {deliveryRequest.RequestedStatus}
+
+Yeh notification aap ke registered Gmail address par bheja gaya hai.";
+
+                await _emailService.SendEmailAsync(deliveryRequest.User.Email, subject, body);
             }
 
-            TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} finalized! Weight: {finalWeight:F1} kg, Final Cost: Rs. {Math.Floor(newCost):F0}. Notification sent to customer.";
+            TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} finalized! Weight: {finalWeight:F1} kg, Final Cost: Rs. {Math.Floor(newCost):F0}. Gmail notification sent to customer ({deliveryRequest.User?.Email}).";
             return RedirectToAction(nameof(Assignments));
+        }
+
+        // POST: /Admin/ConfirmWarehouseArrival
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmWarehouseArrival(int requestId)
+        {
+            return await MarkWarehouseArrival(requestId);
         }
 
         // POST: /Admin/MarkWarehouseArrival
@@ -429,24 +461,37 @@ namespace Fleetify.Controllers
                     DriverID = req.Assignment.DriverID,
                     UpdateStatus = "ArrivedAtWarehouse",
                     UpdateTime = DateTime.UtcNow,
-                    Remarks = $"Shipment arrived at destination hub ({destWh?.HubName ?? "Local Hub"}). Customer notified to choose Warehouse Self-Pickup or Doorstep Delivery."
+                    Remarks = $"Shipment arrived at destination hub ({destWh?.HubName ?? "Local Hub"}). Admin confirmed delivery arrival."
                 });
             }
 
             await _context.SaveChangesAsync();
 
-            // Send Notification to Customer
-            string whName = destWh?.HubName ?? "Destination Warehouse";
-            string whAddr = destWh?.Address ?? "Warehouse Hub";
-            await _notificationService.CreateNotificationAsync(
-                "Customer",
-                req.UserID,
-                "Shipment Arrived at Destination Warehouse",
-                $"Your shipment {req.TrackingNumber} has arrived at our {whName} ({whAddr})! You can either pick it up directly from the warehouse or have us deliver it to your address.",
-                req.RequestID
-            );
+            // Send notification to Customer via Gmail (not on customer portal)
+            string whName = destWh?.HubName ?? "Fleetify Destination Warehouse Hub";
+            string whAddr = destWh?.Address ?? "Fleetify Warehouse Hub";
+            if (req.User != null && !string.IsNullOrWhiteSpace(req.User.Email))
+            {
+                string subject = $"Fleetify: Shipment {req.TrackingNumber} Arrived at Warehouse & Delivery Confirmed";
+                string body = $@"Dear {req.User.FullName},
 
-            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} marked as arrived at {whName}! Customer has been notified with pickup & delivery choices.";
+Aap ka saman warehouse me pohanch gaya hai aur Admin ne delivery confirm kar di hai!
+
+Tracking Number: {req.TrackingNumber}
+Warehouse Hub: {whName} ({whAddr})
+Status: Arrived at Warehouse (Delivery Confirmed)
+
+Aap ka status warehouse me saman pohanchne par update kar diya gaya hai.
+{(req.DestinationType == "WarehousePickup" 
+    ? "Aap ne Warehouse Self-Pickup chuni thi, lehaza aap hub se apna parcel collect kar sakte hain." 
+    : "Doorstep delivery ke mutabiq courier rider aap ke pate par parcel deliver kare ga.")}
+
+Yeh notification aap ke registered Gmail address par bheja gaya hai.";
+
+                await _emailService.SendEmailAsync(req.User.Email, subject, body);
+            }
+
+            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} marked as arrived at {whName} & delivery confirmed! Gmail notification sent to customer ({req.User?.Email}).";
             return RedirectToAction(nameof(Assignments));
         }
 
@@ -491,16 +536,23 @@ namespace Fleetify.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Notify Customer
-            await _notificationService.CreateNotificationAsync(
-                "Customer",
-                req.UserID,
-                $"Shipment Update: {status}",
-                $"Your shipment {req.TrackingNumber} status is now '{status}'. Note: {remarks ?? "Operations update."}",
-                req.RequestID
-            );
+            // Send notification to Customer via Gmail (not on customer portal)
+            if (req.User != null && !string.IsNullOrWhiteSpace(req.User.Email))
+            {
+                string subject = $"Fleetify: Shipment {req.TrackingNumber} Status Update - {status}";
+                string body = $@"Dear {req.User.FullName},
 
-            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} status updated to '{status}'. Customer notified.";
+Aap ki shipment {req.TrackingNumber} ka status Admin ki taraf se update kar diya gaya hai.
+
+New Status: {status}
+Remarks: {remarks ?? "Operations milestone update."}
+
+Yeh notification aap ke registered Gmail address par bheja gaya hai.";
+
+                await _emailService.SendEmailAsync(req.User.Email, subject, body);
+            }
+
+            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} status updated to '{status}'. Gmail notification sent to customer ({req.User?.Email}).";
             return RedirectToAction(nameof(Assignments));
         }
 

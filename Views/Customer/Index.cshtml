@@ -597,7 +597,7 @@
                 </div>
 
                 @{
-                    var arrivedShipments = Model.MyDeliveries.Where(d => d.RequestedStatus == "Arrived at Destination Warehouse").ToList();
+                    var arrivedShipments = Model.MyDeliveries.Where(d => d.RequestedStatus == "Arrived at Destination Warehouse" || d.RequestedStatus == "ArrivedAtWarehouse").ToList();
                 }
                 @if (arrivedShipments.Any())
                 {
@@ -778,9 +778,18 @@
                                             {
                                                 <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">Cancelled</span>
                                             }
+                                            else if (d.RequestedStatus == "Pending")
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                                                </span>
+                                                <div class="x-small text-muted mt-1" style="max-width: 175px; font-size: 0.68rem; line-height: 1.2;">
+                                                    <i class="bi bi-info-circle text-warning me-1"></i>Saman warehouse pohanchne par status update ho ga.
+                                                </div>
+                                            }
                                             else
                                             {
-                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Pending Verification</span>
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">@d.RequestedStatus</span>
                                             }
                                         </td>
                                         <td class="text-end">
@@ -854,6 +863,17 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-4 py-3">
+                <!-- Block 0: Status Pending & Warehouse Arrival Notice (Requirement) -->
+                <div class="alert alert-warning border-0 rounded-3 p-3 mb-2 bg-warning-subtle text-dark">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-hourglass-split fs-4 text-warning-emphasis flex-shrink-0 mt-1"></i>
+                        <div class="small">
+                            <strong>Initial Booking Status: Pending</strong><br />
+                            Aap ki delivery request booking ke waqt <strong>Pending</strong> rahe gi. Aap ka status jab saman warehouse me pohanch jaye ga to update ho jaye ga aur aap ko notification aa jaye ga.
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Block 1: Time limit (unified into 1 paragraph) -->
                 <div class="alert alert-warning border-0 rounded-3 p-3 mb-2">
                     <div class="d-flex align-items-start gap-2">

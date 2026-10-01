@@ -319,13 +319,22 @@ namespace Fleetify.Controllers
                         deliveryRequest.RequestID
                     );
                 }
+
+                // Customer notification regarding initial Pending status and warehouse arrival
+                await _notificationService.CreateNotificationAsync(
+                    "Customer",
+                    userId,
+                    "Delivery Request Submitted (Pending)",
+                    $"Aap ki delivery request {trackingNumber} submit ho gayi hai (Status: Pending). Aap ka status jab saman warehouse me pohanch jaye ga to update ho jaye ga aur aap ko notification aa jaye ga.",
+                    deliveryRequest.RequestID
+                );
             }
 
             string extraNotice = deliveryRequest.IsPrivateTransport 
                 ? " (Note: Special delivery surcharge (+15%) applied as warehouse is not in destination city)" 
                 : "";
 
-            TempData["SuccessMessage"] = $"Delivery request submitted successfully! Tracking number is {trackingNumber}. Total: Rs. {costEstimate.EstimatedTotal:F0}{extraNotice} (Editable or cancellable within 1 hour).";
+            TempData["SuccessMessage"] = $"Delivery request {trackingNumber} submitted successfully! Status: Pending. Aap ka status jab saman warehouse me pohanch jaye ga to update ho jaye ga aur aap ko notification aa jaye ga. Total: Rs. {costEstimate.EstimatedTotal:F0}{extraNotice} (Editable or cancellable within 1 hour).";
             return RedirectToAction(nameof(Index));
         }
 

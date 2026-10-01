@@ -44,6 +44,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICostEstimationService, CostEstimationService>();
 builder.Services.AddScoped<IMaintenancePredictionService, MaintenancePredictionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISupportService, SupportService>();
 
 // 3. Authentication & Authorization (Dual Support: Cookies for MVC Web + JWT for API)
