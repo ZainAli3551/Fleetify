@@ -55,7 +55,13 @@ namespace Fleetify.Services.Implementations
 
         public static double CalculateDoorstepWeightSurcharge(double totalWeightKg)
         {
-            // Weight-based Surcharge: Rs. 200 per ton (1000 kg) => (Total Weight in kg / 1000) * 200
+            if (totalWeightKg <= 0) return 0.0;
+            // If weight is less than 1 ton (1000 kg), charge Rs. 1 per kg.
+            if (totalWeightKg < 1000.0)
+            {
+                return totalWeightKg * 1.0;
+            }
+            // If 1 ton or more (>= 1000 kg), charge Rs. 200 per ton (1000 kg).
             return (totalWeightKg / 1000.0) * 200.0;
         }
 
@@ -153,32 +159,9 @@ namespace Fleetify.Services.Implementations
             bool isPickupDoorstep = request.OriginType?.Equals("DoorstepPickup", StringComparison.OrdinalIgnoreCase) == true;
             bool isDeliveryDoorstep = request.DestinationType?.Equals("DoorstepDelivery", StringComparison.OrdinalIgnoreCase) == true;
 
+            // Doorstep pickup and doorstep drop-off only collect address (no impact on map routing or driving distance)
             double pickupLegDistanceKm = 0.0;
             double deliveryLegDistanceKm = 0.0;
-
-            // 1. Doorstep Pickup Leg: Driving distance between specific pickup address and Origin Warehouse
-            if (isPickupDoorstep && !string.IsNullOrWhiteSpace(request.PickupLocation) && !string.IsNullOrWhiteSpace(originWarehouseAddress))
-            {
-                if (!request.PickupLocation.Trim().Equals(originWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase))
-                {
-                    var pLegResult = await _mapRoutingService.GetDrivingDistanceAsync(request.PickupLocation, originWarehouseAddress);
-                    pickupLegDistanceKm = (pLegResult != null && pLegResult.Success && pLegResult.DistanceKm > 0)
-                        ? Math.Round(pLegResult.DistanceKm, 1)
-                        : Math.Round(EstimateDistance(request.PickupLocation, originWarehouseAddress, 8.0), 1);
-                }
-            }
-
-            // 2. Doorstep Delivery Leg: Driving distance between Destination Warehouse and specific drop-off address
-            if (isDeliveryDoorstep && !string.IsNullOrWhiteSpace(destWarehouseAddress) && !string.IsNullOrWhiteSpace(request.DropoffLocation))
-            {
-                if (!request.DropoffLocation.Trim().Equals(destWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase))
-                {
-                    var dLegResult = await _mapRoutingService.GetDrivingDistanceAsync(destWarehouseAddress, request.DropoffLocation);
-                    deliveryLegDistanceKm = (dLegResult != null && dLegResult.Success && dLegResult.DistanceKm > 0)
-                        ? Math.Round(dLegResult.DistanceKm, 1)
-                        : Math.Round(EstimateDistance(destWarehouseAddress, request.DropoffLocation, 10.0), 1);
-                }
-            }
 
             // User Formula: ( (2 * B2) + IFS(A2<50, 1500, A2<150, 2500, A2<250, 4000, A2<500, 7000, A2<1000, 12000, A2<1500, 18000) ) * SWITCH(C2, "Normal", 1, "Fast", 1.75, "Express", 2.5, 1) * IFS(D2<1000, 1, D2<2000, 1.25, D2<3000, 1.40, D2>=3000, 1.50)
             double flooredDistance = Math.Floor(distanceKm);
@@ -214,7 +197,7 @@ namespace Fleetify.Services.Implementations
             double totalDoorstepSurcharge = Math.Round(pickupDoorstepSurcharge + deliveryDoorstepSurcharge, 2);
             double total = Math.Floor(subtotal + specialDeliverySurcharge + totalDoorstepSurcharge);
 
-            double totalDrivingDistanceKm = Math.Round(flooredDistance + pickupLegDistanceKm + deliveryLegDistanceKm, 1);
+            double totalDrivingDistanceKm = flooredDistance;
 
             string deliveryDays = "4 to 6 days";
             if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
@@ -334,21 +317,9 @@ namespace Fleetify.Services.Implementations
                 bool isPickupDoorstep = request.OriginType?.Equals("DoorstepPickup", StringComparison.OrdinalIgnoreCase) == true;
                 bool isDeliveryDoorstep = request.DestinationType?.Equals("DoorstepDelivery", StringComparison.OrdinalIgnoreCase) == true;
 
+                // Doorstep pickup and drop-off only collect address (no impact on map or driving distance)
                 double pickupLegDist = 0.0;
-                if (isPickupDoorstep && !string.IsNullOrWhiteSpace(request.PickupLocation) && !string.IsNullOrWhiteSpace(originWarehouseAddress))
-                {
-                    pickupLegDist = !request.PickupLocation.Trim().Equals(originWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase)
-                        ? Math.Round(EstimateDistance(request.PickupLocation, originWarehouseAddress, 8.0), 1)
-                        : 0.0;
-                }
-
                 double deliveryLegDist = 0.0;
-                if (isDeliveryDoorstep && !string.IsNullOrWhiteSpace(destWarehouseAddress) && !string.IsNullOrWhiteSpace(request.DropoffLocation))
-                {
-                    deliveryLegDist = !request.DropoffLocation.Trim().Equals(destWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase)
-                        ? Math.Round(EstimateDistance(destWarehouseAddress, request.DropoffLocation, 10.0), 1)
-                        : 0.0;
-                }
 
                 double doorstepFuel = CalculateDoorstepFuelSurcharge(totalCft);
                 double doorstepWeight = Math.Round(CalculateDoorstepWeightSurcharge(weight), 2);
@@ -359,7 +330,7 @@ namespace Fleetify.Services.Implementations
                 double totalDoorstep = Math.Round(pickupSurcharge + deliverySurcharge, 2);
 
                 double total = Math.Floor(subtotal + specialDeliverySurcharge + totalDoorstep);
-                double totalDrivingDist = Math.Round(flooredDistance + pickupLegDist + deliveryLegDist, 1);
+                double totalDrivingDist = flooredDistance;
 
                 var pCoord = MapRoutingService.ResolveCityCoordinates(mainOrigin);
                 var dCoord = MapRoutingService.ResolveCityCoordinates(mainDest);

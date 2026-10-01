@@ -486,23 +486,14 @@
                     <div class="card border-0 shadow-xs rounded-4 p-4 bg-white sticky-top" style="top: 20px;">
                         <h6 class="fw-bold text-dark mb-3">Cost Estimate</h6>
 
-                        <!-- Distance Breakdown (Main Route + Doorstep Legs) -->
-                        <div class="d-flex justify-content-between mb-1.5 small">
-                            <span class="text-secondary"><i class="bi bi-signpost-split me-1 text-primary"></i>Main Route (Hub-to-Hub)</span>
-                            <span class="fw-semibold text-dark font-mono" id="estDistanceKm">15 km</span>
-                        </div>
-                        <div id="estPickupLegRow" class="d-flex justify-content-between mb-1.5 small text-primary">
-                            <span><i class="bi bi-house-door me-1"></i>Pickup Leg (Doorstep &rarr; Hub)</span>
-                            <span class="fw-semibold font-mono" id="estPickupLegDistance">0 km</span>
-                        </div>
-                        <div id="estDeliveryLegRow" class="d-flex justify-content-between mb-1.5 small text-danger">
-                            <span><i class="bi bi-geo-alt me-1"></i>Delivery Leg (Hub &rarr; Doorstep)</span>
-                            <span class="fw-semibold font-mono" id="estDeliveryLegDistance">0 km</span>
-                        </div>
+                        <!-- Driving Distance (Hub-to-Hub Route) -->
                         <div class="d-flex justify-content-between mb-2 small pb-1.5 border-bottom">
-                            <span class="fw-semibold text-dark"><i class="bi bi-speedometer me-1 text-success"></i>Total Driving Distance</span>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-mono fw-bold" id="estTotalDrivingDistance">15 km</span>
+                            <span class="fw-semibold text-dark"><i class="bi bi-speedometer me-1 text-primary"></i>Driving Distance (Hub-to-Hub)</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-mono fw-bold" id="estDistanceKm">15 km</span>
                         </div>
+                        <span id="estTotalDrivingDistance" class="d-none">15 km</span>
+                        <div id="estPickupLegRow" class="d-none"><span id="estPickupLegDistance">0 km</span></div>
+                        <div id="estDeliveryLegRow" class="d-none"><span id="estDeliveryLegDistance">0 km</span></div>
 
                         <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Single Item Weight</span>
@@ -564,8 +555,8 @@
                                 <span class="font-mono text-dark fw-semibold" id="estDoorstepFuelRate">Rs. 1,000 / leg</span>
                             </div>
                             <div class="d-flex justify-content-between x-small text-secondary mb-1">
-                                <span>Weight Surcharge (Rs. 200/ton):</span>
-                                <span class="font-mono text-dark fw-semibold" id="estDoorstepWeightRate">Rs. 0.40 / leg</span>
+                                <span>Weight Surcharge (<span id="estDoorstepWeightTierLabel">Rs. 1/kg (&lt;1t)</span>):</span>
+                                <span class="font-mono text-dark fw-semibold" id="estDoorstepWeightRate">Rs. 2.00 / leg</span>
                             </div>
                             <div class="d-flex justify-content-between x-small text-secondary mb-1" id="estPickupSurchargeDetailRow">
                                 <span><i class="bi bi-house-door text-primary me-1"></i>Doorstep Pickup:</span>
@@ -1557,27 +1548,25 @@
             setTimeout(() => { if (map) map.invalidateSize(); }, 150);
         }
 
-        // Instant client-side preview for recognized Pakistani cities while typing
+        // Instant client-side preview for Hub-to-Hub route (Doorstep addresses have no impact on map)
         function instantClientMapPreview() {
-            const isOriginDoorstep = document.getElementById('originDoorstep')?.checked;
             const originWh = document.getElementById('originWarehouseSelect')?.value || '';
-            const pickupVal = document.getElementById('pickupAddr')?.value || '';
-            const pickup = isOriginDoorstep ? (pickupVal || originWh) : originWh;
-
-            const isDestDoorstep = document.getElementById('destDoorstep')?.checked;
             const destWh = document.getElementById('destWarehouseSelect')?.value || '';
-            const dropoffVal = document.getElementById('dropoffAddr')?.value || '';
-            const dropoff = isDestDoorstep ? (dropoffVal || destWh) : destWh;
 
-            const pCoord = resolveClientCoords(pickup);
-            const dCoord = resolveClientCoords(dropoff);
+            const pCoord = resolveClientCoords(originWh);
+            const dCoord = resolveClientCoords(destWh);
+
+            const originOpt = document.getElementById('originWarehouseSelect')?.selectedOptions[0];
+            const destOpt = document.getElementById('destWarehouseSelect')?.selectedOptions[0];
+            const originName = originOpt ? (originOpt.getAttribute('data-city') ? originOpt.getAttribute('data-city') + ' Hub' : originOpt.text) : 'Origin Hub';
+            const destName = destOpt ? (destOpt.getAttribute('data-city') ? destOpt.getAttribute('data-city') + ' Hub' : destOpt.text) : 'Destination Hub';
 
             if (pCoord && dCoord) {
-                renderRouteOnMap(pCoord, dCoord, [pCoord, dCoord], pickup, dropoff, 'Fleetify Instant Preview');
+                renderRouteOnMap(pCoord, dCoord, [pCoord, dCoord], originName, destName, 'Fleetify Hub Network');
             } else if (pCoord) {
-                renderRouteOnMap(pCoord, null, null, pickup, null, 'Fleetify Instant Preview');
+                renderRouteOnMap(pCoord, null, null, originName, null, 'Fleetify Hub Network');
             } else if (dCoord) {
-                renderRouteOnMap(null, dCoord, null, null, dropoff, 'Fleetify Instant Preview');
+                renderRouteOnMap(null, dCoord, null, null, destName, 'Fleetify Hub Network');
             }
         }
 
@@ -1589,7 +1578,11 @@
         }
 
         function getDoorstepWeightSurcharge(weightKg) {
-            return (weightKg / 1000.0) * 200.0;
+            if (weightKg <= 0) return 0.0;
+            if (weightKg < 1000.0) {
+                return weightKg * 1.0; // Rs. 1 per kg when under 1 ton
+            }
+            return (weightKg / 1000.0) * 200.0; // Rs. 200 per ton when 1 ton or more
         }
 
         // Real-time AI & Map Cost Calculation (((1.5 * Distance * Weight) + Petrol) * Speed + 15% Special Delivery)
@@ -1667,35 +1660,8 @@
                 if (document.getElementById('estDistanceKm')) {
                     document.getElementById('estDistanceKm').innerText = mainDist + ' km';
                 }
-
-                // Update Pickup Leg Distance
-                const pLegRow = document.getElementById('estPickupLegRow');
-                const pLegDistEl = document.getElementById('estPickupLegDistance');
-                if (pLegRow && pLegDistEl) {
-                    if (isDoorstep) {
-                        pLegRow.classList.remove('d-none');
-                        pLegDistEl.innerText = (data.pickupLegDistanceKm || 0).toFixed(1) + ' km';
-                    } else {
-                        pLegRow.classList.add('d-none');
-                    }
-                }
-
-                // Update Delivery Leg Distance
-                const dLegRow = document.getElementById('estDeliveryLegRow');
-                const dLegDistEl = document.getElementById('estDeliveryLegDistance');
-                if (dLegRow && dLegDistEl) {
-                    if (isDestDoorstep) {
-                        dLegRow.classList.remove('d-none');
-                        dLegDistEl.innerText = (data.deliveryLegDistanceKm || 0).toFixed(1) + ' km';
-                    } else {
-                        dLegRow.classList.add('d-none');
-                    }
-                }
-
-                // Total Driving Distance
-                const totalDrivingDist = (data.totalDrivingDistanceKm || (mainDist + (isDoorstep ? (data.pickupLegDistanceKm || 0) : 0) + (isDestDoorstep ? (data.deliveryLegDistanceKm || 0) : 0)));
                 if (document.getElementById('estTotalDrivingDistance')) {
-                    document.getElementById('estTotalDrivingDistance').innerText = totalDrivingDist.toFixed(1) + ' km';
+                    document.getElementById('estTotalDrivingDistance').innerText = mainDist + ' km';
                 }
 
                 if (document.getElementById('estSingleWeight')) {
@@ -1751,6 +1717,10 @@
                         }
                         if (weightRateEl) {
                             const wSurcharge = data.doorstepWeightSurchargePerLeg !== undefined ? data.doorstepWeightSurchargePerLeg : getDoorstepWeightSurcharge(currentWeight);
+                            const tierLabelEl = document.getElementById('estDoorstepWeightTierLabel');
+                            if (tierLabelEl) {
+                                tierLabelEl.innerText = currentWeight < 1000.0 ? 'Rs. 1/kg (<1t)' : 'Rs. 200/ton (≥1t)';
+                            }
                             weightRateEl.innerText = 'Rs. ' + wSurcharge.toFixed(2) + ' / leg';
                         }
                         if (pDetailRow) {
@@ -1815,7 +1785,7 @@
                 const distInput = document.getElementById('distanceKm');
                 if (distInput) distInput.value = data.totalDrivingDistanceKm || data.distanceKm;
 
-                // Render Route Polyline & Live Pins on Map
+                // Render Hub-to-Hub Route Polyline & Live Pins on Map (Doorstep addresses have no impact on map)
                 let routeCoords = null;
                 if (data.routePolyline) {
                     try {
@@ -1833,7 +1803,7 @@
                 } else if (routeCoords && routeCoords.length > 0) {
                     startCoord = routeCoords[0];
                 } else {
-                    startCoord = resolveClientCoords(pickup);
+                    startCoord = resolveClientCoords(originWh);
                 }
 
                 if (data.destinationLat && data.destinationLng) {
@@ -1841,7 +1811,7 @@
                 } else if (routeCoords && routeCoords.length > 0) {
                     endCoord = routeCoords[routeCoords.length - 1];
                 } else {
-                    endCoord = resolveClientCoords(dropoff);
+                    endCoord = resolveClientCoords(destWh);
                 }
 
                 // If polyline was missing but start and end exist, construct straight-line coords
@@ -1849,8 +1819,13 @@
                     routeCoords = [startCoord, endCoord];
                 }
 
+                const originOpt = whSelect?.selectedOptions[0];
+                const destOpt = destWhSelect?.selectedOptions[0];
+                const originLabel = originOpt ? (originOpt.getAttribute('data-city') ? originOpt.getAttribute('data-city') + ' Hub' : originOpt.text) : (data.originCity ? data.originCity + ' Hub' : 'Origin Hub');
+                const destLabel = destOpt ? (destOpt.getAttribute('data-city') ? destOpt.getAttribute('data-city') + ' Hub' : destOpt.text) : (data.destinationCity ? data.destinationCity + ' Hub' : 'Destination Hub');
+
                 if (startCoord || endCoord || routeCoords) {
-                    renderRouteOnMap(startCoord, endCoord, routeCoords, pickup, dropoff, data.provider);
+                    renderRouteOnMap(startCoord, endCoord, routeCoords, originLabel, destLabel, data.provider);
                 }
             })
             .catch(err => {
@@ -1884,25 +1859,7 @@
                 const grandTotal = Math.floor(subtotal + totalDoorstepSurcharge);
 
                 if (document.getElementById('estDistanceKm')) document.getElementById('estDistanceKm').innerText = Math.floor(baseDist) + ' km';
-                if (document.getElementById('estPickupLegRow') && document.getElementById('estPickupLegDistance')) {
-                    if (isDoorstep) {
-                        document.getElementById('estPickupLegRow').classList.remove('d-none');
-                        document.getElementById('estPickupLegDistance').innerText = pLegDist.toFixed(1) + ' km';
-                    } else {
-                        document.getElementById('estPickupLegRow').classList.add('d-none');
-                    }
-                }
-                if (document.getElementById('estDeliveryLegRow') && document.getElementById('estDeliveryLegDistance')) {
-                    if (isDestDoorstep) {
-                        document.getElementById('estDeliveryLegRow').classList.remove('d-none');
-                        document.getElementById('estDeliveryLegDistance').innerText = dLegDist.toFixed(1) + ' km';
-                    } else {
-                        document.getElementById('estDeliveryLegRow').classList.add('d-none');
-                    }
-                }
-                if (document.getElementById('estTotalDrivingDistance')) {
-                    document.getElementById('estTotalDrivingDistance').innerText = totalDrivingDist.toFixed(1) + ' km';
-                }
+                if (document.getElementById('estTotalDrivingDistance')) document.getElementById('estTotalDrivingDistance').innerText = Math.floor(baseDist) + ' km';
 
                 const dBox = document.getElementById('estDoorstepSurchargesBox');
                 if (dBox) {
@@ -1910,6 +1867,10 @@
                         dBox.classList.remove('d-none');
                         if (document.getElementById('estDoorstepLegCount')) document.getElementById('estDoorstepLegCount').innerText = `${activeLegs} ${activeLegs > 1 ? 'Legs' : 'Leg'}`;
                         if (document.getElementById('estDoorstepFuelRate')) document.getElementById('estDoorstepFuelRate').innerText = 'Rs. ' + fuelTier.toLocaleString() + ' / leg';
+                        const tierLabelEl = document.getElementById('estDoorstepWeightTierLabel');
+                        if (tierLabelEl) {
+                            tierLabelEl.innerText = weight < 1000.0 ? 'Rs. 1/kg (<1t)' : 'Rs. 200/ton (≥1t)';
+                        }
                         if (document.getElementById('estDoorstepWeightRate')) document.getElementById('estDoorstepWeightRate').innerText = 'Rs. ' + weightSurcharge.toFixed(2) + ' / leg';
                         if (document.getElementById('estTotalDoorstepSurcharge')) document.getElementById('estTotalDoorstepSurcharge').innerText = '+Rs. ' + Math.floor(totalDoorstepSurcharge).toLocaleString();
                     } else {
@@ -2304,11 +2265,9 @@
             }
         }
 
-        // Live interactive listeners
-        document.getElementById('pickupAddr')?.addEventListener('input', debouncedUpdate);
+        // Doorstep addresses are collected only and do not impact the map
         document.getElementById('dropoffAddr')?.addEventListener('input', () => {
             updateWarehouseWarningNotice(lastEstimateData);
-            debouncedUpdate();
         });
         document.getElementById('singleItemWeight')?.addEventListener('input', () => {
             calculateWeight();
