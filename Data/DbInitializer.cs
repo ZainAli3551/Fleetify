@@ -16,14 +16,36 @@ namespace Fleetify.Data
             {
                 // Ensure Height and Width columns exist in SQL Server if the table was created before
                 await context.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'Length')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD Length FLOAT NOT NULL DEFAULT 30.0;
+                    END
                     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'Height')
                     BEGIN
-                        ALTER TABLE DeliveryRequests ADD Height FLOAT NOT NULL DEFAULT 1.0;
+                        ALTER TABLE DeliveryRequests ADD Height FLOAT NOT NULL DEFAULT 15.0;
                     END
                     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'Width')
                     BEGIN
-                        ALTER TABLE DeliveryRequests ADD Width FLOAT NOT NULL DEFAULT 1.0;
+                        ALTER TABLE DeliveryRequests ADD Width FLOAT NOT NULL DEFAULT 20.0;
                     END
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'PackageName')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD PackageName NVARCHAR(200) NULL;
+                    END
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'Quantity')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD Quantity INT NOT NULL DEFAULT 1;
+                    END
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'TotalCubicFeet')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD TotalCubicFeet FLOAT NOT NULL DEFAULT 0.0;
+                    END
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'SingleItemWeight')
+                    BEGIN
+                        ALTER TABLE DeliveryRequests ADD SingleItemWeight FLOAT NOT NULL DEFAULT 2.0;
+                    END
+                    UPDATE DeliveryRequests SET PackageName = ISNULL(ParcelDescription, 'General Item') WHERE PackageName IS NULL;
+                    EXEC('UPDATE DeliveryRequests SET SingleItemWeight = CASE WHEN Quantity > 0 THEN ROUND(ParcelWeight / Quantity, 2) ELSE ParcelWeight END WHERE SingleItemWeight IS NULL OR SingleItemWeight = 0;');
 
                     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'VerifiedWeight')
                     BEGIN

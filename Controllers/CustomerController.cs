@@ -115,6 +115,18 @@ namespace Fleetify.Controllers
                 }
             }
 
+            if (model.Length <= 0)
+            {
+                if (double.TryParse(Request.Form["NewDelivery.Length"], out var l) || double.TryParse(Request.Form["Length"], out l))
+                {
+                    model.Length = l;
+                }
+                else
+                {
+                    model.Length = 30.0;
+                }
+            }
+
             if (model.Height <= 0)
             {
                 if (double.TryParse(Request.Form["NewDelivery.Height"], out var h) || double.TryParse(Request.Form["Height"], out h))
@@ -123,7 +135,7 @@ namespace Fleetify.Controllers
                 }
                 else
                 {
-                    model.Height = 1.0;
+                    model.Height = 15.0;
                 }
             }
 
@@ -135,7 +147,7 @@ namespace Fleetify.Controllers
                 }
                 else
                 {
-                    model.Width = 1.0;
+                    model.Width = 20.0;
                 }
             }
 
@@ -182,13 +194,65 @@ namespace Fleetify.Controllers
             bool hasDestWh = WarehouseNetworkService.HasWarehouse(model.DropoffLocation);
             var destWh = WarehouseNetworkService.GetWarehouse(model.DropoffLocation);
 
-            // Calculate AI Cost with locations
+            // Extract Package Information, Quantities & Weights
+            var packageName = !string.IsNullOrWhiteSpace(model.PackageName)
+                ? model.PackageName.Trim()
+                : Request.Form["NewDelivery.PackageName"].ToString().Trim();
+            if (string.IsNullOrWhiteSpace(packageName))
+            {
+                packageName = !string.IsNullOrWhiteSpace(model.ParcelDescription) ? model.ParcelDescription : "General Item";
+            }
+
+            int quantity = model.Quantity > 0 ? model.Quantity : 1;
+            if (quantity <= 0 && int.TryParse(Request.Form["NewDelivery.Quantity"], out var qVal)) quantity = qVal;
+            if (quantity <= 0) quantity = 1;
+
+            double singleItemWeight = model.SingleItemWeight > 0 ? model.SingleItemWeight : 2.0;
+            if (double.TryParse(Request.Form["NewDelivery.SingleItemWeight"], out var siwVal) || double.TryParse(Request.Form["SingleItemWeight"], out siwVal))
+            {
+                if (siwVal > 0) singleItemWeight = siwVal;
+            }
+
+            // Calculate Total Weight (B2 in rate formula): Single Item Weight * Quantity
+            double totalWeight = Math.Round(singleItemWeight * quantity, 2);
+            if (totalWeight <= 0) totalWeight = 2.0;
+            model.SingleItemWeight = singleItemWeight;
+            model.ParcelWeight = totalWeight;
+
+            double length = model.Length > 0 ? model.Length : 2.0;
+            if (length <= 0 && double.TryParse(Request.Form["NewDelivery.Length"], out var lVal)) length = lVal;
+            if (length <= 0) length = 2.0;
+
+            double width = model.Width > 0 ? model.Width : 1.5;
+            if (width <= 0 && double.TryParse(Request.Form["NewDelivery.Width"], out var wVal)) width = wVal;
+            if (width <= 0) width = 1.5;
+
+            double height = model.Height > 0 ? model.Height : 1.0;
+            if (height <= 0 && double.TryParse(Request.Form["NewDelivery.Height"], out var hVal)) height = hVal;
+            if (height <= 0) height = 1.0;
+
+            double singleCft = Math.Round(length * width * height, 2);
+            double totalCft = Math.Round(singleCft * quantity, 2);
+
+            var originWhForm = !string.IsNullOrWhiteSpace(model.OriginWarehouse)
+                ? model.OriginWarehouse
+                : Request.Form["NewDelivery.OriginWarehouse"].ToString();
+            var destWhForm = !string.IsNullOrWhiteSpace(model.DestinationWarehouse)
+                ? model.DestinationWarehouse
+                : Request.Form["NewDelivery.DestinationWarehouse"].ToString();
+
+            // Calculate AI Cost with locations & formula
             var costRequest = new CostEstimateRequest
             {
                 PickupLocation = model.PickupLocation,
                 DropoffLocation = model.DropoffLocation,
+                OriginWarehouse = originWhForm,
+                DestinationWarehouse = destWhForm,
                 DistanceKm = model.EstimatedDistanceKm,
-                ParcelWeight = model.ParcelWeight,
+                ParcelWeight = totalWeight,
+                SingleItemWeight = singleItemWeight,
+                Quantity = quantity,
+                TotalCubicFeet = totalCft,
                 VehicleType = model.VehicleType,
                 RouteType = model.RouteType,
                 OriginType = originType,
@@ -196,7 +260,7 @@ namespace Fleetify.Controllers
             };
 
             var costEstimate = _costService.CalculateCost(costRequest);
-            double distance = costEstimate.DistanceKm > 0 ? costEstimate.DistanceKm : 15.0;
+            double distance = costEstimate.TotalDrivingDistanceKm > 0 ? costEstimate.TotalDrivingDistanceKm : (costEstimate.DistanceKm > 0 ? costEstimate.DistanceKm : 15.0);
 
             // Generate unique tracking number e.g. FLT-2026-001242
             var trackingNumber = $"FLT-{DateTime.UtcNow.Year}-{Random.Shared.Next(100000, 999999)}";
@@ -208,10 +272,15 @@ namespace Fleetify.Controllers
                 RequestDate = DateTime.UtcNow,
                 PickupLocation = model.PickupLocation,
                 DropoffLocation = model.DropoffLocation,
-                ParcelWeight = model.ParcelWeight,
-                Height = model.Height,
-                Width = model.Width,
-                ParcelDescription = string.IsNullOrWhiteSpace(model.ParcelDescription) ? "General Package" : model.ParcelDescription,
+                ParcelWeight = totalWeight,
+                SingleItemWeight = singleItemWeight,
+                Length = length,
+                Height = height,
+                Width = width,
+                PackageName = packageName,
+                Quantity = quantity,
+                TotalCubicFeet = totalCft,
+                ParcelDescription = string.IsNullOrWhiteSpace(model.ParcelDescription) ? "Electronics" : model.ParcelDescription,
                 VehicleType = model.VehicleType,
                 RouteType = model.RouteType,
                 DistanceKm = distance,
@@ -335,9 +404,24 @@ namespace Fleetify.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            double weight = model.ParcelWeight > 0 ? model.ParcelWeight : request.ParcelWeight;
-            double height = model.Height > 0 ? model.Height : request.Height;
-            double width = model.Width > 0 ? model.Width : request.Width;
+            int quantity = model.Quantity > 0 ? model.Quantity : (request.Quantity > 0 ? request.Quantity : 1);
+            if (quantity <= 0 && int.TryParse(Request.Form["Quantity"], out var qEditParsed)) quantity = qEditParsed;
+            if (quantity <= 0) quantity = 1;
+
+            double singleItemWeight = model.SingleItemWeight > 0 ? model.SingleItemWeight : (request.SingleItemWeight > 0 ? request.SingleItemWeight : 2.0);
+            if (double.TryParse(Request.Form["SingleItemWeight"], out var siwEdit) && siwEdit > 0) singleItemWeight = siwEdit;
+
+            double totalWeight = Math.Round(singleItemWeight * quantity, 2);
+            if (totalWeight <= 0) totalWeight = 2.0;
+
+            double length = model.Length > 0 ? model.Length : (request.Length > 0 ? request.Length : 2.0);
+            double height = model.Height > 0 ? model.Height : (request.Height > 0 ? request.Height : 1.0);
+            double width = model.Width > 0 ? model.Width : (request.Width > 0 ? request.Width : 1.5);
+            double totalCft = Math.Round(length * width * height * quantity, 2);
+
+            var editPkgName = !string.IsNullOrWhiteSpace(model.PackageName)
+                ? model.PackageName.Trim()
+                : Request.Form["PackageName"].ToString().Trim();
 
             var vehicleType = !string.IsNullOrWhiteSpace(model.VehicleType) ? model.VehicleType : (!string.IsNullOrWhiteSpace(request.VehicleType) ? request.VehicleType : "Truck");
 
@@ -346,7 +430,10 @@ namespace Fleetify.Controllers
                 PickupLocation = model.PickupLocation,
                 DropoffLocation = model.DropoffLocation,
                 DistanceKm = model.EstimatedDistanceKm > 0 ? model.EstimatedDistanceKm : request.DistanceKm,
-                ParcelWeight = weight,
+                ParcelWeight = totalWeight,
+                SingleItemWeight = singleItemWeight,
+                Quantity = quantity,
+                TotalCubicFeet = totalCft,
                 VehicleType = vehicleType,
                 RouteType = model.RouteType ?? request.RouteType
             };
@@ -354,9 +441,15 @@ namespace Fleetify.Controllers
 
             request.PickupLocation = model.PickupLocation;
             request.DropoffLocation = model.DropoffLocation;
-            request.ParcelWeight = weight;
+            request.ParcelWeight = totalWeight;
+            request.SingleItemWeight = singleItemWeight;
+            request.Length = length;
             request.Height = height;
             request.Width = width;
+            request.Quantity = quantity;
+            request.TotalCubicFeet = totalCft;
+            if (!string.IsNullOrWhiteSpace(editPkgName))
+                request.PackageName = editPkgName;
             request.VehicleType = vehicleType;
             if (!string.IsNullOrWhiteSpace(model.RouteType))
                 request.RouteType = model.RouteType;

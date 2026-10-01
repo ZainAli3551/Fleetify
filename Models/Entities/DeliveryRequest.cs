@@ -26,14 +26,28 @@ namespace Fleetify.Models.Entities
         [Required, MaxLength(250)]
         public string DropoffLocation { get; set; } = string.Empty;
 
-        public double ParcelWeight { get; set; }
+        public double ParcelWeight { get; set; } // Total Weight in kg (B2)
 
-        public double Height { get; set; } = 1.0; // Height in meters/dimensions
+        public double SingleItemWeight { get; set; } = 2.0; // Single Item Weight in kg
 
-        public double Width { get; set; } = 1.0; // Width in meters/dimensions
+        public double Length { get; set; } = 2.0; // Length in Feet (ft)
+
+        public double Height { get; set; } = 1.0; // Height in Feet (ft)
+
+        public double Width { get; set; } = 1.5; // Width in Feet (ft)
+
+        [MaxLength(200)]
+        public string? PackageName { get; set; } = string.Empty;
+
+        public int Quantity { get; set; } = 1;
+
+        public double TotalCubicFeet { get; set; } = 0.0;
+
+        [NotMapped]
+        public double SingleCubicFeet => Math.Round(Length * Width * Height, 2);
 
         [MaxLength(250)]
-        public string ParcelDescription { get; set; } = string.Empty;
+        public string ParcelDescription { get; set; } = string.Empty; // Package Type: Electronics, Iron or Steel, Hardware Parts
 
         [MaxLength(30)]
         public string VehicleType { get; set; } = "Truck"; // Bike, Pickup, Van, Truck

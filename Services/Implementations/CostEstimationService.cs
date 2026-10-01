@@ -25,18 +25,38 @@ namespace Fleetify.Services.Implementations
             _mapRoutingService = mapRoutingService;
         }
 
+        public static double CalculateDistanceCharge(double distanceKm)
+        {
+            if (distanceKm < 50.0) return 1500.0;
+            if (distanceKm < 150.0) return 2500.0;
+            if (distanceKm < 250.0) return 4000.0;
+            if (distanceKm < 500.0) return 7000.0;
+            if (distanceKm < 1000.0) return 12000.0;
+            if (distanceKm < 1500.0) return 18000.0;
+            return 18000.0; // 1500km+
+        }
+
         public static double CalculatePetrolSurcharge(double distanceKm)
         {
-            if (distanceKm < 5.0) return 200.0;
-            if (distanceKm < 10.0) return 300.0;
-            if (distanceKm < 20.0) return 500.0;
-            if (distanceKm < 50.0) return 700.0;
-            if (distanceKm < 100.0) return 1000.0;
-            if (distanceKm < 200.0) return 1700.0;
-            if (distanceKm < 500.0) return 2500.0;
-            if (distanceKm < 1000.0) return 3000.0;
-            if (distanceKm < 2000.0) return 4200.0;
-            return 4200.0; // 2000km+
+            return CalculateDistanceCharge(distanceKm);
+        }
+
+        public static double CalculateDoorstepFuelSurcharge(double totalCubicFeet)
+        {
+            // Up to 300 cubic feet: Rs. 1,000 per doorstep trip
+            // Over 300 to 1,200 cubic feet: Rs. 2,000 per doorstep trip
+            // Over 1,200 to 3,500 cubic feet: Rs. 4,000 per doorstep trip
+            // Over 3,500 cubic feet: Rs. 5,000 per doorstep trip
+            if (totalCubicFeet <= 300.0) return 1000.0;
+            if (totalCubicFeet <= 1200.0) return 2000.0;
+            if (totalCubicFeet <= 3500.0) return 4000.0;
+            return 5000.0;
+        }
+
+        public static double CalculateDoorstepWeightSurcharge(double totalWeightKg)
+        {
+            // Weight-based Surcharge: Rs. 200 per ton (1000 kg) => (Total Weight in kg / 1000) * 200
+            return (totalWeightKg / 1000.0) * 200.0;
         }
 
         public static double GetDeliveryMultiplier(string? deliveryType)
@@ -47,11 +67,35 @@ namespace Fleetify.Services.Implementations
             return 1.0; // Normal
         }
 
+        public static double GetVolumeMultiplier(double totalCubicFeet)
+        {
+            // IFS(D2<1000, 1, D2<2000, 1.25, D2<3000, 1.40, D2>=3000, 1.50)
+            if (totalCubicFeet < 1000.0) return 1.0;
+            if (totalCubicFeet < 2000.0) return 1.25;
+            if (totalCubicFeet < 3000.0) return 1.40;
+            return 1.50;
+        }
+
         public async Task<CostEstimateResult> CalculateCostAsync(CostEstimateRequest request)
         {
             double ratePerKmKg = _configuration.GetValue<double>("AiSettings:PerKmPerKgRate", 1.50);
 
-            // Fetch Real-world Driving Road Distance from Map Routing Service (Google Maps / OSRM)
+            // Resolve Origin and Destination Warehouses
+            var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
+            var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
+
+            string originWarehouseAddress = !string.IsNullOrWhiteSpace(request.OriginWarehouse)
+                ? request.OriginWarehouse
+                : (originWarehouse?.Address ?? request.PickupLocation ?? string.Empty);
+
+            string destWarehouseAddress = !string.IsNullOrWhiteSpace(request.DestinationWarehouse)
+                ? request.DestinationWarehouse
+                : (destWarehouse?.Address ?? request.DropoffLocation ?? string.Empty);
+
+            string mainOrigin = !string.IsNullOrWhiteSpace(originWarehouseAddress) ? originWarehouseAddress : (request.PickupLocation ?? string.Empty);
+            string mainDest = !string.IsNullOrWhiteSpace(destWarehouseAddress) ? destWarehouseAddress : (request.DropoffLocation ?? string.Empty);
+
+            // Fetch Real-world Driving Road Distance for Main Hub-to-Hub Route
             double distanceKm = request.DistanceKm;
             int durationMinutes = 30;
             string? polyline = null;
@@ -62,9 +106,9 @@ namespace Fleetify.Services.Implementations
             double? destinationLat = null;
             double? destinationLng = null;
 
-            if (!string.IsNullOrWhiteSpace(request.PickupLocation) && !string.IsNullOrWhiteSpace(request.DropoffLocation))
+            if (!string.IsNullOrWhiteSpace(mainOrigin) && !string.IsNullOrWhiteSpace(mainDest))
             {
-                var routeResult = await _mapRoutingService.GetDrivingDistanceAsync(request.PickupLocation, request.DropoffLocation);
+                var routeResult = await _mapRoutingService.GetDrivingDistanceAsync(mainOrigin, mainDest);
                 if (routeResult.Success && routeResult.DistanceKm > 0)
                 {
                     distanceKm = routeResult.DistanceKm;
@@ -78,9 +122,9 @@ namespace Fleetify.Services.Implementations
                 }
                 else
                 {
-                    distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
-                    var pCoord = MapRoutingService.ResolveCityCoordinates(request.PickupLocation);
-                    var dCoord = MapRoutingService.ResolveCityCoordinates(request.DropoffLocation);
+                    distanceKm = EstimateDistance(mainOrigin, mainDest, request.DistanceKm);
+                    var pCoord = MapRoutingService.ResolveCityCoordinates(mainOrigin);
+                    var dCoord = MapRoutingService.ResolveCityCoordinates(mainDest);
                     if (pCoord.HasValue) { originLat = pCoord.Value.Lat; originLng = pCoord.Value.Lng; }
                     if (dCoord.HasValue) { destinationLat = dCoord.Value.Lat; destinationLng = dCoord.Value.Lng; }
                     if (originLat.HasValue && destinationLat.HasValue)
@@ -100,24 +144,77 @@ namespace Fleetify.Services.Implementations
             double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
             // Warehouse Network & Special Delivery Check
-            var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
-            var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
-            bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(request.PickupLocation);
-            bool hasDestWarehouse = string.IsNullOrWhiteSpace(request.DropoffLocation) || WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
-            bool isSpecialDelivery = request.IsPrivateTransport || (!string.IsNullOrWhiteSpace(request.DropoffLocation) && (WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse));
+            var originCity = WarehouseNetworkService.DetectCity(mainOrigin);
+            var destCity = WarehouseNetworkService.DetectCity(mainDest);
+            bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(mainOrigin);
+            bool hasDestWarehouse = string.IsNullOrWhiteSpace(mainDest) || WarehouseNetworkService.HasWarehouse(mainDest);
+            bool isSpecialDelivery = request.IsPrivateTransport || (!string.IsNullOrWhiteSpace(mainDest) && (WarehouseNetworkService.IsSpecialDeliveryCity(mainDest) || !hasDestWarehouse));
 
-            var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
-            var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
+            bool isPickupDoorstep = request.OriginType?.Equals("DoorstepPickup", StringComparison.OrdinalIgnoreCase) == true;
+            bool isDeliveryDoorstep = request.DestinationType?.Equals("DoorstepDelivery", StringComparison.OrdinalIgnoreCase) == true;
 
-            // Formula: ((1.5 * Distance * Weight) + PetrolSurcharge) * DeliveryMultiplier, + 15% extra for out-of-network special delivery, floored to previous whole number
+            double pickupLegDistanceKm = 0.0;
+            double deliveryLegDistanceKm = 0.0;
+
+            // 1. Doorstep Pickup Leg: Driving distance between specific pickup address and Origin Warehouse
+            if (isPickupDoorstep && !string.IsNullOrWhiteSpace(request.PickupLocation) && !string.IsNullOrWhiteSpace(originWarehouseAddress))
+            {
+                if (!request.PickupLocation.Trim().Equals(originWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    var pLegResult = await _mapRoutingService.GetDrivingDistanceAsync(request.PickupLocation, originWarehouseAddress);
+                    pickupLegDistanceKm = (pLegResult != null && pLegResult.Success && pLegResult.DistanceKm > 0)
+                        ? Math.Round(pLegResult.DistanceKm, 1)
+                        : Math.Round(EstimateDistance(request.PickupLocation, originWarehouseAddress, 8.0), 1);
+                }
+            }
+
+            // 2. Doorstep Delivery Leg: Driving distance between Destination Warehouse and specific drop-off address
+            if (isDeliveryDoorstep && !string.IsNullOrWhiteSpace(destWarehouseAddress) && !string.IsNullOrWhiteSpace(request.DropoffLocation))
+            {
+                if (!request.DropoffLocation.Trim().Equals(destWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    var dLegResult = await _mapRoutingService.GetDrivingDistanceAsync(destWarehouseAddress, request.DropoffLocation);
+                    deliveryLegDistanceKm = (dLegResult != null && dLegResult.Success && dLegResult.DistanceKm > 0)
+                        ? Math.Round(dLegResult.DistanceKm, 1)
+                        : Math.Round(EstimateDistance(destWarehouseAddress, request.DropoffLocation, 10.0), 1);
+                }
+            }
+
+            // User Formula: ( (2 * B2) + IFS(A2<50, 1500, A2<150, 2500, A2<250, 4000, A2<500, 7000, A2<1000, 12000, A2<1500, 18000) ) * SWITCH(C2, "Normal", 1, "Fast", 1.75, "Express", 2.5, 1) * IFS(D2<1000, 1, D2<2000, 1.25, D2<3000, 1.40, D2>=3000, 1.50)
             double flooredDistance = Math.Floor(distanceKm);
-            double flooredWeight = Math.Floor(weight);
+            double totalCft = request.TotalCubicFeet > 0 ? request.TotalCubicFeet : 0.0;
+            double volumeMultiplier = GetVolumeMultiplier(totalCft);
 
-            double baseCost = flooredDistance * weight * ratePerKmKg;
-            double petrolCharge = CalculatePetrolSurcharge(flooredDistance);
-            double subtotal = (baseCost + petrolCharge) * deliveryMultiplier;
+            double weightCharge = 2.0 * weight;
+            double distanceCharge = CalculateDistanceCharge(distanceKm);
+            double subtotal = (weightCharge + distanceCharge) * deliveryMultiplier * volumeMultiplier;
+            double typeSurcharge = subtotal - (weightCharge + distanceCharge);
             double specialDeliverySurcharge = isSpecialDelivery ? Math.Round(subtotal * 0.15) : 0.0;
-            double total = Math.Floor(subtotal + specialDeliverySurcharge);
+
+            // Doorstep Surcharge Calculation (Requirement 3)
+            double doorstepFuelSurcharge = CalculateDoorstepFuelSurcharge(totalCft);
+            double doorstepWeightSurcharge = Math.Round(CalculateDoorstepWeightSurcharge(weight), 2);
+            double doorstepSurchargePerLeg = doorstepFuelSurcharge + doorstepWeightSurcharge;
+
+            int doorstepLegCount = 0;
+            double pickupDoorstepSurcharge = 0.0;
+            double deliveryDoorstepSurcharge = 0.0;
+
+            if (isPickupDoorstep)
+            {
+                doorstepLegCount++;
+                pickupDoorstepSurcharge = doorstepSurchargePerLeg;
+            }
+            if (isDeliveryDoorstep)
+            {
+                doorstepLegCount++;
+                deliveryDoorstepSurcharge = doorstepSurchargePerLeg;
+            }
+
+            double totalDoorstepSurcharge = Math.Round(pickupDoorstepSurcharge + deliveryDoorstepSurcharge, 2);
+            double total = Math.Floor(subtotal + specialDeliverySurcharge + totalDoorstepSurcharge);
+
+            double totalDrivingDistanceKm = Math.Round(flooredDistance + pickupLegDistanceKm + deliveryLegDistanceKm, 1);
 
             string deliveryDays = "4 to 6 days";
             if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
@@ -136,16 +233,38 @@ namespace Fleetify.Services.Implementations
             return new CostEstimateResult
             {
                 DistanceKm = flooredDistance,
-                ParcelWeight = flooredWeight,
-                RatePerKmKg = ratePerKmKg,
-                BaseCost = Math.Floor(baseCost),
-                PetrolCharge = petrolCharge,
+                MainRouteDistanceKm = flooredDistance,
+                PickupLegDistanceKm = pickupLegDistanceKm,
+                DeliveryLegDistanceKm = deliveryLegDistanceKm,
+                TotalDrivingDistanceKm = totalDrivingDistanceKm,
+                ParcelWeight = weight,
+                SingleItemWeight = request.SingleItemWeight > 0 ? request.SingleItemWeight : Math.Round(weight / (request.Quantity > 0 ? request.Quantity : 1), 2),
+                Quantity = request.Quantity > 0 ? request.Quantity : 1,
+                TotalCubicFeet = totalCft,
+                VolumeMultiplier = volumeMultiplier,
+                RatePerKmKg = 2.0,
+                BaseCost = weightCharge,
+                BaseRate = 0.00,
+                WeightCharge = weightCharge,
+                DistanceCharge = distanceCharge,
+                PetrolCharge = distanceCharge,
+                TypeSurcharge = typeSurcharge,
                 DeliveryType = deliveryType,
                 DeliveryMultiplier = deliveryMultiplier,
                 IsPrivateTransport = isSpecialDelivery,
                 PrivateTransportSurcharge = specialDeliverySurcharge,
                 IsSpecialDelivery = isSpecialDelivery,
                 SpecialDeliverySurcharge = specialDeliverySurcharge,
+
+                // Doorstep Surcharges
+                DoorstepLegCount = doorstepLegCount,
+                DoorstepFuelSurchargePerLeg = doorstepFuelSurcharge,
+                DoorstepWeightSurchargePerLeg = doorstepWeightSurcharge,
+                DoorstepSurchargePerLeg = doorstepSurchargePerLeg,
+                PickupDoorstepSurcharge = pickupDoorstepSurcharge,
+                DeliveryDoorstepSurcharge = deliveryDoorstepSurcharge,
+                TotalDoorstepSurcharge = totalDoorstepSurcharge,
+
                 OriginCity = originCity,
                 DestinationCity = destCity,
                 HasOriginWarehouse = hasOriginWarehouse,
@@ -173,8 +292,21 @@ namespace Fleetify.Services.Implementations
             }
             catch
             {
-                double ratePerKmKg = _configuration.GetValue<double>("AiSettings:PerKmPerKgRate", 1.50);
-                double distanceKm = EstimateDistance(request.PickupLocation, request.DropoffLocation, request.DistanceKm);
+                var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
+                var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
+
+                string originWarehouseAddress = !string.IsNullOrWhiteSpace(request.OriginWarehouse)
+                    ? request.OriginWarehouse
+                    : (originWarehouse?.Address ?? request.PickupLocation ?? string.Empty);
+
+                string destWarehouseAddress = !string.IsNullOrWhiteSpace(request.DestinationWarehouse)
+                    ? request.DestinationWarehouse
+                    : (destWarehouse?.Address ?? request.DropoffLocation ?? string.Empty);
+
+                string mainOrigin = !string.IsNullOrWhiteSpace(originWarehouseAddress) ? originWarehouseAddress : (request.PickupLocation ?? string.Empty);
+                string mainDest = !string.IsNullOrWhiteSpace(destWarehouseAddress) ? destWarehouseAddress : (request.DropoffLocation ?? string.Empty);
+
+                double distanceKm = EstimateDistance(mainOrigin, mainDest, request.DistanceKm);
                 double weight = request.ParcelWeight > 0 ? request.ParcelWeight : 2.0;
                 if (weight < 1.0) weight = 1.0;
                 if (distanceKm < 1.0) distanceKm = 1.0;
@@ -183,24 +315,54 @@ namespace Fleetify.Services.Implementations
                 if (deliveryType.Equals("Standard", StringComparison.OrdinalIgnoreCase)) deliveryType = "Normal";
                 double deliveryMultiplier = GetDeliveryMultiplier(deliveryType);
 
-                var originCity = WarehouseNetworkService.DetectCity(request.PickupLocation);
-                var destCity = WarehouseNetworkService.DetectCity(request.DropoffLocation);
-                bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(request.PickupLocation);
-                bool hasDestWarehouse = string.IsNullOrWhiteSpace(request.DropoffLocation) || WarehouseNetworkService.HasWarehouse(request.DropoffLocation);
-                bool isSpecialDelivery = request.IsPrivateTransport || (!string.IsNullOrWhiteSpace(request.DropoffLocation) && (WarehouseNetworkService.IsSpecialDeliveryCity(request.DropoffLocation) || !hasDestWarehouse));
-
-                var originWarehouse = WarehouseNetworkService.GetWarehouse(request.PickupLocation);
-                var destWarehouse = WarehouseNetworkService.GetWarehouse(request.DropoffLocation);
+                var originCity = WarehouseNetworkService.DetectCity(mainOrigin);
+                var destCity = WarehouseNetworkService.DetectCity(mainDest);
+                bool hasOriginWarehouse = request.OriginType == "WarehouseDropoff" || WarehouseNetworkService.HasWarehouse(mainOrigin);
+                bool hasDestWarehouse = string.IsNullOrWhiteSpace(mainDest) || WarehouseNetworkService.HasWarehouse(mainDest);
+                bool isSpecialDelivery = request.IsPrivateTransport || (!string.IsNullOrWhiteSpace(mainDest) && (WarehouseNetworkService.IsSpecialDeliveryCity(mainDest) || !hasDestWarehouse));
 
                 double flooredDistance = Math.Floor(distanceKm);
-                double baseCost = flooredDistance * weight * ratePerKmKg;
-                double petrolCharge = CalculatePetrolSurcharge(flooredDistance);
-                double subtotal = (baseCost + petrolCharge) * deliveryMultiplier;
-                double specialDeliverySurcharge = isSpecialDelivery ? Math.Round(subtotal * 0.15) : 0.0;
-                double total = Math.Floor(subtotal + specialDeliverySurcharge);
+                double totalCft = request.TotalCubicFeet > 0 ? request.TotalCubicFeet : 0.0;
+                double volumeMultiplier = GetVolumeMultiplier(totalCft);
 
-                var pCoord = MapRoutingService.ResolveCityCoordinates(request.PickupLocation);
-                var dCoord = MapRoutingService.ResolveCityCoordinates(request.DropoffLocation);
+                double weightCharge = 2.0 * weight;
+                double distanceCharge = CalculateDistanceCharge(distanceKm);
+                double subtotal = (weightCharge + distanceCharge) * deliveryMultiplier * volumeMultiplier;
+                double typeSurcharge = subtotal - (weightCharge + distanceCharge);
+                double specialDeliverySurcharge = isSpecialDelivery ? Math.Round(subtotal * 0.15) : 0.0;
+
+                bool isPickupDoorstep = request.OriginType?.Equals("DoorstepPickup", StringComparison.OrdinalIgnoreCase) == true;
+                bool isDeliveryDoorstep = request.DestinationType?.Equals("DoorstepDelivery", StringComparison.OrdinalIgnoreCase) == true;
+
+                double pickupLegDist = 0.0;
+                if (isPickupDoorstep && !string.IsNullOrWhiteSpace(request.PickupLocation) && !string.IsNullOrWhiteSpace(originWarehouseAddress))
+                {
+                    pickupLegDist = !request.PickupLocation.Trim().Equals(originWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase)
+                        ? Math.Round(EstimateDistance(request.PickupLocation, originWarehouseAddress, 8.0), 1)
+                        : 0.0;
+                }
+
+                double deliveryLegDist = 0.0;
+                if (isDeliveryDoorstep && !string.IsNullOrWhiteSpace(destWarehouseAddress) && !string.IsNullOrWhiteSpace(request.DropoffLocation))
+                {
+                    deliveryLegDist = !request.DropoffLocation.Trim().Equals(destWarehouseAddress.Trim(), StringComparison.OrdinalIgnoreCase)
+                        ? Math.Round(EstimateDistance(destWarehouseAddress, request.DropoffLocation, 10.0), 1)
+                        : 0.0;
+                }
+
+                double doorstepFuel = CalculateDoorstepFuelSurcharge(totalCft);
+                double doorstepWeight = Math.Round(CalculateDoorstepWeightSurcharge(weight), 2);
+                double doorstepPerLeg = doorstepFuel + doorstepWeight;
+                int legCount = (isPickupDoorstep ? 1 : 0) + (isDeliveryDoorstep ? 1 : 0);
+                double pickupSurcharge = isPickupDoorstep ? doorstepPerLeg : 0.0;
+                double deliverySurcharge = isDeliveryDoorstep ? doorstepPerLeg : 0.0;
+                double totalDoorstep = Math.Round(pickupSurcharge + deliverySurcharge, 2);
+
+                double total = Math.Floor(subtotal + specialDeliverySurcharge + totalDoorstep);
+                double totalDrivingDist = Math.Round(flooredDistance + pickupLegDist + deliveryLegDist, 1);
+
+                var pCoord = MapRoutingService.ResolveCityCoordinates(mainOrigin);
+                var dCoord = MapRoutingService.ResolveCityCoordinates(mainDest);
                 string? fallbackPoly = (pCoord.HasValue && dCoord.HasValue) ? MapRoutingService.EncodePolyline(new[] { pCoord.Value, dCoord.Value }) : null;
                 string fallbackDeliveryDays = "4 to 6 days";
                 if (deliveryType.Equals("Express", StringComparison.OrdinalIgnoreCase))
@@ -214,11 +376,23 @@ namespace Fleetify.Services.Implementations
 
                 return new CostEstimateResult
                 {
-                    DistanceKm = Math.Floor(distanceKm),
-                    ParcelWeight = Math.Floor(weight),
-                    RatePerKmKg = ratePerKmKg,
-                    BaseCost = Math.Floor(baseCost),
-                    PetrolCharge = petrolCharge,
+                    DistanceKm = flooredDistance,
+                    MainRouteDistanceKm = flooredDistance,
+                    PickupLegDistanceKm = pickupLegDist,
+                    DeliveryLegDistanceKm = deliveryLegDist,
+                    TotalDrivingDistanceKm = totalDrivingDist,
+                    ParcelWeight = weight,
+                    SingleItemWeight = request.SingleItemWeight > 0 ? request.SingleItemWeight : Math.Round(weight / (request.Quantity > 0 ? request.Quantity : 1), 2),
+                    Quantity = request.Quantity > 0 ? request.Quantity : 1,
+                    TotalCubicFeet = totalCft,
+                    VolumeMultiplier = volumeMultiplier,
+                    RatePerKmKg = 2.0,
+                    BaseCost = weightCharge,
+                    BaseRate = 0.00,
+                    WeightCharge = weightCharge,
+                    DistanceCharge = distanceCharge,
+                    PetrolCharge = distanceCharge,
+                    TypeSurcharge = typeSurcharge,
                     DeliveryType = deliveryType,
                     DeliveryMultiplier = deliveryMultiplier,
                     EstimatedDeliveryDays = fallbackDeliveryDays,
@@ -226,6 +400,15 @@ namespace Fleetify.Services.Implementations
                     PrivateTransportSurcharge = specialDeliverySurcharge,
                     IsSpecialDelivery = isSpecialDelivery,
                     SpecialDeliverySurcharge = specialDeliverySurcharge,
+
+                    DoorstepLegCount = legCount,
+                    DoorstepFuelSurchargePerLeg = doorstepFuel,
+                    DoorstepWeightSurchargePerLeg = doorstepWeight,
+                    DoorstepSurchargePerLeg = doorstepPerLeg,
+                    PickupDoorstepSurcharge = pickupSurcharge,
+                    DeliveryDoorstepSurcharge = deliverySurcharge,
+                    TotalDoorstepSurcharge = totalDoorstep,
+
                     OriginCity = originCity,
                     DestinationCity = destCity,
                     HasOriginWarehouse = hasOriginWarehouse,

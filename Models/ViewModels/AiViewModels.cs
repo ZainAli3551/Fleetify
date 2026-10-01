@@ -6,6 +6,8 @@ namespace Fleetify.Models.ViewModels
     {
         public string? PickupLocation { get; set; }
         public string? DropoffLocation { get; set; }
+        public string? OriginWarehouse { get; set; }
+        public string? DestinationWarehouse { get; set; }
         public double DistanceKm { get; set; } = 15.0;
         public double ParcelWeight { get; set; } = 2.0;
         public string VehicleType { get; set; } = "Truck";
@@ -13,13 +15,25 @@ namespace Fleetify.Models.ViewModels
         public string OriginType { get; set; } = "DoorstepPickup"; // DoorstepPickup, WarehouseDropoff
         public string DestinationType { get; set; } = "DoorstepDelivery"; // DoorstepDelivery, WarehousePickup
         public bool IsPrivateTransport { get; set; } = false;
+        public double TotalCubicFeet { get; set; } = 0.0;
+        public double SingleItemWeight { get; set; } = 2.0;
+        public int Quantity { get; set; } = 1;
     }
 
     public class CostEstimateResult
     {
-        public double DistanceKm { get; set; }
+        public double DistanceKm { get; set; } // Main line-haul route distance
+        public double MainRouteDistanceKm { get; set; }
+        public double PickupLegDistanceKm { get; set; } = 0.0;
+        public double DeliveryLegDistanceKm { get; set; } = 0.0;
+        public double TotalDrivingDistanceKm { get; set; } = 0.0;
+
         public double ParcelWeight { get; set; } = 2.0;
-        public double RatePerKmKg { get; set; } = 1.50;
+        public double SingleItemWeight { get; set; } = 2.0;
+        public int Quantity { get; set; } = 1;
+        public double TotalCubicFeet { get; set; } = 0.0;
+        public double VolumeMultiplier { get; set; } = 1.0;
+        public double RatePerKmKg { get; set; } = 2.0;
         public double BaseCost { get; set; }
         public double BaseRate { get; set; } = 0.00;
         public double DistanceCharge { get; set; }
@@ -32,6 +46,16 @@ namespace Fleetify.Models.ViewModels
         public double PrivateTransportSurcharge { get; set; } = 0.0;
         public bool IsSpecialDelivery { get; set; } = false;
         public double SpecialDeliverySurcharge { get; set; } = 0.0;
+
+        // Doorstep Fuel & Weight Surcharge (Requirement 3)
+        public int DoorstepLegCount { get; set; } = 0;
+        public double DoorstepFuelSurchargePerLeg { get; set; } = 0.0;
+        public double DoorstepWeightSurchargePerLeg { get; set; } = 0.0;
+        public double DoorstepSurchargePerLeg { get; set; } = 0.0;
+        public double PickupDoorstepSurcharge { get; set; } = 0.0;
+        public double DeliveryDoorstepSurcharge { get; set; } = 0.0;
+        public double TotalDoorstepSurcharge { get; set; } = 0.0;
+
         public string OriginCity { get; set; } = string.Empty;
         public string DestinationCity { get; set; } = string.Empty;
         public bool HasOriginWarehouse { get; set; } = true;

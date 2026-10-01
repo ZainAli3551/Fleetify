@@ -61,10 +61,15 @@ namespace Fleetify.Models.ViewModels
     {
         public string PickupLocation { get; set; } = string.Empty;
         public string DropoffLocation { get; set; } = string.Empty;
-        public double ParcelWeight { get; set; } = 2.0;
-        public double Height { get; set; } = 1.0;
-        public double Width { get; set; } = 1.0;
-        public string ParcelDescription { get; set; } = string.Empty;
+        public double SingleItemWeight { get; set; } = 2.0; // Weight of 1 item in kg
+        public double ParcelWeight { get; set; } = 2.0; // Total calculated weight in kg
+        public double Length { get; set; } = 2.0; // In Feet (ft)
+        public double Width { get; set; } = 1.5;  // In Feet (ft)
+        public double Height { get; set; } = 1.0; // In Feet (ft)
+        public string PackageName { get; set; } = string.Empty;
+        public int Quantity { get; set; } = 1;
+        public double TotalCubicFeet { get; set; } = 3.0;
+        public string ParcelDescription { get; set; } = "Electronics"; // Package Type
         public string VehicleType { get; set; } = "Truck"; // Bike, Pickup, Van, Truck
         public string RouteType { get; set; } = "Normal"; // Normal, Fast, Express
         public double EstimatedDistanceKm { get; set; } = 15.0;
@@ -73,6 +78,10 @@ namespace Fleetify.Models.ViewModels
         // Warehouse Network & Service Options
         public string OriginType { get; set; } = "DoorstepPickup"; // DoorstepPickup, WarehouseDropoff
         public string DestinationType { get; set; } = "DoorstepDelivery"; // DoorstepDelivery, WarehousePickup
+        public string? OriginWarehouse { get; set; }
+        public string? DestinationWarehouse { get; set; }
+        public double PickupLegDistanceKm { get; set; } = 0.0;
+        public double DeliveryLegDistanceKm { get; set; } = 0.0;
         public string? OriginCity { get; set; }
         public string? DestinationCity { get; set; }
         public bool IsPrivateTransport { get; set; } = false;

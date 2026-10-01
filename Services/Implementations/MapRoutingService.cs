@@ -23,6 +23,37 @@ namespace Fleetify.Services.Implementations
         // Built-in Pakistani Cities & Hubs Coordinate Reference
         public static readonly Dictionary<string, (double Lat, double Lng)> PakistanCities = new(StringComparer.OrdinalIgnoreCase)
         {
+            // Specific Landmarks for Hubs & Doorstep Locations
+            { "thokar niaz baig", (31.4707, 74.2415) }, // Lahore Central Hub
+            { "multan road bypass", (31.4707, 74.2415) },
+            { "habib bank chowrangi", (24.8988, 67.0118) }, // Karachi South Hub
+            { "s.i.t.e.", (24.8988, 67.0118) },
+            { "site industrial area", (24.8988, 67.0118) },
+            { "sector i-9", (33.6653, 73.0535) }, // Islamabad North Hub
+            { "i-9 industrial area", (33.6653, 73.0535) },
+            { "i-9", (33.6653, 73.0535) },
+            { "faizabad interchange", (33.6631, 73.0850) }, // Rawalpindi Twin Cities Hub
+            { "faizabad", (33.6631, 73.0850) },
+            { "murree road", (33.6631, 73.0850) },
+            { "millat chowk", (31.4485, 73.0782) }, // Faisalabad Textile Hub
+            { "sargodha road", (31.4485, 73.0782) },
+            { "khanewal road", (30.2241, 71.5032) }, // Multan South Punjab Hub
+            { "gulshan park", (32.1765, 74.1755) }, // Gujranwala GT Road Hub
+            { "shaheenabad", (32.1765, 74.1755) },
+            { "hayatabad industrial estate", (33.9788, 71.4282) }, // Peshawar Khyber Hub
+            { "phase 7", (33.9788, 71.4282) },
+            { "hayatabad", (33.9788, 71.4282) },
+            { "sambrial", (32.4820, 74.3540) }, // Sialkot Export Hub
+            { "wazirabad road", (32.4820, 74.3540) },
+            { "zarghoon road", (30.2012, 67.0185) }, // Quetta Balochistan Hub
+            { "quetta cantt", (30.2012, 67.0185) },
+            { "pakpattan chowk", (30.6652, 73.1114) }, // Sahiwal Special Delivery
+            { "general bus stand", (30.8120, 73.4510) }, // Okara Special Delivery
+            { "steel bagh", (31.1190, 74.4530) }, // Kasur Special Delivery
+            { "military road", (27.7120, 68.8450) }, // Sukkur Special Delivery
+            { "sukkur bypass", (27.7120, 68.8450) },
+
+            // City Centers
             { "lahore", (31.5204, 74.3587) },
             { "karachi", (24.8607, 67.0011) },
             { "islamabad", (33.6844, 73.0479) },

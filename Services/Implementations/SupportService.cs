@@ -121,7 +121,8 @@ namespace Fleetify.Services.Implementations
                     {
                         var kgMatch = Regex.Match(userMessage, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)", RegexOptions.IgnoreCase);
                         double parcelWt = kgMatch.Success && double.TryParse(kgMatch.Groups[1].Value, out double w) ? w : 1.0;
-                        double totalEst = Math.Round(detectedMapRoute.DistanceKm * parcelWt * 1.50, 2);
+                        double distCharge = CostEstimationService.CalculateDistanceCharge(detectedMapRoute.DistanceKm);
+                        double totalEst = Math.Floor((2.0 * parcelWt) + distCharge);
 
                         liveContext = $"=== LIVE MAP ROUTE & DISTANCE VERIFICATION ===\n" +
                                       $"• Origin (Pickup): {detectedMapRoute.Origin}\n" +
@@ -129,10 +130,11 @@ namespace Fleetify.Services.Implementations
                                       $"• Verified Driving Road Distance: {detectedMapRoute.DistanceKm} km\n" +
                                       $"• Estimated Travel Time: ~{detectedMapRoute.DurationMinutes} minutes\n" +
                                       $"• Routing Source: {detectedMapRoute.Provider}\n" +
-                                      $"• Exact Unified Pricing Formula: Total Cost = Distance (in km) × Weight (in kg) × $1.50 per km/kg\n" +
-                                      $"• Detected/Given Parcel Weight: {parcelWt:F1} kg\n" +
-                                      $"• Calculation Result: {detectedMapRoute.DistanceKm} km × {parcelWt:F1} kg × $1.50 = ${totalEst:F2}\n" +
-                                      $"• CRITICAL INSTRUCTION FOR AI: NEVER add a base fare or separate charges! Distance and weight are multiplied together by the rate of $1.50/km/kg. For example, if distance is {detectedMapRoute.DistanceKm} km and weight is {parcelWt:F1} kg, the exact cost is ${totalEst:F2}. If 2 kg is asked, it is {detectedMapRoute.DistanceKm} × 2 × $1.50 = ${Math.Round(detectedMapRoute.DistanceKm * 2 * 1.50, 2):F2}. Provide the step-by-step multiplication.";
+                                      $"• Formula: Total Cost = ((2 × Weight_kg) + Distance_Tier_Charge) × Speed_Multiplier\n" +
+                                      $"• Distance Tier Charge: Rs. {distCharge} (for {detectedMapRoute.DistanceKm} km)\n" +
+                                      $"• Detected/Given Parcel Weight: {parcelWt:F1} kg (Weight fee: Rs. {2.0 * parcelWt:F0})\n" +
+                                      $"• Standard (Normal) Calculation: (({2.0 * parcelWt:F0} + {distCharge}) × 1.0) = Rs. {totalEst}\n" +
+                                      $"• Speed Multipliers: Normal = 1.0, Fast = 1.75, Express = 2.5";
                     }
                 }
                 catch { }
@@ -262,18 +264,20 @@ namespace Fleetify.Services.Implementations
                     {
                         var kgMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
                         double wtVal = kgMatch.Success && double.TryParse(kgMatch.Groups[1].Value, out double w) ? w : 1.0;
-                        double totalEst = Math.Round(detectedMapRoute.DistanceKm * wtVal * 1.50, 2);
+                        double distCharge = CostEstimationService.CalculateDistanceCharge(detectedMapRoute.DistanceKm);
+                        double totalEst = Math.Floor((2.0 * wtVal) + distCharge);
 
                         botReplyText = $"🗺️ **Verified Route Distance & Cost ({detectedMapRoute.Provider}):**\n\n" +
                                        $"• **Pickup:** {detectedMapRoute.Origin}\n" +
                                        $"• **Drop-off:** {detectedMapRoute.Destination}\n" +
                                        $"• **Real Road Distance:** **{detectedMapRoute.DistanceKm} km** (~{detectedMapRoute.DurationMinutes} mins drive)\n" +
                                        $"• **Package Weight:** {wtVal:F1} kg\n" +
-                                       $"• **Rate:** $1.50 per km per kg\n\n" +
-                                       $"💰 **Cost Calculation (Unified Formula: Distance × Weight × $1.50):**\n" +
-                                       $"• `{detectedMapRoute.DistanceKm} km × {wtVal:F1} kg × $1.50 = ${totalEst:F2}`\n" +
+                                       $"• **Distance Tier Charge:** Rs. {distCharge}\n" +
+                                       $"• **Weight Charge (2×):** Rs. {2.0 * wtVal:F0}\n\n" +
+                                       $"💰 **Cost Calculation (Normal Delivery):**\n" +
+                                       $"• `((2 × {wtVal:F1} kg) + Rs. {distCharge}) × 1.0 = Rs. {totalEst}`\n" +
                                        $"-------------------------------------\n" +
-                                       $"• **Total Estimated Cost:** **${totalEst:F2}**";
+                                       $"• **Total Estimated Cost:** **Rs. {totalEst}**";
                     }
                     else
                     {
@@ -285,23 +289,25 @@ namespace Fleetify.Services.Implementations
                             double.TryParse(kmMatch.Groups[1].Value, out double distVal) &&
                             double.TryParse(kgMatch.Groups[1].Value, out double wtVal))
                         {
-                            double totalEst = Math.Round(distVal * wtVal * 1.50, 2);
+                            double distCharge = CostEstimationService.CalculateDistanceCharge(distVal);
+                            double totalEst = Math.Floor((2.0 * wtVal) + distCharge);
 
                             botReplyText = $"💰 **Calculated Delivery Cost Estimate:**\n\n" +
-                                           $"• **Distance:** {distVal:F1} km\n" +
-                                           $"• **Weight:** {wtVal:F1} kg\n" +
-                                           $"• **Rate:** $1.50 per km per kg\n" +
-                                           $"• **Formula:** `{distVal:F1} km × {wtVal:F1} kg × $1.50`\n" +
+                                           $"• **Distance:** {distVal:F1} km (Tier Charge: Rs. {distCharge})\n" +
+                                           $"• **Weight:** {wtVal:F1} kg (Weight Charge: Rs. {2.0 * wtVal:F0})\n" +
+                                           $"• **Formula:** `((2 × {wtVal:F1}) + {distCharge}) × Multiplier`\n" +
                                            $"-------------------------------------\n" +
-                                           $"• **Total Estimated Cost:** **${totalEst:F2}**";
+                                           $"• **Total Estimated Cost (Normal):** **Rs. {totalEst}**\n" +
+                                           $"• *Fast Delivery (1.75×): Rs. {Math.Floor(((2.0 * wtVal) + distCharge) * 1.75)}*\n" +
+                                           $"• *Express Delivery (2.5×): Rs. {Math.Floor(((2.0 * wtVal) + distCharge) * 2.5)}*";
                         }
                         else
                         {
                             botReplyText = "💰 **Fleetify Delivery Cost Calculation Formula:**\n\n" +
-                                           "• **Formula:** Total Cost = Distance (in km) × Weight (in kg) × $1.50\n" +
-                                           "• **Rate:** $1.50 per km per kg\n" +
-                                           "• **Example:** Agar distance 90.6 km aur parcel 2 kg ka ho: `90.6 × 2 × $1.50 = $271.80`\n\n" +
-                                           "Aap apna **Pickup & Drop-off locations** (maslan *Shaheenabad, Gujranwala se Data Darbar, Lahore*) aur wazan (kg) bataiye, main exact Google Maps verified distance se calculation kar ke bata doonga!";
+                                           "• **Formula:** `Total = ( (2 × Weight_kg) + Distance_Tier_Charge ) × Speed_Multiplier`\n" +
+                                           "• **Distance Tiers:** <50km: Rs. 1500 | <150km: Rs. 2500 | <250km: Rs. 4000 | <500km: Rs. 7000 | <1000km: Rs. 12000 | 1000km+: Rs. 18000\n" +
+                                           "• **Speed Multipliers:** Normal: 1.0× | Fast: 1.75× | Express: 2.5×\n\n" +
+                                           "Aap apna **Pickup & Drop-off locations** aur parcel weight (kg) bataiye, main exact Google Maps verified distance se calculation kar ke bata doonga!";
                         }
                     }
                 }

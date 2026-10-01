@@ -213,6 +213,33 @@
 
                 <div class="row g-2 mb-3 small">
                     <div class="col-6">
+                        <span class="text-secondary d-block">Product Name</span>
+                        <strong class="text-dark">@(!string.IsNullOrWhiteSpace(Model.PackageName) ? Model.PackageName : (!string.IsNullOrWhiteSpace(Model.ParcelDescription) ? Model.ParcelDescription : "Product"))</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-secondary d-block">Package Type</span>
+                        <strong>@(string.IsNullOrWhiteSpace(Model.ParcelDescription) ? "Electronics" : Model.ParcelDescription)</strong>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6">
+                        <span class="text-secondary d-block">Dimensions (Single Unit)</span>
+                        <strong class="font-mono">@(Model.Length > 0 ? Model.Length : 2.0) × @(Model.Width > 0 ? Model.Width : 1.5) × @(Model.Height > 0 ? Model.Height : 1.0) ft</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-secondary d-block">Quantity &amp; Volume</span>
+                        <strong class="text-primary font-mono">
+                            @{
+                                var trkCft = Model.TotalCubicFeet > 0 ? Model.TotalCubicFeet : Math.Round((Model.Length > 0 ? Model.Length : 2.0) * (Model.Width > 0 ? Model.Width : 1.5) * (Model.Height > 0 ? Model.Height : 1.0) * (Model.Quantity > 0 ? Model.Quantity : 1), 2);
+                            }
+                            @(Model.Quantity > 0 ? Model.Quantity : 1) qty • @trkCft.ToString("0.##") CFT
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6">
                         <span class="text-secondary d-block">Estimated Distance</span>
                         <strong>@Math.Floor(Model.DistanceKm).ToString("F0") km</strong>
                     </div>
