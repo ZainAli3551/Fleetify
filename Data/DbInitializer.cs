@@ -167,6 +167,21 @@ namespace Fleetify.Data
                     // Ensure password matches admin123
                     adminUser.PasswordHash = authService.HashPassword("admin123");
                 }
+
+                // Ensure Zain Ali exists as Admin
+                var zainAdmin = await context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == "zainibutt242@gmail.com");
+                if (zainAdmin == null)
+                {
+                    context.Admins.Add(new Models.Entities.Admin
+                    {
+                        FullName = "Zain Ali",
+                        Email = "zainibutt242@gmail.com",
+                        PasswordHash = authService.HashPassword("admin123"),
+                        PhoneNumber = "+923001234567",
+                        Role = "Admin",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
                 await context.SaveChangesAsync();
 
                 // 2. Ensure default System Driver exists

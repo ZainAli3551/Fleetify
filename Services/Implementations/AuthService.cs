@@ -83,7 +83,7 @@ namespace Fleetify.Services.Implementations
             var input = raw.ToLower();
 
             // Build candidate email/usernames
-            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input };
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input, raw };
             if (input == "admin") candidates.Add("admin@fleetify.com");
             if (input == "customer") candidates.Add("customer@fleetify.com");
             if (input == "driver") candidates.Add("driver@fleetify.com");
@@ -95,23 +95,23 @@ namespace Fleetify.Services.Implementations
             var roleLower = (role ?? string.Empty).ToLower();
             if (roleLower == "admin")
             {
-                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input);
+                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw);
             }
             else if (roleLower == "driver")
             {
-                user = await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input);
+                user = await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw);
             }
             else if (roleLower == "customer")
             {
-                user = await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input);
+                user = await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw);
             }
 
             // 2. If not found in requested role, search across all 3 tables seamlessly
             if (user == null)
             {
-                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input);
-                user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input);
-                user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input);
+                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw);
+                user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw);
+                user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw);
             }
 
             // 3. Verify password
@@ -128,15 +128,15 @@ namespace Fleetify.Services.Implementations
             var raw = (emailOrUsername ?? string.Empty).Trim();
             var input = raw.ToLower();
 
-            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input };
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input, raw };
             if (input == "admin") candidates.Add("admin@fleetify.com");
             if (input == "customer") candidates.Add("customer@fleetify.com");
             if (input == "driver") candidates.Add("driver@fleetify.com");
             if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
 
-            if (await _context.Admins.AnyAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input)) return "Admin";
-            if (await _context.Drivers.AnyAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input)) return "Driver";
-            if (await _context.Users.AnyAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input)) return "Customer";
+            if (await _context.Admins.AnyAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw)) return "Admin";
+            if (await _context.Drivers.AnyAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw)) return "Driver";
+            if (await _context.Users.AnyAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw)) return "Customer";
             return null;
         }
 
@@ -211,15 +211,15 @@ namespace Fleetify.Services.Implementations
             var raw = (emailOrUsername ?? string.Empty).Trim();
             var input = raw.ToLower();
 
-            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input };
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input, raw };
             if (input == "admin") candidates.Add("admin@fleetify.com");
             if (input == "customer") candidates.Add("customer@fleetify.com");
             if (input == "driver") candidates.Add("driver@fleetify.com");
             if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
 
-            BaseUser? user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input);
-            user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input);
-            user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input);
+            BaseUser? user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw);
+            user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw);
+            user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw);
             return user;
         }
 

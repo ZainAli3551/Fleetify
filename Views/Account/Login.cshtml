@@ -526,14 +526,7 @@
                                    type="text" 
                                    class="pill-input-control" 
                                    placeholder="Email or Username" 
-                                   autocomplete="off" 
-                                   data-lpignore="true" 
-                                   data-form-type="other" 
-                                   autocorrect="off" 
-                                   autocapitalize="off" 
-                                   spellcheck="false" 
-                                   readonly 
-                                   onfocus="this.removeAttribute('readonly');" 
+                                   autocomplete="username" 
                                    required 
                                    oninput="validateEmailField(this)" />
                         </div>
@@ -551,13 +544,10 @@
                                    type="password" 
                                    class="pill-input-control" 
                                    placeholder="Password" 
-                                   autocomplete="new-password" 
-                                   data-lpignore="true"
-                                   readonly
-                                   onfocus="this.removeAttribute('readonly');"
+                                   autocomplete="current-password" 
                                    required 
                                    oninput="validatePasswordField(this)" />
-                            <button type="button" class="btn-pill-eye" onclick="togglePasswordVisibility()" title="Show/Hide Password" aria-label="Toggle password visibility">
+                            <button type="button" class="btn-pill-eye" onclick="togglePasswordVisibility('inputPassword', 'passwordEyeIcon')" title="Show / Hide Password" aria-label="Toggle password visibility">
                                 <i class="bi bi-eye-slash" id="passwordEyeIcon"></i>
                             </button>
                         </div>
@@ -647,9 +637,10 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         // Password Visibility Toggle
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('inputPassword');
-            const eyeIcon = document.getElementById('passwordEyeIcon');
+        function togglePasswordVisibility(inputId = 'inputPassword', iconId = 'passwordEyeIcon') {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
+            if (!passwordInput || !eyeIcon) return;
 
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -666,15 +657,16 @@
         function validateEmailField(input) {
             const errorSpan = document.getElementById('emailClientError');
             const box = document.getElementById('emailInputBox');
+            if (!input) return true;
             const val = (input.value || '').trim();
 
             if (!val) {
-                errorSpan.textContent = 'Email or username is required.';
-                box.classList.add('is-invalid');
+                if (errorSpan) errorSpan.textContent = 'Email or username is required.';
+                if (box) box.classList.add('is-invalid');
                 return false;
             } else {
-                errorSpan.textContent = '';
-                box.classList.remove('is-invalid');
+                if (errorSpan) errorSpan.textContent = '';
+                if (box) box.classList.remove('is-invalid');
                 return true;
             }
         }
@@ -683,19 +675,20 @@
         function validatePasswordField(input) {
             const errorSpan = document.getElementById('passwordClientError');
             const box = document.getElementById('passwordInputBox');
+            if (!input) return true;
             const val = input.value || '';
 
             if (!val) {
-                errorSpan.textContent = 'Password is required.';
-                box.classList.add('is-invalid');
+                if (errorSpan) errorSpan.textContent = 'Password is required.';
+                if (box) box.classList.add('is-invalid');
                 return false;
             } else if (val.length < 6) {
-                errorSpan.textContent = 'Password must be at least 6 characters.';
-                box.classList.add('is-invalid');
+                if (errorSpan) errorSpan.textContent = 'Password must be at least 6 characters.';
+                if (box) box.classList.add('is-invalid');
                 return false;
             } else {
-                errorSpan.textContent = '';
-                box.classList.remove('is-invalid');
+                if (errorSpan) errorSpan.textContent = '';
+                if (box) box.classList.remove('is-invalid');
                 return true;
             }
         }
@@ -705,11 +698,15 @@
             const emailInput = document.getElementById('inputEmail');
             const passwordInput = document.getElementById('inputPassword');
 
+            if (emailInput) {
+                emailInput.value = (emailInput.value || '').trim();
+            }
+
             const isEmailValid = validateEmailField(emailInput);
             const isPasswordValid = validatePasswordField(passwordInput);
 
             if (!isEmailValid || !isPasswordValid) {
-                event.preventDefault();
+                if (event) event.preventDefault();
                 return false;
             }
 
@@ -719,32 +716,45 @@
             const btnLabel = document.getElementById('btnSignInLabel');
             const btnArrow = document.getElementById('btnArrowIcon');
 
-            btnSubmit.disabled = true;
-            btnSpinner.classList.remove('d-none');
-            btnArrow.classList.add('d-none');
-            btnLabel.textContent = 'Signing in...';
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                if (btnSpinner) btnSpinner.classList.remove('d-none');
+                if (btnArrow) btnArrow.classList.add('d-none');
+                if (btnLabel) btnLabel.textContent = 'Signing in...';
+            }
 
             return true;
         }
 
         // Forgot Password Modal Handlers
         function openForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').classList.remove('d-none');
-            document.getElementById('forgotEmailInput').focus();
+            const modal = document.getElementById('forgotPasswordModal');
+            if (modal) {
+                modal.classList.remove('d-none');
+                const emailInput = document.getElementById('forgotEmailInput');
+                if (emailInput) {
+                    const currentLoginEmail = document.getElementById('inputEmail')?.value || '';
+                    if (currentLoginEmail && !emailInput.value) {
+                        emailInput.value = currentLoginEmail.trim();
+                    }
+                    setTimeout(() => emailInput.focus(), 100);
+                }
+            }
         }
 
         function closeForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').classList.add('d-none');
+            const modal = document.getElementById('forgotPasswordModal');
+            if (modal) modal.classList.add('d-none');
         }
 
         function handleBackdropClick(event) {
-            if (event.target.id === 'forgotPasswordModal') {
+            if (event.target && event.target.id === 'forgotPasswordModal') {
                 closeForgotPasswordModal();
             }
         }
 
         async function submitForgotPassword(event) {
-            event.preventDefault();
+            if (event) event.preventDefault();
             const btnForgot = document.getElementById('btnForgotSubmit');
             const btnForgotSpinner = document.getElementById('btnForgotSpinner');
             const btnForgotLabel = document.getElementById('btnForgotLabel');
@@ -752,14 +762,20 @@
             const errorNotice = document.getElementById('forgotErrorNotice');
             const emailInput = document.getElementById('forgotEmailInput');
 
-            const emailVal = (emailInput.value || '').trim();
-            if (!emailVal) return;
+            const emailVal = (emailInput ? emailInput.value : '').trim();
+            if (!emailVal) {
+                if (errorNotice) {
+                    document.getElementById('forgotErrorMsg').textContent = 'Please enter your registered email address or username.';
+                    errorNotice.classList.remove('d-none');
+                }
+                return;
+            }
 
-            successNotice.classList.add('d-none');
-            errorNotice.classList.add('d-none');
-            btnForgot.disabled = true;
-            btnForgotSpinner.classList.remove('d-none');
-            btnForgotLabel.textContent = 'Sending...';
+            if (successNotice) successNotice.classList.add('d-none');
+            if (errorNotice) errorNotice.classList.add('d-none');
+            if (btnForgot) btnForgot.disabled = true;
+            if (btnForgotSpinner) btnForgotSpinner.classList.remove('d-none');
+            if (btnForgotLabel) btnForgotLabel.textContent = 'Sending...';
 
             try {
                 const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
@@ -776,40 +792,31 @@
 
                 const data = await response.json();
 
-                if (data.success) {
-                    document.getElementById('forgotSuccessMsg').textContent = data.message || ('A password reset link has been dispatched to your email address (' + (data.email || emailVal) + '). Please check your Gmail inbox and click the link to reset your password.');
-                    successNotice.classList.remove('d-none');
-                    emailInput.value = '';
+                if (data && data.success) {
+                    const successMsgEl = document.getElementById('forgotSuccessMsg');
+                    if (successMsgEl) {
+                        successMsgEl.textContent = data.message || ('A password reset link has been dispatched to your email address (' + (data.email || emailVal) + '). Please check your Gmail inbox and click the link to reset your password.');
+                    }
+                    if (successNotice) successNotice.classList.remove('d-none');
+                    if (emailInput) emailInput.value = '';
                 } else {
-                    document.getElementById('forgotErrorMsg').textContent = data.message || 'Unable to find an account matching that email address.';
-                    errorNotice.classList.remove('d-none');
+                    const errorMsgEl = document.getElementById('forgotErrorMsg');
+                    if (errorMsgEl) {
+                        errorMsgEl.textContent = data?.message || 'Unable to find an account matching that email address or username.';
+                    }
+                    if (errorNotice) errorNotice.classList.remove('d-none');
                 }
             } catch (err) {
-                document.getElementById('forgotErrorMsg').textContent = 'An unexpected network error occurred. Please try again.';
-                errorNotice.classList.remove('d-none');
+                const errorMsgEl = document.getElementById('forgotErrorMsg');
+                if (errorMsgEl) {
+                    errorMsgEl.textContent = 'An unexpected network error occurred. Please try again.';
+                }
+                if (errorNotice) errorNotice.classList.remove('d-none');
             } finally {
-                btnForgot.disabled = false;
-                btnForgotSpinner.classList.add('d-none');
-                btnForgotLabel.textContent = 'Send Reset Link';
-            }
+                if (btnForgot) btnForgot.disabled = false;
+                if (btnForgotSpinner) btnForgotSpinner.classList.add('d-none');
+                if (btnForgotLabel) btnForgotLabel.textContent = 'Send Reset Link';
             }
         }
-
-        // Clear any lingering browser autofill values on fresh page load
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                const emailInput = document.getElementById('inputEmail');
-                const passwordInput = document.getElementById('inputPassword');
-                const formErrors = document.querySelector('.clean-alert-danger');
-                if (!formErrors) {
-                    if (emailInput && !emailInput.getAttribute('value')) {
-                        emailInput.value = '';
-                    }
-                    if (passwordInput) {
-                        passwordInput.value = '';
-                    }
-                }
-            }, 50);
-        });
     </script>
 }

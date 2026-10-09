@@ -55,20 +55,26 @@ namespace Fleetify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            if (model != null)
+            {
+                model.Email = (model.Email ?? string.Empty).Trim();
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // Auto-detect user role by email so no manual Customer/Admin selection is needed
-            var roleToAuthenticate = model.Role;
-            var detectedRole = await _authService.GetUserRoleByEmailAsync(model.Email);
+            // Auto-detect user role by email/username so no manual Customer/Admin selection is needed
+            var roleToAuthenticate = model?.Role ?? "Customer";
+            var emailInput = model?.Email ?? string.Empty;
+            var detectedRole = await _authService.GetUserRoleByEmailAsync(emailInput);
             if (!string.IsNullOrEmpty(detectedRole))
             {
                 roleToAuthenticate = detectedRole;
             }
 
-            var user = await _authService.AuthenticateAsync(model.Email, model.Password, roleToAuthenticate ?? "Customer");
+            var user = await _authService.AuthenticateAsync(emailInput, model?.Password ?? string.Empty, roleToAuthenticate ?? "Customer");
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid email address or password. Please check your credentials and try again.");
@@ -97,8 +103,8 @@ namespace Fleetify.Controllers
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = model.RememberMe,
-                ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddDays(1)
+                IsPersistent = model?.RememberMe ?? false,
+                ExpiresUtc = (model?.RememberMe == true) ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddDays(1)
             };
 
             await HttpContext.SignInAsync(
@@ -115,7 +121,7 @@ namespace Fleetify.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
 
-            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+            if (!string.IsNullOrEmpty(model?.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
             {
                 return Redirect(model.ReturnUrl);
             }
@@ -298,7 +304,7 @@ Fleetify Operations & Logistics Team";
 
         // POST: /Account/ForgotPassword
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Email))

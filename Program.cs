@@ -91,6 +91,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// Configure Antiforgery to support RequestVerificationToken header in AJAX calls
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
+
 // 5. Add MVC Controllers and Views
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
