@@ -15,5 +15,6 @@ namespace Fleetify.Services.Interfaces
         Task<User> RegisterCustomerAsync(RegisterViewModel model);
         Task<Driver> RegisterDriverAsync(RegisterViewModel model);
         Task<Admin> RegisterAdminAsync(RegisterViewModel model);
+        Task<bool> ResetPasswordAsync(string email, string newPassword);
     }
 }

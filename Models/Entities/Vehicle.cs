@@ -27,6 +27,10 @@ namespace Fleetify.Models.Entities
 
         public double CurrentMileage { get; set; }
 
+        public double InitialMileage { get; set; }
+
+        public double CompletedRouteMileage { get; set; }
+
         public double LastServiceMileage { get; set; }
 
         public virtual ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();

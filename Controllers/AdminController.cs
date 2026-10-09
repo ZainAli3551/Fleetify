@@ -175,10 +175,14 @@ namespace Fleetify.Controllers
                 return RedirectToAction(nameof(Vehicles));
             }
 
+            // Initial registration mileage is recorded and excluded from maintenance calculations
+            vehicle.InitialMileage = vehicle.CurrentMileage;
+            vehicle.CompletedRouteMileage = 0.0;
+
             _context.Vehicles.Add(vehicle);
             await _context.SaveChangesAsync();
 
-            // Run initial predictive maintenance check
+            // Run initial predictive maintenance check (evaluated on CompletedRouteMileage = 0.0)
             await _maintenanceService.CheckAndGenerateAlertAsync(vehicle.VehicleID);
 
             TempData["SuccessMessage"] = $"Vehicle '{vehicle.VehicleNumber}' added to fleet successfully!";
@@ -242,6 +246,55 @@ namespace Fleetify.Controllers
             ViewBag.ActiveShipments = activeShipments;
 
             return View(pendingRequests);
+        }
+
+        // GET: /Admin/Deliveries
+        public async Task<IActionResult> Deliveries(string statusFilter = "All", string search = "")
+        {
+            var query = _context.DeliveryRequests
+                .Include(r => r.User)
+                .Include(r => r.Assignment)
+                    .ThenInclude(a => a!.Driver)
+                .Include(r => r.Assignment)
+                    .ThenInclude(a => a!.Vehicle)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                query = query.Where(r => 
+                    r.TrackingNumber.Contains(search) || 
+                    (r.User != null && r.User.FullName.Contains(search)) ||
+                    r.PickupLocation.Contains(search) ||
+                    r.DropoffLocation.Contains(search) ||
+                    (r.PackageName != null && r.PackageName.Contains(search))
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(statusFilter) && statusFilter != "All")
+            {
+                query = query.Where(r => r.RequestedStatus == statusFilter);
+            }
+
+            var allDeliveries = await query.OrderByDescending(r => r.RequestDate).ToListAsync();
+
+            var allCount = await _context.DeliveryRequests.CountAsync();
+            var pendingCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Pending");
+            var assignedCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Assigned");
+            var inTransitCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "In-Transit");
+            var deliveredCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Delivered");
+            var cancelledCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Cancelled");
+
+            ViewBag.CurrentFilter = statusFilter;
+            ViewBag.SearchTerm = search;
+            ViewBag.TotalCount = allCount;
+            ViewBag.PendingCount = pendingCount;
+            ViewBag.AssignedCount = assignedCount;
+            ViewBag.InTransitCount = inTransitCount;
+            ViewBag.DeliveredCount = deliveredCount;
+            ViewBag.CancelledCount = cancelledCount;
+
+            return View(allDeliveries);
         }
 
         // POST: /Admin/AssignDelivery
@@ -510,7 +563,7 @@ Yeh notification aap ke registered Gmail address par bheja gaya hai.";
         // POST: /Admin/UpdateDeliveryMilestone
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateDeliveryMilestone(int requestId, string status, string? remarks)
+        public async Task<IActionResult> UpdateDeliveryMilestone(int requestId, string status, string? remarks, string? returnUrl = null)
         {
             var req = await _context.DeliveryRequests
                 .Include(r => r.User)
@@ -520,7 +573,9 @@ Yeh notification aap ke registered Gmail address par bheja gaya hai.";
             if (req == null)
             {
                 TempData["ErrorMessage"] = "Delivery request not found.";
-                return RedirectToAction(nameof(Assignments));
+                return !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl) 
+                    ? Redirect(returnUrl) 
+                    : RedirectToAction(nameof(Assignments));
             }
 
             req.RequestedStatus = status;
@@ -572,7 +627,9 @@ Yeh notification aap ke registered Gmail address par bheja gaya hai.";
             }
 
             TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} status updated to '{status}'. Gmail notification sent to customer ({customer?.Email}).";
-            return RedirectToAction(nameof(Assignments));
+            return !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl) 
+                ? Redirect(returnUrl) 
+                : RedirectToAction(nameof(Assignments));
         }
 
         // GET: /Admin/Maintenance
@@ -615,7 +672,7 @@ Yeh notification aap ke registered Gmail address par bheja gaya hai.";
                 {
                     alert.Vehicle.ConditionStatus = "Good";
                     alert.Vehicle.AvailabilityStatus = "Available";
-                    alert.Vehicle.LastServiceMileage = alert.Vehicle.CurrentMileage;
+                    alert.Vehicle.LastServiceMileage = alert.Vehicle.CompletedRouteMileage;
                 }
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Alert #{alert.AlertID} resolved. Vehicle serviced and marked operational.";

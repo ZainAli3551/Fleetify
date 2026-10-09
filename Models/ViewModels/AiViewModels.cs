@@ -9,14 +9,18 @@ namespace Fleetify.Models.ViewModels
         public string? OriginWarehouse { get; set; }
         public string? DestinationWarehouse { get; set; }
         public double DistanceKm { get; set; } = 15.0;
-        public double ParcelWeight { get; set; } = 2.0;
+        public double ParcelWeight { get; set; } = 0.0;
         public string VehicleType { get; set; } = "Truck";
         public string RouteType { get; set; } = "Normal";
         public string OriginType { get; set; } = "DoorstepPickup"; // DoorstepPickup, WarehouseDropoff
         public string DestinationType { get; set; } = "DoorstepDelivery"; // DoorstepDelivery, WarehousePickup
         public bool IsPrivateTransport { get; set; } = false;
         public double TotalCubicFeet { get; set; } = 0.0;
-        public double SingleItemWeight { get; set; } = 2.0;
+        public double Length { get; set; } = 0.0;
+        public double Width { get; set; } = 0.0;
+        public double Height { get; set; } = 0.0;
+        public string? Dimensions { get; set; }
+        public double SingleItemWeight { get; set; } = 0.0;
         public int Quantity { get; set; } = 1;
     }
 
@@ -78,6 +82,8 @@ namespace Fleetify.Models.ViewModels
     {
         public int VehicleId { get; set; }
         public double CurrentMileage { get; set; }
+        public double InitialMileage { get; set; }
+        public double CompletedRouteMileage { get; set; }
         public double LastServiceMileage { get; set; }
         public string ConditionStatus { get; set; } = "Good";
         public string VehicleType { get; set; } = "Van";
@@ -90,6 +96,8 @@ namespace Fleetify.Models.ViewModels
         public string Severity { get; set; } = "Low"; // Low, Medium, High, Critical
         public string Recommendation { get; set; } = string.Empty;
         public double MileageSinceLastService { get; set; }
+        public double CompletedRouteMileage { get; set; }
+        public double InitialMileage { get; set; }
         public bool RequiresImmediateAction { get; set; }
         public List<string> ActionItems { get; set; } = new();
     }

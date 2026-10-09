@@ -32,43 +32,45 @@ namespace Fleetify.Services.Implementations
 
         public MaintenancePredictionResult EvaluateVehicle(Vehicle vehicle)
         {
-            double mileageSinceLastService = vehicle.CurrentMileage - vehicle.LastServiceMileage;
-            if (mileageSinceLastService < 0) mileageSinceLastService = vehicle.CurrentMileage;
+            double mileageSinceLastService = vehicle.CompletedRouteMileage - vehicle.LastServiceMileage;
+            if (mileageSinceLastService < 0) mileageSinceLastService = vehicle.CompletedRouteMileage;
 
             var result = new MaintenancePredictionResult
             {
                 VehicleId = vehicle.VehicleID,
+                InitialMileage = vehicle.InitialMileage,
+                CompletedRouteMileage = vehicle.CompletedRouteMileage,
                 MileageSinceLastService = mileageSinceLastService
             };
 
-            // Milestone Evaluation based on cumulative mileage
-            if (vehicle.CurrentMileage >= 5000 || vehicle.ConditionStatus.Equals("Critical", StringComparison.OrdinalIgnoreCase) || mileageSinceLastService >= 12000)
+            // Milestone Evaluation based strictly on cumulative completed route delivery mileage
+            if (vehicle.CompletedRouteMileage >= 5000 || vehicle.ConditionStatus.Equals("Critical", StringComparison.OrdinalIgnoreCase))
             {
                 result.AlertType = "Full Vehicle Service Due";
                 result.Severity = "Critical";
                 result.RequiresImmediateAction = true;
-                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has reached cumulative mileage of {vehicle.CurrentMileage:N0} km from completed route deliveries. Immediate full vehicle service and comprehensive mechanical inspection required.";
+                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has accumulated {vehicle.CompletedRouteMileage:N0} km from completed delivery routes. Immediate full vehicle service and comprehensive mechanical inspection required.";
                 result.ActionItems.Add("Take vehicle off active assignments immediately ('Under Service')");
                 result.ActionItems.Add("Schedule complete engine diagnostic and fluid flush");
                 result.ActionItems.Add("Inspect brake pads, rotors, and transmission fluids");
                 result.ActionItems.Add("Perform wheel alignment and suspension inspection");
             }
-            else if (vehicle.CurrentMileage >= 3000 || vehicle.ConditionStatus.Equals("Warning", StringComparison.OrdinalIgnoreCase) || mileageSinceLastService >= 7500)
+            else if (vehicle.CompletedRouteMileage >= 3000 || vehicle.ConditionStatus.Equals("Warning", StringComparison.OrdinalIgnoreCase))
             {
                 result.AlertType = "Upcoming Oil Change";
                 result.Severity = "Warning";
                 result.RequiresImmediateAction = true;
-                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has reached cumulative mileage of {vehicle.CurrentMileage:N0} km from completed route deliveries. An upcoming engine oil and filter change is required.";
+                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has accumulated {vehicle.CompletedRouteMileage:N0} km from completed delivery routes. An upcoming engine oil and filter change is required.";
                 result.ActionItems.Add("Schedule engine oil and oil filter replacement");
                 result.ActionItems.Add("Inspect engine oil viscosity and dipstick levels");
                 result.ActionItems.Add("Inspect coolant and brake fluid levels");
             }
-            else if (mileageSinceLastService >= 1500)
+            else if (vehicle.CompletedRouteMileage >= 1500)
             {
                 result.AlertType = "Inspection Due";
                 result.Severity = "Medium";
                 result.RequiresImmediateAction = false;
-                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} is approaching regular preventive inspection threshold ({vehicle.CurrentMileage:N0} km cumulative).";
+                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} has reached {vehicle.CompletedRouteMileage:N0} km of completed route deliveries (approaching preventive inspection).";
                 result.ActionItems.Add("Inspect tire tread and pressure");
                 result.ActionItems.Add("Check windshield wiper fluid and lighting");
             }
@@ -77,7 +79,7 @@ namespace Fleetify.Services.Implementations
                 result.AlertType = "Normal";
                 result.Severity = "Low";
                 result.RequiresImmediateAction = false;
-                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} is operating within healthy operational parameters.";
+                result.Recommendation = $"Vehicle {vehicle.VehicleNumber} is operating within healthy operational parameters ({vehicle.CompletedRouteMileage:N0} km route distance completed).";
                 result.ActionItems.Add("Routine weekly driver visual inspection");
             }
 
@@ -89,10 +91,10 @@ namespace Fleetify.Services.Implementations
             var vehicle = await _context.Vehicles.FindAsync(vehicleId);
             if (vehicle == null) return null;
 
-            // Increment mileage if distance specified
+            // Increment route mileage if distance specified
             if (distanceAdded > 0)
             {
-                vehicle.CurrentMileage += distanceAdded;
+                vehicle.CompletedRouteMileage += distanceAdded;
             }
 
             // Also synchronize with cumulative distance from all completed delivery requests for this vehicle
@@ -102,15 +104,18 @@ namespace Fleetify.Services.Implementations
                             (a.AssignmentStatus == "Completed" || a.DeliveryRequest.RequestedStatus == "Delivered"))
                 .SumAsync(a => (double?)a.DeliveryRequest!.DistanceKm) ?? 0.0;
 
-            if (completedDistance > vehicle.CurrentMileage)
+            if (completedDistance > vehicle.CompletedRouteMileage)
             {
-                vehicle.CurrentMileage = completedDistance;
+                vehicle.CompletedRouteMileage = completedDistance;
             }
+
+            // Total physical odometer includes initial registration mileage + completed route mileage
+            vehicle.CurrentMileage = vehicle.InitialMileage + vehicle.CompletedRouteMileage;
 
             MaintenanceAlert? generatedAlert = null;
 
-            // 1. Check 5,000 km Milestone: Full Vehicle Service
-            if (vehicle.CurrentMileage >= 5000)
+            // 1. Check 5,000 km Milestone: Full Vehicle Service (based strictly on completed route mileage)
+            if (vehicle.CompletedRouteMileage >= 5000)
             {
                 var existingFullServiceAlert = await _context.MaintenanceAlerts
                     .FirstOrDefaultAsync(a => a.VehicleID == vehicleId &&
@@ -124,9 +129,9 @@ namespace Fleetify.Services.Implementations
                         VehicleID = vehicle.VehicleID,
                         AlertDate = DateTime.UtcNow,
                         AlertType = "Full Vehicle Service Due",
-                        Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has reached cumulative mileage of {vehicle.CurrentMileage:N0} km from completed route deliveries. Full vehicle service, engine diagnostics, brake inspection, and tire maintenance are required.",
+                        Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has reached cumulative route delivery distance of {vehicle.CompletedRouteMileage:N0} km. Full vehicle service, engine diagnostics, brake inspection, and tire maintenance are required.",
                         AlertStatus = "New",
-                        CurrentMileageAtAlert = vehicle.CurrentMileage
+                        CurrentMileageAtAlert = vehicle.CompletedRouteMileage
                     };
 
                     _context.MaintenanceAlerts.Add(generatedAlert);
@@ -137,7 +142,7 @@ namespace Fleetify.Services.Implementations
                     // Dispatch In-App Notifications
                     await DispatchInAppAdminNotificationsAsync(
                         $"URGENT: Full Vehicle Service Due ({vehicle.VehicleNumber})",
-                        $"Vehicle {vehicle.VehicleNumber} reached {vehicle.CurrentMileage:N0} km. Immediate full overhaul required.",
+                        $"Vehicle {vehicle.VehicleNumber} reached {vehicle.CompletedRouteMileage:N0} km of completed deliveries. Immediate full overhaul required.",
                         vehicle.VehicleID
                     );
 
@@ -148,7 +153,9 @@ namespace Fleetify.Services.Implementations
 VEHICLE TELEMETRY:
 • Vehicle Number: {vehicle.VehicleNumber}
 • Model & Type: {vehicle.Model} ({vehicle.VehicleType})
-• Cumulative Delivery Mileage: {vehicle.CurrentMileage:N0} km
+• Initial Registration Odometer: {vehicle.InitialMileage:N0} km (Excluded from Maintenance)
+• Cumulative Route Delivery Mileage: {vehicle.CompletedRouteMileage:N0} km
+• Total Physical Odometer: {vehicle.CurrentMileage:N0} km
 • Milestone Triggered: 5,000 km Cumulative Route Deliveries Threshold
 
 MAINTENANCE SPECIFICATION:
@@ -165,8 +172,8 @@ http://localhost:5000/Admin/Maintenance";
                 }
             }
 
-            // 2. Check 3,000 km Milestone: Upcoming Oil Change
-            if (vehicle.CurrentMileage >= 3000)
+            // 2. Check 3,000 km Milestone: Upcoming Oil Change (based strictly on completed route mileage)
+            if (vehicle.CompletedRouteMileage >= 3000)
             {
                 var existingOilAlert = await _context.MaintenanceAlerts
                     .FirstOrDefaultAsync(a => a.VehicleID == vehicleId &&
@@ -180,9 +187,9 @@ http://localhost:5000/Admin/Maintenance";
                         VehicleID = vehicle.VehicleID,
                         AlertDate = DateTime.UtcNow,
                         AlertType = "Upcoming Oil Change",
-                        Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has reached cumulative mileage of {vehicle.CurrentMileage:N0} km from completed route deliveries. An upcoming engine oil and filter change is required.",
+                        Recommendation = $"Vehicle {vehicle.VehicleNumber} ({vehicle.Model}) has reached cumulative route delivery distance of {vehicle.CompletedRouteMileage:N0} km. An upcoming engine oil and filter change is required.",
                         AlertStatus = "New",
-                        CurrentMileageAtAlert = vehicle.CurrentMileage
+                        CurrentMileageAtAlert = vehicle.CompletedRouteMileage
                     };
 
                     _context.MaintenanceAlerts.Add(generatedAlert);
@@ -195,7 +202,7 @@ http://localhost:5000/Admin/Maintenance";
                     // Dispatch In-App Notifications
                     await DispatchInAppAdminNotificationsAsync(
                         $"Vehicle Alert: Upcoming Oil Change ({vehicle.VehicleNumber})",
-                        $"Vehicle {vehicle.VehicleNumber} reached {vehicle.CurrentMileage:N0} km. Upcoming engine oil and filter change is due.",
+                        $"Vehicle {vehicle.VehicleNumber} reached {vehicle.CompletedRouteMileage:N0} km of completed deliveries. Upcoming engine oil and filter change is due.",
                         vehicle.VehicleID
                     );
 
@@ -206,11 +213,13 @@ http://localhost:5000/Admin/Maintenance";
 VEHICLE TELEMETRY:
 • Vehicle Number: {vehicle.VehicleNumber}
 • Model & Type: {vehicle.Model} ({vehicle.VehicleType})
-• Cumulative Delivery Mileage: {vehicle.CurrentMileage:N0} km
+• Initial Registration Odometer: {vehicle.InitialMileage:N0} km (Excluded from Maintenance)
+• Cumulative Route Delivery Mileage: {vehicle.CompletedRouteMileage:N0} km
+• Total Physical Odometer: {vehicle.CurrentMileage:N0} km
 • Milestone Triggered: 3,000 km Cumulative Route Deliveries Threshold
 
 MAINTENANCE SPECIFICATION:
-Vehicle {vehicle.VehicleNumber} has accumulated {vehicle.CurrentMileage:N0} km across completed route deliveries. Under fleet maintenance protocol:
+Vehicle {vehicle.VehicleNumber} has accumulated {vehicle.CompletedRouteMileage:N0} km across completed route deliveries. Under fleet maintenance protocol:
 1. An upcoming engine oil and oil filter change is required.
 2. Inspect engine oil level, viscosity, and check for minor leaks or fluid top-ups.
 3. Schedule servicing before commencing prolonged inter-city transit.
@@ -252,7 +261,7 @@ http://localhost:5000/Admin/Maintenance";
                         AlertType = evaluation.AlertType,
                         Recommendation = evaluation.Recommendation,
                         AlertStatus = "New",
-                        CurrentMileageAtAlert = vehicle.CurrentMileage
+                        CurrentMileageAtAlert = vehicle.CompletedRouteMileage
                     };
 
                     _context.MaintenanceAlerts.Add(alert);

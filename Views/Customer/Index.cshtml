@@ -1,7 +1,7 @@
 @model Fleetify.Models.ViewModels.CustomerDashboardViewModel
 @{
     Layout = null;
-    ViewData["Title"] = "Customer Dashboard - Fleetify";
+    ViewData["Title"] = "Customer Dashboard - Fleetfly";
     var userName = string.IsNullOrWhiteSpace(Model.UserName) ? "User" : Model.UserName;
     var firstName = userName.Split(' ')[0];
     var initials = string.Join("", userName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[0])).ToUpper();
@@ -20,899 +20,136 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Fleetify</title>
-    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <title>Dashboard - Fleetfly Logistics</title>
+    <!-- Google Fonts: Plus Jakarta Sans, Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
+    <!-- Bootstrap 5.3.3 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="~/images/favicon.png?v=20261009" asp-append-version="true" />
+    <!-- Modular Customer Dashboard CSS -->
+    <link rel="stylesheet" href="~/css/customer-dashboard.css" asp-append-version="true" />
     <!-- Site CSS for Support Chat & Components -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    <style>
-        :root {
-            --sidebar-bg: #0b1329;
-            --sidebar-hover: #16203d;
-            --sidebar-active: #2563eb;
-            --body-bg: #f4f6fa;
-            --card-bg: #ffffff;
-            --text-dark: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --primary-blue: #2563eb;
-            --primary-blue-hover: #1d4ed8;
-            --success-green: #10b981;
-            --warning-orange: #f59e0b;
-            --purple-accent: #8b5cf6;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--body-bg);
-            color: var(--text-dark);
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-
-        /* --------------------------------------------------------------------------
-           MAIN LAYOUT WRAPPER
-           -------------------------------------------------------------------------- */
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* --------------------------------------------------------------------------
-           SIDEBAR
-           -------------------------------------------------------------------------- */
-        .dashboard-sidebar {
-            width: 250px;
-            background-color: var(--sidebar-bg);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 1040;
-            transition: all 0.3s ease;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
-        }
-
-        .sidebar-brand {
-            padding: 1.5rem 1.25rem 1.25rem 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .sidebar-logo {
-            height: 38px;
-            width: auto;
-        }
-
-        .sidebar-brand-name {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-        }
-
-        .sidebar-brand-sub {
-            font-size: 0.65rem;
-            color: #94a3b8;
-            letter-spacing: 0.04em;
-        }
-
-        .sidebar-menu {
-            padding: 1.25rem 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
-
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            padding: 0.75rem 1rem;
-            color: #94a3b8;
-            font-size: 0.925rem;
-            font-weight: 600;
-            border-radius: 12px;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .sidebar-item i {
-            font-size: 1.15rem;
-            transition: transform 0.2s ease;
-        }
-
-        .sidebar-item:hover {
-            background-color: var(--sidebar-hover);
-            color: #ffffff;
-        }
-
-        .sidebar-item.active {
-            background-color: var(--sidebar-active);
-            color: #ffffff;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-        }
-
-        /* Bottom Sidebar Artwork Widget */
-        .sidebar-footer-widget {
-            padding: 1rem 0.85rem 1.25rem 0.85rem;
-        }
-
-        .sidebar-truck-card {
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.4) 0%, rgba(7, 13, 27, 0.9) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 0.75rem;
-            position: relative;
-            overflow: hidden;
-            text-align: center;
-        }
-
-        .sidebar-truck-img {
-            width: 100%;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            filter: brightness(0.9);
-        }
-
-        .sidebar-truck-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.15rem;
-        }
-
-        .sidebar-truck-desc {
-            font-size: 0.7rem;
-            color: #38bdf8;
-            letter-spacing: 0.02em;
-        }
-
-        /* --------------------------------------------------------------------------
-           MAIN CONTENT AREA
-           -------------------------------------------------------------------------- */
-        .dashboard-main {
-            margin-left: 250px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background-color: var(--body-bg);
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Topbar Header */
-        .dashboard-topbar {
-            height: 70px;
-            background-color: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-        }
-
-        .topbar-search-box {
-            position: relative;
-            max-width: 420px;
-            width: 100%;
-        }
-
-        .topbar-search-input {
-            width: 100%;
-            height: 44px;
-            border-radius: 9999px;
-            background-color: #f8fafc;
-            border: 1.5px solid #e2e8f0;
-            padding: 0 1.25rem 0 2.75rem;
-            font-size: 0.875rem;
-            color: var(--text-dark);
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        .topbar-search-input:focus {
-            background-color: #ffffff;
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .topbar-search-icon {
-            position: absolute;
-            left: 1.15rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 0.95rem;
-            pointer-events: none;
-        }
-
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-        }
-
-        .notification-btn {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #475569;
-            font-size: 1.15rem;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s ease;
-        }
-
-        .notification-btn:hover {
-            background-color: #f1f5f9;
-            color: var(--primary-blue);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: 7px;
-            right: 7px;
-            width: 8px;
-            height: 8px;
-            background-color: #ef4444;
-            border-radius: 50%;
-            border: 2px solid #ffffff;
-        }
-
-        .user-profile-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-            padding: 0.35rem 0.65rem;
-            border-radius: 9999px;
-            transition: background-color 0.2s ease;
-            text-decoration: none;
-        }
-
-        .user-profile-badge:hover {
-            background-color: #f8fafc;
-        }
-
-        .user-avatar-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-info-text {
-            line-height: 1.2;
-            text-align: left;
-        }
-
-        .user-display-name {
-            font-weight: 700;
-            font-size: 0.875rem;
-            color: var(--text-dark);
-            display: block;
-        }
-
-        .user-display-role {
-            font-size: 0.725rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            display: block;
-        }
-
-        /* --------------------------------------------------------------------------
-           DASHBOARD BODY
-           -------------------------------------------------------------------------- */
-        .dashboard-content-area {
-            padding: 2rem 2.25rem;
-            flex: 1;
-        }
-
-        /* Welcome Greeting */
-        .welcome-heading {
-            font-size: 1.85rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            letter-spacing: -0.025em;
-            margin-bottom: 0.25rem;
-        }
-
-        .welcome-sub {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            margin-bottom: 1.75rem;
-        }
-
-        /* --------------------------------------------------------------------------
-           TOP 4 METRICS CARDS
-           -------------------------------------------------------------------------- */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 2rem;
-        }
-
-        .metric-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.35rem 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1.15rem;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-        }
-
-        .metric-icon-wrap {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.45rem;
-            flex-shrink: 0;
-        }
-
-        .metric-icon-blue { background-color: #2563eb; color: #ffffff; }
-        .metric-icon-green { background-color: #10b981; color: #ffffff; }
-        .metric-icon-purple { background-color: #8b5cf6; color: #ffffff; }
-        .metric-icon-orange { background-color: #f59e0b; color: #ffffff; }
-
-        .metric-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .metric-label {
-            font-size: 0.825rem;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 0.15rem;
-        }
-
-        .metric-value {
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            line-height: 1.1;
-            margin-bottom: 0.25rem;
-        }
-
-        .metric-sub {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .dot-delivered { color: #10b981; }
-        .dot-pending { color: #f59e0b; }
-
-        /* --------------------------------------------------------------------------
-           MAIN TWO-COLUMN DASHBOARD GRID (FORM + SUMMARY & MAP)
-           -------------------------------------------------------------------------- */
-        .dashboard-two-col {
-            display: grid;
-            grid-template-columns: 1.65fr 1fr;
-            gap: 1.5rem;
-            align-items: start;
-        }
-
-        .dash-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-            overflow: hidden;
-        }
-
-        .card-header-clean {
-            padding: 1.5rem 1.75rem 0.75rem 1.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-title-group {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-        }
-
-        .card-title-icon {
-            color: var(--primary-blue);
-            font-size: 1.25rem;
-        }
-
-        .card-title-text {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin: 0;
-        }
-
-        .card-subtext {
-            font-size: 0.825rem;
-            color: var(--text-muted);
-            margin: 0.25rem 0 1.25rem 0;
-            padding: 0 1.75rem;
-        }
-
-        .badge-fast-secure {
-            background-color: #ecfdf5;
-            color: #059669;
-            font-weight: 600;
-            font-size: 0.75rem;
-            border-radius: 9999px;
-            padding: 0.35rem 0.85rem;
-            border: 1px solid #a7f3d0;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-        /* Form Sub-Sections */
-        .form-section-header {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--primary-blue);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.85rem;
-        }
-
-        .custom-input-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: #ffffff;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            height: 48px;
-            padding: 0 0.85rem;
-            transition: all 0.2s ease;
-        }
-
-        .custom-input-box:focus-within {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-        }
-
-        .input-icon {
-            color: #94a3b8;
-            font-size: 1rem;
-            margin-right: 0.65rem;
-            flex-shrink: 0;
-        }
-
-        .custom-input-box:focus-within .input-icon {
-            color: var(--primary-blue);
-        }
-
-        .custom-form-control {
-            border: none !important;
-            outline: none !important;
-            background: transparent !important;
-            width: 100%;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-dark);
-            padding: 0;
-        }
-
-        .custom-form-control::placeholder {
-            color: #94a3b8;
-            font-weight: 400;
-        }
-
-        .custom-select-control {
-            border: none !important;
-            outline: none !important;
-            background: transparent !important;
-            width: 100%;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-dark);
-            cursor: pointer;
-        }
-
-        .custom-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 0.35rem;
-            display: block;
-        }
-
-        .req-star { color: #ef4444; }
-
-        .custom-textarea {
-            width: 100%;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-dark);
-            outline: none;
-            resize: none;
-            height: 75px;
-            transition: all 0.2s ease;
-        }
-
-        .custom-textarea:focus {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-        }
-
-        .btn-submit-request {
-            width: 100%;
-            height: 50px;
-            border-radius: 12px;
-            background-color: var(--primary-blue);
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 0.95rem;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            box-shadow: 0 8px 18px -3px rgba(37, 99, 235, 0.35);
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .btn-submit-request:hover {
-            background-color: var(--primary-blue-hover);
-            transform: translateY(-1.5px);
-            box-shadow: 0 12px 24px -3px rgba(37, 99, 235, 0.45);
-        }
-
-        /* --------------------------------------------------------------------------
-           RIGHT COLUMN CARDS (SUMMARY & LIVE MAP)
-           -------------------------------------------------------------------------- */
-        .summary-route-box {
-            background-color: #f8fafc;
-            border: 1px solid #edf2f7;
-            border-radius: 16px;
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.25rem;
-        }
-
-        .route-stop {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .route-pin {
-            font-size: 1.35rem;
-        }
-
-        .route-city-name {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            line-height: 1.1;
-        }
-
-        .route-city-tag {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .route-arrow-connector {
-            display: flex;
-            align-items: center;
-            color: #94a3b8;
-            font-size: 0.85rem;
-            letter-spacing: 2px;
-            font-weight: bold;
-        }
-
-        .summary-stats-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            text-align: center;
-            padding-top: 0.5rem;
-        }
-
-        .summary-stat-cell {
-            padding: 0.5rem;
-            border-radius: 10px;
-            background: #fafafa;
-        }
-
-        .stat-icon-label {
-            font-size: 0.725rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-main-value {
-            font-size: 0.875rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        /* Map Card */
-        #routeLiveMap {
-            width: 100%;
-            height: 250px;
-            border-radius: 0;
-            z-index: 1;
-        }
-
-        .map-safety-banner {
-            background-color: #ffffff;
-            padding: 1rem 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .safety-badge-text {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-        }
-
-        .safety-badge-icon {
-            color: #10b981;
-            font-size: 1.5rem;
-        }
-
-        .safety-title {
-            font-size: 0.825rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin: 0;
-        }
-
-        .safety-sub {
-            font-size: 0.725rem;
-            color: var(--text-muted);
-            margin: 0;
-        }
-
-        /* --------------------------------------------------------------------------
-           BOTTOM FOOTER
-           -------------------------------------------------------------------------- */
-        .dashboard-footer {
-            background-color: #060d21;
-            color: #ffffff;
-            padding: 1.25rem 2.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            margin-top: auto;
-        }
-
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-        }
-
-        .footer-links {
-            display: flex;
-            align-items: center;
-            gap: 1.75rem;
-        }
-
-        .footer-link-item {
-            color: #94a3b8;
-            font-size: 0.85rem;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .footer-link-item:hover {
-            color: #ffffff;
-        }
-
-        .footer-social-wrap {
-            display: flex;
-            align-items: center;
-            gap: 1.15rem;
-            color: #94a3b8;
-        }
-
-        .footer-social-icon {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: color 0.2s ease;
-        }
-
-        .footer-social-icon:hover {
-            color: #38bdf8;
-        }
-
-        /* --------------------------------------------------------------------------
-           RESPONSIVE MEDIA QUERIES
-           -------------------------------------------------------------------------- */
-        @@media (max-width: 1200px) {
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .dashboard-two-col {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @@media (max-width: 991.98px) {
-            .dashboard-sidebar {
-                transform: translateX(-100%);
-            }
-            .dashboard-sidebar.show {
-                transform: translateX(0);
-            }
-            .dashboard-main {
-                margin-left: 0;
-            }
-            .dashboard-content-area {
-                padding: 1.5rem 1rem;
-            }
-            .dashboard-topbar {
-                padding: 0 1rem;
-            }
-            .dashboard-footer {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-        }
-
-        @@media (max-width: 575.98px) {
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            .topbar-search-box {
-                display: none;
-            }
-        }
-    </style>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="~/images/favicon.png?v=20261009" asp-append-version="true" />
 </head>
-<body>
+<body class="fly-dashboard-body">
 
-<div class="dashboard-container">
+<div class="fly-layout-wrap">
     
     <!-- ========================================================================
-         LEFT SIDEBAR (MATCHING SCREENSHOT)
+         1. LEFT SIDEBAR NAVIGATION (DARK NAVY)
          ======================================================================== -->
-    <aside class="dashboard-sidebar" id="dashboardSidebar">
+    <aside class="fly-sidebar" id="dashboardSidebar">
         <div>
             <!-- Sidebar Brand Header -->
-            <a href="/" class="sidebar-brand">
-                <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetify" class="sidebar-logo" style="height: 38px; width: auto; border-radius: 8px; padding: 3px 8px; background: #ffffff;" />
+            <a href="/Customer" class="fly-sidebar-brand" title="Dashboard">
+                <div class="fly-brand-badge">
+                    <img src="~/images/fleetify-icon.png?v=20261009" asp-append-version="true" alt="Fleetify" class="fly-brand-logo-img" />
+                </div>
             </a>
 
             <!-- Navigation Links -->
-            <nav class="sidebar-menu">
-                <a href="javascript:void(0)" class="sidebar-item active" id="menuDashboard" onclick="switchSidebarView('dashboard')">
-                    <i class="bi bi-grid-fill"></i>
-                    <span>Dashboard</span>
+            <nav class="fly-sidebar-menu">
+                <div class="fly-menu-heading">Main Operations</div>
+                <a href="javascript:void(0)" class="fly-nav-link active" id="menuDashboard" onclick="switchSidebarView('dashboard')">
+                    <div class="fly-nav-link-left">
+                        <i class="bi bi-grid-fill"></i>
+                        <span>Dashboard</span>
+                    </div>
                 </a>
-                <a href="javascript:void(0)" class="sidebar-item" id="menuNewDelivery" onclick="switchSidebarView('new-delivery')">
-                    <i class="bi bi-truck"></i>
-                    <span>New Delivery</span>
+                <a href="javascript:void(0)" class="fly-nav-link" id="menuNewDelivery" onclick="switchSidebarView('new-delivery')">
+                    <div class="fly-nav-link-left">
+                        <i class="bi bi-truck"></i>
+                        <span>New Delivery</span>
+                    </div>
+                    <span class="fly-nav-badge fly-nav-badge-green">+ New</span>
                 </a>
-                <a href="javascript:void(0)" class="sidebar-item" id="menuMyRequests" onclick="switchSidebarView('requests')">
-                    <i class="bi bi-list-ul"></i>
-                    <span>My Requests</span>
+                <a href="javascript:void(0)" class="fly-nav-link" id="menuMyRequests" onclick="switchSidebarView('requests')">
+                    <div class="fly-nav-link-left">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <span>My Requests</span>
+                    </div>
+                    <span class="fly-nav-badge">@totalRequests</span>
                 </a>
-                <a href="javascript:void(0)" class="sidebar-item" id="menuTrackParcel" onclick="switchSidebarView('track')">
-                    <i class="bi bi-geo-alt"></i>
-                    <span>Track Parcel</span>
+                <a href="javascript:void(0)" class="fly-nav-link" id="menuTrackParcel" onclick="switchSidebarView('track')">
+                    <div class="fly-nav-link-left">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>Track Parcel</span>
+                    </div>
                 </a>
-                <a href="javascript:void(0)" class="sidebar-item" id="menuProfile" onclick="openProfileModal()">
-                    <i class="bi bi-person"></i>
-                    <span>Profile</span>
+
+                <div class="fly-menu-heading mt-2">Account &amp; Support</div>
+                <a href="javascript:void(0)" class="fly-nav-link" id="menuProfile" onclick="openProfileModal()">
+                    <div class="fly-nav-link-left">
+                        <i class="bi bi-person-circle"></i>
+                        <span>Profile</span>
+                    </div>
                 </a>
-                <a href="javascript:void(0)" class="sidebar-item" id="menuSettings" onclick="openSettingsModal()">
-                    <i class="bi bi-gear"></i>
-                    <span>Settings</span>
+                <a href="javascript:void(0)" class="fly-nav-link" id="menuSettings" onclick="openSettingsModal()">
+                    <div class="fly-nav-link-left">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Settings</span>
+                    </div>
                 </a>
             </nav>
         </div>
 
-        <!-- Bottom Sidebar Widget Artwork -->
-        <div class="sidebar-footer-widget">
-            <div class="sidebar-truck-card">
-                <img src="~/images/fleet-sidebar-truck.jpg" alt="Fleetify Logistics" class="sidebar-truck-img" />
-                <div class="sidebar-truck-title">Fleetify</div>
-                <div class="sidebar-truck-desc">Your Cargo, Our Priority</div>
+        <!-- Sidebar VIP Card Widget -->
+        <div>
+            <div class="fly-sidebar-vip-card">
+                <div class="fly-vip-header">
+                    <div class="fly-vip-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="fly-vip-title">Fleetfly VIP Express</div>
+                </div>
+                <p class="fly-vip-desc">Priority dispatch, live GPS telemetry, and 100% insured cargo delivery.</p>
+                <a href="javascript:void(0)" class="fly-vip-btn" onclick="switchSidebarView('new-delivery')">
+                    <span>Book Now</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
         </div>
     </aside>
 
     <!-- ========================================================================
-         MAIN CONTENT AREA
+         2. MAIN WORKSPACE
          ======================================================================== -->
-    <div class="dashboard-main">
+    <div class="fly-main">
 
         <!-- TOPBAR HEADER -->
-        <header class="dashboard-topbar">
+        <header class="fly-topbar">
             <div class="d-flex align-items-center gap-3">
                 <button type="button" class="btn btn-sm btn-light border-0 p-1 d-lg-none" onclick="toggleSidebarDrawer()" aria-label="Toggle Sidebar">
                     <i class="bi bi-list fs-4"></i>
                 </button>
-                <div class="topbar-search-box">
-                    <i class="bi bi-search topbar-search-icon"></i>
-                    <input type="text" class="topbar-search-input" id="topbarSearchInput" placeholder="Search for deliveries, orders, or locations..." onkeyup="filterDeliveriesSearch(this.value)" />
+                <div class="fly-search-box">
+                    <i class="bi bi-search fly-search-icon"></i>
+                    <input type="text" class="fly-search-input" id="topbarSearchInput" placeholder="Search deliveries, orders, or tracking codes..." onkeyup="filterDeliveriesSearch(this.value)" />
+                    <span class="fly-search-shortcut">Ctrl+K</span>
                 </div>
             </div>
 
-            <div class="topbar-actions">
+            <div class="fly-topbar-actions">
+                <!-- Network Operational Badge -->
+                <div class="fly-status-beacon d-none d-md-flex">
+                    <span class="fly-pulse-dot"></span>
+                    <span>Fleetfly Network 100% Online</span>
+                </div>
+
                 <!-- Notification Bell -->
                 <div class="dropdown">
-                    <button type="button" class="notification-btn" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                    <button type="button" class="fly-icon-btn" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
                         <i class="bi bi-bell"></i>
                         @if (Model.Notifications != null && Model.Notifications.Any())
                         {
-                            <span class="notification-badge"></span>
+                            <span class="fly-icon-badge"></span>
                         }
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-3 mt-2" style="width: 320px; max-height: 400px; overflow-y: auto;">
@@ -940,16 +177,18 @@
 
                 <!-- User Profile Badge & Dropdown -->
                 <div class="dropdown">
-                    <a href="javascript:void(0)" class="user-profile-badge" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="user-avatar-circle">@initials</div>
-                        <div class="user-info-text d-none d-sm-block">
-                            <span class="user-display-name">@userName</span>
-                            <span class="user-display-role">User</span>
+                    <a href="javascript:void(0)" class="fly-user-profile-badge" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="fly-user-avatar">@initials</div>
+                        <div class="fly-user-info d-none d-sm-block">
+                            <div class="fly-user-name">@userName</div>
+                            <div class="fly-user-role">Verified Shipper</div>
                         </div>
+                        <i class="bi bi-chevron-down text-muted ms-1" style="font-size: 0.7rem;"></i>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2 mt-2" style="min-width: 180px;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2 mt-2" style="min-width: 190px;">
                         <li><a class="dropdown-item rounded-3 py-2 small" href="/" target="_blank"><i class="bi bi-house-door me-2"></i>Public Home</a></li>
                         <li><a class="dropdown-item rounded-3 py-2 small" href="javascript:void(0)" onclick="openProfileModal()"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 small" href="javascript:void(0)" onclick="openSettingsModal()"><i class="bi bi-gear me-2"></i>Settings</a></li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
                             <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
@@ -963,72 +202,132 @@
         </header>
 
         <!-- DASHBOARD BODY CONTENT -->
-        <main class="dashboard-content-area">
+        <main class="fly-content-area">
 
-            <!-- MAIN VIEW (DASHBOARD & NEW DELIVERY) -->
+            <!-- MAIN VIEW: DASHBOARD, CHARTS, BOOKING FORM & MAP -->
             <div id="mainDashboardView">
 
-                <!-- Welcome Header -->
-                <div class="mb-4">
-                    <h1 class="welcome-heading">Welcome back, @firstName! 👋</h1>
-                    <p class="welcome-sub">Send your parcel request and track your deliveries easily.</p>
+                <!-- 1. GREETING HEADER & DATE PILL -->
+                <div class="fly-greeting-wrap">
+                    <div>
+                        <h1 class="fly-greeting-head">Welcome back, @firstName! 👋</h1>
+                        <p class="fly-greeting-sub">Send your parcel request and track your deliveries easily.</p>
+                    </div>
+                    <div>
+                        <div class="fly-date-pill">
+                            <i class="bi bi-calendar3 text-primary"></i>
+                            <span>Today &bull; @DateTime.UtcNow.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- ROW OF 4 METRIC CARDS (MATCHING SCREENSHOT) -->
-                <div class="metrics-grid">
+                <!-- 2. TOP 4 METRIC KPI CARDS -->
+                <div class="fly-metrics-grid">
                     <!-- 1: Total Requests -->
-                    <div class="metric-card">
-                        <div class="metric-icon-wrap metric-icon-blue">
+                    <div class="fly-metric-card">
+                        <div class="fly-metric-icon-wrap fly-icon-blue">
                             <i class="bi bi-truck"></i>
                         </div>
-                        <div class="metric-details">
-                            <span class="metric-label">Total Requests</span>
-                            <span class="metric-value">@totalRequests</span>
-                            <span class="metric-sub">
-                                <span class="dot-delivered">●</span> @delivered delivered &nbsp;
-                                <span class="dot-pending">●</span> @pending pending
+                        <div class="fly-metric-info">
+                            <span class="fly-metric-label">Total Requests</span>
+                            <span class="fly-metric-value">@totalRequests</span>
+                            <span class="fly-metric-subtext">
+                                <span class="fly-dot-green">●</span> @delivered delivered &nbsp;
+                                <span class="fly-dot-orange">●</span> @pending pending
                             </span>
                         </div>
                     </div>
 
                     <!-- 2: In Transit -->
-                    <div class="metric-card">
-                        <div class="metric-icon-wrap metric-icon-green">
+                    <div class="fly-metric-card">
+                        <div class="fly-metric-icon-wrap fly-icon-green">
                             <i class="bi bi-box-seam"></i>
                         </div>
-                        <div class="metric-details">
-                            <span class="metric-label">In Transit</span>
-                            <span class="metric-value">@inTransit</span>
-                            <span class="metric-sub">Currently on the way</span>
+                        <div class="fly-metric-info">
+                            <span class="fly-metric-label">In Transit</span>
+                            <span class="fly-metric-value">@inTransit</span>
+                            <span class="fly-metric-subtext text-success fw-semibold">Currently on the way</span>
                         </div>
                     </div>
 
                     <!-- 3: Delivered -->
-                    <div class="metric-card">
-                        <div class="metric-icon-wrap metric-icon-purple">
+                    <div class="fly-metric-card">
+                        <div class="fly-metric-icon-wrap fly-icon-purple">
                             <i class="bi bi-check2-circle"></i>
                         </div>
-                        <div class="metric-details">
-                            <span class="metric-label">Delivered</span>
-                            <span class="metric-value">@delivered</span>
-                            <span class="metric-sub">Successfully completed</span>
+                        <div class="fly-metric-info">
+                            <span class="fly-metric-label">Delivered</span>
+                            <span class="fly-metric-value">@delivered</span>
+                            <span class="fly-metric-subtext text-primary fw-semibold">Successfully completed</span>
                         </div>
                     </div>
 
                     <!-- 4: Pending Approval -->
-                    <div class="metric-card">
-                        <div class="metric-icon-wrap metric-icon-orange">
+                    <div class="fly-metric-card">
+                        <div class="fly-metric-icon-wrap fly-icon-orange">
                             <i class="bi bi-clock"></i>
                         </div>
-                        <div class="metric-details">
-                            <span class="metric-label">Pending Approval</span>
-                            <span class="metric-value">@pending</span>
-                            <span class="metric-sub">Waiting for admin</span>
+                        <div class="fly-metric-info">
+                            <span class="fly-metric-label">Pending Approval</span>
+                            <span class="fly-metric-value">@pending</span>
+                            <span class="fly-metric-subtext text-warning fw-semibold">Waiting for admin</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Alert Feedback (Success / Error) -->
+                <!-- 3. DATA VISUALIZATION ROW (ACTIVITY CHART + STATUS BREAKDOWN) -->
+                <div class="fly-charts-row">
+                    <!-- Left: Weekly Delivery Activity Volume -->
+                    <div class="fly-chart-card">
+                        <div class="fly-chart-header">
+                            <div class="fly-chart-title-left">
+                                <div class="fly-chart-title-icon" style="background: #2563eb;">
+                                    <i class="bi bi-graph-up-arrow"></i>
+                                </div>
+                                <h6 class="fly-chart-title">Shipment Volume &amp; Activity</h6>
+                            </div>
+                            <div class="fly-chart-toggle">
+                                <button type="button" class="fly-toggle-pill active" id="btnChartWeekly" onclick="toggleCustomerChart('week')">This Week</button>
+                                <button type="button" class="fly-toggle-pill" id="btnChartMonthly" onclick="toggleCustomerChart('month')">This Month</button>
+                            </div>
+                        </div>
+                        <div class="fly-canvas-box-lg">
+                            <canvas id="customerActivityChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Right: Shipment Status Distribution Doughnut -->
+                    <div class="fly-chart-card">
+                        <div class="fly-chart-header">
+                            <div class="fly-chart-title-left">
+                                <div class="fly-chart-title-icon" style="background: #8b5cf6;">
+                                    <i class="bi bi-pie-chart-fill"></i>
+                                </div>
+                                <h6 class="fly-chart-title">Status Breakdown</h6>
+                            </div>
+                            <span class="badge bg-light text-secondary rounded-pill px-2.5 py-1 small">@totalRequests Total</span>
+                        </div>
+                        <div class="fly-canvas-box-sm">
+                            <canvas id="customerStatusDoughnut"></canvas>
+                        </div>
+                        <div class="d-flex justify-content-around text-center pt-2 border-top mt-2">
+                            <div>
+                                <span class="d-block text-success fw-bold font-mono" style="font-size: 0.95rem;">@delivered</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">Delivered</span>
+                            </div>
+                            <div>
+                                <span class="d-block text-primary fw-bold font-mono" style="font-size: 0.95rem;">@inTransit</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">In Transit</span>
+                            </div>
+                            <div>
+                                <span class="d-block text-warning fw-bold font-mono" style="font-size: 0.95rem;">@pending</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
                 @if (TempData["SuccessMessage"] != null)
                 {
                     <div class="alert alert-success rounded-4 border-0 p-3 mb-4 shadow-xs d-flex align-items-center gap-2">
@@ -1044,281 +343,529 @@
                     </div>
                 }
 
-                <!-- TWO-COLUMN DASHBOARD GRID -->
-                <div class="dashboard-two-col">
+                <!-- 4. TWO-COLUMN WORKSPACE (BOOKING FORM + ROUTE SUMMARY & MAP) -->
+                <div class="fly-workspace-grid">
 
                     <!-- LEFT: "Request New Delivery" CARD -->
-                    <div class="dash-card p-4 p-md-4">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <div class="d-flex align-items-center gap-2">
+                    <div class="fly-card">
+                        <div class="fly-card-header">
+                            <div class="fly-card-title-group">
                                 <i class="bi bi-truck text-primary fs-5"></i>
-                                <h2 class="card-title-text" style="font-size: 1.25rem;">Request New Delivery</h2>
+                                <h2 class="fly-card-title">Request New Delivery</h2>
                             </div>
-                            <span class="badge-fast-secure">
+                            <span class="fly-badge-secure">
                                 <i class="bi bi-check2"></i> Fast &amp; Secure
                             </span>
                         </div>
-                        <p class="text-secondary small mb-4" style="font-size: 0.825rem;">
+                        <p class="fly-card-caption">
                             Fill in the details below to send your parcel request. Our team will review and approve it shortly.
                         </p>
 
-                        <form asp-action="CreateDelivery" method="post" id="deliveryCreateForm" autocomplete="on">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="NewDelivery.OriginType" value="DoorstepPickup" />
-                            <input type="hidden" name="NewDelivery.DestinationType" value="DoorstepDelivery" />
-                            <input type="hidden" name="NewDelivery.VehicleType" id="hiddenVehicleType" value="Truck" />
-                            <input type="hidden" name="NewDelivery.RouteType" id="hiddenRouteType" value="Normal" />
-                            <input type="hidden" name="NewDelivery.EstimatedDistanceKm" id="hiddenDistanceKm" value="75" />
+                        <div class="fly-form-body">
+                            <form asp-action="CreateDelivery" method="post" id="deliveryCreateForm" autocomplete="on">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="NewDelivery.OriginType" id="hiddenOriginType" value="DoorstepPickup" />
+                                <input type="hidden" name="NewDelivery.DestinationType" id="hiddenDestinationType" value="DoorstepDelivery" />
+                                <input type="hidden" name="NewDelivery.OriginWarehouse" id="hiddenOriginWarehouse" value="Shaheenabad, near Gulshan Park / GT Road, Gujranwala" />
+                                <input type="hidden" name="NewDelivery.DestinationWarehouse" id="hiddenDestinationWarehouse" value="Thokar Niaz Baig, near Multan Road Bypass, Lahore" />
+                                <input type="hidden" name="NewDelivery.VehicleType" id="hiddenVehicleType" value="Truck" />
+                                <input type="hidden" name="NewDelivery.RouteType" id="hiddenRouteType" value="Normal" />
+                                <input type="hidden" name="NewDelivery.EstimatedDistanceKm" id="hiddenDistanceKm" value="95" />
 
-                            <!-- 1. Sender Information -->
-                            <div class="mb-4">
-                                <div class="form-section-header">
-                                    <i class="bi bi-person-badge"></i>
-                                    <span>Sender Information</span>
+                                <!-- 1. Sender Information -->
+                                <div class="mb-4">
+                                    <div class="fly-form-section-title">
+                                        <i class="bi bi-person-badge"></i>
+                                        <span>Sender Information</span>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="fly-label">Full Name <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-person fly-input-icon"></i>
+                                                <input type="text" name="SenderName" class="fly-control" value="@userName" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="fly-label">Phone Number <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-telephone fly-input-icon"></i>
+                                                <input type="tel" name="SenderPhone" class="fly-control" placeholder="+92 300 1234567" value="+92 300 1234567" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="fly-label">Email Address <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-envelope fly-input-icon"></i>
+                                                <input type="email" name="SenderEmail" class="fly-control" placeholder="zain@example.com" value="zain@example.com" required />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="row g-2">
-                                    <div class="col-md-4">
-                                        <label class="custom-label">Full Name <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-person input-icon"></i>
-                                            <input type="text" name="SenderName" class="custom-form-control" value="@userName" required />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="custom-label">Phone Number <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-telephone input-icon"></i>
-                                            <input type="tel" name="SenderPhone" class="custom-form-control" placeholder="+92 300 1234567" value="+92 300 1234567" required />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="custom-label">Email Address <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-envelope input-icon"></i>
-                                            <input type="email" name="SenderEmail" class="custom-form-control" placeholder="zain@example.com" value="zain@example.com" required />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <!-- 2. Receiver Information -->
-                            <div class="mb-4">
-                                <div class="form-section-header">
-                                    <i class="bi bi-person-plus"></i>
-                                    <span>Receiver Information</span>
+                                <!-- 2. Receiver Information -->
+                                <div class="mb-4">
+                                    <div class="fly-form-section-title">
+                                        <i class="bi bi-person-plus"></i>
+                                        <span>Receiver Information</span>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="fly-label">Full Name <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-person fly-input-icon"></i>
+                                                <input type="text" name="ReceiverName" class="fly-control" placeholder="Ahmed Khan" value="Ahmed Khan" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="fly-label">Phone Number <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-telephone fly-input-icon"></i>
+                                                <input type="tel" name="ReceiverPhone" class="fly-control" placeholder="+92 321 7654321" value="+92 321 7654321" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="fly-label">Address <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-geo-alt fly-input-icon"></i>
+                                                <input type="text" name="ReceiverAddress" class="fly-control" placeholder="Lahore, Punjab" value="Lahore, Punjab" required />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="row g-2">
-                                    <div class="col-md-4">
-                                        <label class="custom-label">Full Name <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-person input-icon"></i>
-                                            <input type="text" name="ReceiverName" class="custom-form-control" placeholder="Ahmed Khan" value="Ahmed Khan" required />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="custom-label">Phone Number <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-telephone input-icon"></i>
-                                            <input type="tel" name="ReceiverPhone" class="custom-form-control" placeholder="+92 321 7654321" value="+92 321 7654321" required />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="custom-label">Address <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-geo-alt input-icon"></i>
-                                            <input type="text" name="ReceiverAddress" class="custom-form-control" placeholder="Lahore, Punjab" value="Lahore, Punjab" required />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <!-- 3. Parcel Details -->
-                            <div class="mb-4">
-                                <div class="form-section-header">
-                                    <i class="bi bi-box-seam"></i>
-                                    <span>Parcel Details</span>
-                                </div>
-                                <div class="row g-2">
-                                    <div class="col-md-3">
-                                        <label class="custom-label">Package Type <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-box-seam input-icon"></i>
-                                            <select name="NewDelivery.ParcelDescription" id="selectPackageType" class="custom-select-control" onchange="updateSummaryPricing()">
-                                                <option value="Bundle (Multiple Items)" selected>Bundle (Multiple Items)</option>
-                                                <option value="Electronics">Electronics &amp; Gadgets</option>
-                                                <option value="Standard Carton">Standard Carton</option>
-                                                <option value="Documents">Important Documents</option>
-                                                <option value="Fragile Cargo">Fragile Cargo</option>
-                                                <option value="Industrial Pallet">Industrial Pallet</option>
-                                            </select>
+                                <!-- 3. Parcel Details -->
+                                <div class="mb-4">
+                                    <div class="fly-form-section-title">
+                                        <i class="bi bi-box-seam"></i>
+                                        <span>Parcel Details &amp; Quantity Specification</span>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-3">
+                                            <label class="fly-label">Package Category <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-box-seam fly-input-icon"></i>
+                                                <select name="NewDelivery.ParcelDescription" id="selectPackageType" class="fly-select" onchange="onParcelParamsChanged()">
+                                                    <option value="Bundle (Multiple Items)" selected>Bundle (Multiple Items)</option>
+                                                    <option value="Electronics">Electronics &amp; Gadgets</option>
+                                                    <option value="Standard Carton">Standard Carton</option>
+                                                    <option value="Documents">Important Documents</option>
+                                                    <option value="Fragile Cargo">Fragile Cargo</option>
+                                                    <option value="Industrial Pallet">Industrial Pallet</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="fly-label">Single Item Weight (kg) <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-speedometer2 fly-input-icon"></i>
+                                                <input type="number" step="0.1" min="0" name="NewDelivery.SingleItemWeight" id="inputSingleWeight" class="fly-control" value="0" placeholder="0" oninput="onParcelParamsChanged()" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="fly-label">Single Dimensions (L × W × H) <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-box fly-input-icon"></i>
+                                                <input type="text" id="inputSingleDimensions" name="SingleDimensionsInput" class="fly-control" value="40 × 30 × 20" placeholder="e.g. 40 × 30 × 20 or 40*211*2" oninput="onParcelParamsChanged()" required />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="fly-label">Quantity (Items) <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-stack fly-input-icon"></i>
+                                                <input type="number" min="1" step="1" name="NewDelivery.Quantity" id="inputQuantity" class="fly-control" value="1" placeholder="1" oninput="onParcelParamsChanged()" required />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label class="custom-label">Weight (kg) <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-speedometer2 input-icon"></i>
-                                            <input type="number" step="0.5" min="0.5" name="NewDelivery.ParcelWeight" id="inputParcelWeight" class="custom-form-control" value="25" oninput="updateSummaryPricing()" required />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="custom-label">Dimensions (L × W × H) <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-box input-icon"></i>
-                                            <input type="text" id="inputDimensions" class="custom-form-control" value="40 × 30 × 20" placeholder="40 × 30 × 20" />
-                                            <input type="hidden" name="NewDelivery.Length" value="40" />
-                                            <input type="hidden" name="NewDelivery.Width" value="30" />
-                                            <input type="hidden" name="NewDelivery.Height" value="20" />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="custom-label">Description <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-file-text input-icon"></i>
-                                            <input type="text" name="NewDelivery.PackageName" id="inputPackageDesc" class="custom-form-control" placeholder="Electronics and accessories" value="Electronics and accessories" required />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <!-- 4. Locations (Pickup & Delivery) -->
-                            <div class="mb-4">
-                                <div class="row g-2">
-                                    <div class="col-md-6">
-                                        <label class="custom-label"><i class="bi bi-geo-alt-fill text-primary me-1"></i>Pickup Location <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-building input-icon text-primary"></i>
-                                            <select name="NewDelivery.PickupLocation" id="selectPickupLocation" class="custom-select-control" onchange="onLocationsChanged()">
-                                                <option value="Warehouse, Gujranwala" data-city="Gujranwala" selected>Warehouse, Gujranwala</option>
-                                                <option value="Fleetify Central Hub, Lahore" data-city="Lahore">Fleetify Central Hub, Lahore</option>
-                                                <option value="Industrial Area, Sialkot" data-city="Sialkot">Industrial Area, Sialkot</option>
-                                                <option value="Textile Hub, Faisalabad" data-city="Faisalabad">Textile Hub, Faisalabad</option>
-                                                <option value="South Hub, Karachi" data-city="Karachi">South Hub, Karachi</option>
-                                                <option value="Sector I-9 Hub, Islamabad" data-city="Islamabad">Sector I-9 Hub, Islamabad</option>
-                                                <option value="Faizabad Hub, Rawalpindi" data-city="Rawalpindi">Faizabad Hub, Rawalpindi</option>
-                                                <option value="Khanewal Road, Multan" data-city="Multan">Khanewal Road, Multan</option>
-                                                <option value="Hayatabad Hub, Peshawar" data-city="Peshawar">Hayatabad Hub, Peshawar</option>
-                                            </select>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-12">
+                                            <label class="fly-label">Description / Contents Name <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-file-text fly-input-icon"></i>
+                                                <input type="text" name="NewDelivery.PackageName" id="inputPackageDesc" class="fly-control" placeholder="Mobile / Electronics and accessories" value="Electronics and accessories" required />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="custom-label"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Delivery Location <span class="req-star">*</span></label>
-                                        <div class="custom-input-box">
-                                            <i class="bi bi-geo-alt input-icon text-danger"></i>
-                                            <select name="NewDelivery.DropoffLocation" id="selectDeliveryLocation" class="custom-select-control" onchange="onLocationsChanged()">
-                                                <option value="Lahore, Punjab" data-city="Lahore" selected>Lahore, Punjab</option>
-                                                <option value="Warehouse, Gujranwala" data-city="Gujranwala">Warehouse, Gujranwala</option>
-                                                <option value="Industrial Area, Sialkot" data-city="Sialkot">Industrial Area, Sialkot</option>
-                                                <option value="Textile Hub, Faisalabad" data-city="Faisalabad">Textile Hub, Faisalabad</option>
-                                                <option value="South Hub, Karachi" data-city="Karachi">South Hub, Karachi</option>
-                                                <option value="Sector I-9 Hub, Islamabad" data-city="Islamabad">Sector I-9 Hub, Islamabad</option>
-                                                <option value="Faizabad Hub, Rawalpindi" data-city="Rawalpindi">Faizabad Hub, Rawalpindi</option>
-                                                <option value="Khanewal Road, Multan" data-city="Multan">Khanewal Road, Multan</option>
-                                                <option value="Hayatabad Hub, Peshawar" data-city="Peshawar">Hayatabad Hub, Peshawar</option>
-                                            </select>
+
+                                    <!-- Dedicated Auto-Calculated Totals Box (Used in Formula Rate) -->
+                                    <div class="fly-totals-box" id="parcelTotalsBox">
+                                        <div class="fly-totals-header">
+                                            <span class="fly-totals-header-title">
+                                                <i class="bi bi-calculator-fill text-primary"></i>
+                                                <span>Auto-Calculated Total Load &amp; Volumetric Size (Applied to Pricing Formula)</span>
+                                            </span>
+                                            <span class="badge bg-primary-subtle text-primary border small font-mono">
+                                                <i class="bi bi-lightning-charge me-1"></i>Real-time Sync
+                                            </span>
+                                        </div>
+                                        <div class="fly-totals-grid">
+                                            <!-- LEFT: TOTAL WEIGHT -->
+                                            <div class="fly-totals-col">
+                                                <div class="fly-totals-col-label">
+                                                    <span><i class="bi bi-speedometer2 text-primary me-1"></i>Total Weight (Formula Cell B2)</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary small" id="calcWeightTierBadge">&lt; 1,000 kg (Rs. 2/kg)</span>
+                                                </div>
+                                                <div class="fly-totals-col-val text-primary font-mono">
+                                                    <span id="calcTotalWeight">0</span> <small style="font-size: 0.85rem;">kg</small>
+                                                </div>
+                                                <div class="fly-totals-col-sub" id="calcWeightBreakdown">
+                                                    0 kg &times; 1 item
+                                                </div>
+                                            </div>
+
+                                            <!-- RIGHT: TOTAL PARCEL VOLUME / DIMENSIONS -->
+                                            <div class="fly-totals-col">
+                                                <div class="fly-totals-col-label">
+                                                    <span><i class="bi bi-box-seam text-primary me-1"></i>Total Volume (Formula Cell D2)</span>
+                                                    <span class="badge bg-warning-subtle text-warning small" id="calcVolumeTierBadge">&ge; 3,000 CFT (1.50x Rate)</span>
+                                                </div>
+                                                <div class="fly-totals-col-val text-dark font-mono">
+                                                    <span id="calcTotalCft">24,000</span> <small style="font-size: 0.85rem;">CFT</small>
+                                                </div>
+                                                <div class="fly-totals-col-sub" id="calcDimBreakdown">
+                                                    Single: <span id="calcSingleCft">24,000</span> CFT &bull; <span id="calcDimL">40</span>&times;<span id="calcDimW">30</span>&times;<span id="calcDimH">20</span> &times; <span id="calcQty">1</span> qty
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Hidden Inputs Automatically Transferred to Backend Controller -->
+                                        <input type="hidden" name="NewDelivery.ParcelWeight" id="hiddenTotalWeight" value="0" />
+                                        <input type="hidden" name="NewDelivery.Length" id="hiddenLength" value="40" />
+                                        <input type="hidden" name="NewDelivery.Width" id="hiddenWidth" value="30" />
+                                        <input type="hidden" name="NewDelivery.Height" id="hiddenHeight" value="20" />
+                                        <input type="hidden" name="NewDelivery.TotalCubicFeet" id="hiddenTotalCubicFeet" value="24000" />
+                                        <input type="hidden" name="DimensionsInput" id="hiddenDimensionsInput" value="40 × 30 × 20" />
+                                    </div>
+                                </div>
+
+                                <!-- 4. Delivery Type / Priority Speed -->
+                                <div class="mb-4">
+                                    <div class="fly-form-section-title">
+                                        <i class="bi bi-lightning-charge"></i>
+                                        <span>Delivery Type &amp; Priority Speed</span>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <div class="fly-speed-card active" id="cardSpeedNormal" onclick="selectDeliverySpeed('Normal')">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fly-speed-title"><i class="bi bi-clock me-1 text-primary"></i>Normal</span>
+                                                    <span class="fly-speed-badge badge-normal">1.0x Base</span>
+                                                </div>
+                                                <div class="fly-speed-days"><i class="bi bi-calendar-check me-1"></i>5 - 6 Days</div>
+                                                <div class="fly-speed-sub">Standard freight line-haul</div>
+                                                <div class="fly-speed-radio"><i class="bi bi-check2"></i></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="fly-speed-card" id="cardSpeedFast" onclick="selectDeliverySpeed('Fast')">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fly-speed-title"><i class="bi bi-lightning-fill me-1 text-warning"></i>Express</span>
+                                                    <span class="fly-speed-badge badge-fast">1.75x Rate</span>
+                                                </div>
+                                                <div class="fly-speed-days"><i class="bi bi-calendar-check me-1"></i>3 - 4 Days</div>
+                                                <div class="fly-speed-sub">Priority inter-city transit</div>
+                                                <div class="fly-speed-radio"><i class="bi bi-check2"></i></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="fly-speed-card" id="cardSpeedExpress" onclick="selectDeliverySpeed('Express')">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fly-speed-title"><i class="bi bi-rocket-takeoff-fill me-1 text-danger"></i>Urgent</span>
+                                                    <span class="fly-speed-badge badge-express">2.5x Rate</span>
+                                                </div>
+                                                <div class="fly-speed-days"><i class="bi bi-calendar-check me-1"></i>1 - 2 Days</div>
+                                                <div class="fly-speed-sub">Expedited direct dispatch</div>
+                                                <div class="fly-speed-radio"><i class="bi bi-check2"></i></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- 5. Additional Notes (Optional) -->
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="custom-label mb-0"><i class="bi bi-chat-left-text text-primary me-1"></i>Additional Notes (Optional)</span>
-                                    <span class="x-small text-muted font-mono" id="charCountDisplay">0/500</span>
+                                <!-- 5. Delivery Method & Locations -->
+                                <div class="mb-4">
+                                    <div class="fly-form-section-title">
+                                        <i class="bi bi-geo-alt"></i>
+                                        <span>Delivery Routing &amp; Service Modes</span>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <!-- LEFT: ORIGIN / PICKUP -->
+                                        <div class="col-md-6">
+                                            <div class="p-3 rounded-4 bg-light-subtle border">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="small fw-bold text-dark"><i class="bi bi-box-arrow-up text-success me-1"></i>Pickup Service</span>
+                                                    <span class="badge bg-success-subtle text-success small" id="badgePickupMode">Home Pickup</span>
+                                                </div>
+
+                                                <!-- Pickup Mode Pill Toggle -->
+                                                <div class="fly-service-toggle-group">
+                                                    <div class="fly-service-pill-btn active is-success" id="btnPickupDoorstep" onclick="setOriginServiceMode('DoorstepPickup')">
+                                                        <div class="fly-service-pill-icon"><i class="bi bi-house-door-fill"></i></div>
+                                                        <div class="fly-service-pill-text">
+                                                            <span class="fly-service-pill-title">Home Pickup</span>
+                                                            <span class="fly-service-pill-desc">From your address</span>
+                                                        </div>
+                                                        <div class="fly-service-pill-radio"><i class="bi bi-check2"></i></div>
+                                                    </div>
+                                                    <div class="fly-service-pill-btn" id="btnPickupWarehouse" onclick="setOriginServiceMode('WarehouseDropoff')">
+                                                        <div class="fly-service-pill-icon"><i class="bi bi-building"></i></div>
+                                                        <div class="fly-service-pill-text">
+                                                            <span class="fly-service-pill-title">Warehouse Drop-off</span>
+                                                            <span class="fly-service-pill-desc">Drop at city hub</span>
+                                                        </div>
+                                                        <div class="fly-service-pill-radio"><i class="bi bi-check2"></i></div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Pickup City Selector -->
+                                                <div class="mb-2">
+                                                    <label class="fly-label">Pickup City <span class="fly-req">*</span></label>
+                                                    <div class="fly-input-box">
+                                                        <i class="bi bi-geo-alt fly-input-icon text-success"></i>
+                                                        <select id="selectPickupCity" class="fly-select" onchange="onPickupCityChanged()">
+                                                            <option value="Gujranwala" selected>Gujranwala (GT Road Hub)</option>
+                                                            <option value="Lahore">Lahore (Central Hub)</option>
+                                                            <option value="Islamabad">Islamabad (Sector I-9 Hub)</option>
+                                                            <option value="Rawalpindi">Rawalpindi (Faizabad Hub)</option>
+                                                            <option value="Faisalabad">Faisalabad (Textile Hub)</option>
+                                                            <option value="Multan">Multan (Khanewal Rd Hub)</option>
+                                                            <option value="Peshawar">Peshawar (Hayatabad Hub)</option>
+                                                            <option value="Sialkot">Sialkot (Sambrial Hub)</option>
+                                                            <option value="Karachi">Karachi (South Hub)</option>
+                                                            <option value="Quetta">Quetta (Balochistan Hub)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <!-- CONDITIONAL: Home Pickup Address Field (Only appears when Home Pickup selected) -->
+                                                <div id="pickupDoorstepFieldGroup" class="fly-conditional-box">
+                                                    <label class="fly-label"><i class="bi bi-geo-alt-fill text-success me-1"></i>Pickup Location (Street Address) <span class="fly-req">*</span></label>
+                                                    <div class="fly-input-box">
+                                                        <i class="bi bi-house-door fly-input-icon text-success"></i>
+                                                        <input type="text" name="NewDelivery.PickupLocation" id="inputPickupAddress" class="fly-control" placeholder="House #, Street Address, Area..." value="House 14, Street 5, Model Town, Gujranwala" oninput="onDoorstepAddressChanged('pickup')" required />
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                                        <span class="x-small text-muted"><i class="bi bi-info-circle me-1"></i>Driver dispatched to your doorstep</span>
+                                                        <span class="x-small text-success fw-semibold font-mono" id="pickupLegDistanceTag">~9.2 km to Hub</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- CONDITIONAL: Warehouse Drop-off Hub Display (Only appears when Warehouse Drop-off selected) -->
+                                                <div id="pickupWarehouseFieldGroup" class="fly-conditional-box d-none">
+                                                    <label class="fly-label"><i class="bi bi-building text-success me-1"></i>Origin Warehouse Drop-off Hub <span class="fly-req">*</span></label>
+                                                    <div class="fly-input-box">
+                                                        <i class="bi bi-building-check fly-input-icon text-success"></i>
+                                                        <select id="selectOriginWarehouse" class="fly-select" onchange="onOriginWarehouseSelectChanged()">
+                                                            <option value="Shaheenabad, near Gulshan Park / GT Road, Gujranwala">Shaheenabad, near Gulshan Park / GT Road, Gujranwala</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="x-small text-muted mt-1 d-block"><i class="bi bi-check2-circle text-success me-1"></i>Drop your parcel at this warehouse facility directly</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- RIGHT: DESTINATION / DELIVERY -->
+                                        <div class="col-md-6">
+                                            <div class="p-3 rounded-4 bg-light-subtle border">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="small fw-bold text-dark"><i class="bi bi-box-arrow-in-down text-danger me-1"></i>Delivery Service</span>
+                                                    <span class="badge bg-danger-subtle text-danger small" id="badgeDeliveryMode">Home Delivery</span>
+                                                </div>
+
+                                                <!-- Delivery Mode Pill Toggle -->
+                                                <div class="fly-service-toggle-group">
+                                                    <div class="fly-service-pill-btn active is-danger" id="btnDeliveryDoorstep" onclick="setDestinationServiceMode('DoorstepDelivery')">
+                                                        <div class="fly-service-pill-icon"><i class="bi bi-house-door-fill"></i></div>
+                                                        <div class="fly-service-pill-text">
+                                                            <span class="fly-service-pill-title">Home Delivery</span>
+                                                            <span class="fly-service-pill-desc">To recipient address</span>
+                                                        </div>
+                                                        <div class="fly-service-pill-radio"><i class="bi bi-check2"></i></div>
+                                                    </div>
+                                                    <div class="fly-service-pill-btn" id="btnDeliveryWarehouse" onclick="setDestinationServiceMode('WarehousePickup')">
+                                                        <div class="fly-service-pill-icon"><i class="bi bi-building"></i></div>
+                                                        <div class="fly-service-pill-text">
+                                                            <span class="fly-service-pill-title">Warehouse Pickup</span>
+                                                            <span class="fly-service-pill-desc">Pickup at city hub</span>
+                                                        </div>
+                                                        <div class="fly-service-pill-radio"><i class="bi bi-check2"></i></div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Delivery City Selector -->
+                                                <div class="mb-2">
+                                                    <label class="fly-label">Delivery City <span class="fly-req">*</span></label>
+                                                    <div class="fly-input-box">
+                                                        <i class="bi bi-geo-alt fly-input-icon text-danger"></i>
+                                                        <select id="selectDeliveryCity" class="fly-select" onchange="onDeliveryCityChanged()">
+                                                            <option value="Lahore" selected>Lahore (Central Hub)</option>
+                                                            <option value="Gujranwala">Gujranwala (GT Road Hub)</option>
+                                                            <option value="Islamabad">Islamabad (Sector I-9 Hub)</option>
+                                                            <option value="Rawalpindi">Rawalpindi (Faizabad Hub)</option>
+                                                            <option value="Faisalabad">Faisalabad (Textile Hub)</option>
+                                                            <option value="Multan">Multan (Khanewal Rd Hub)</option>
+                                                            <option value="Peshawar">Peshawar (Hayatabad Hub)</option>
+                                                            <option value="Sialkot">Sialkot (Sambrial Hub)</option>
+                                                            <option value="Karachi">Karachi (South Hub)</option>
+                                                            <option value="Quetta">Quetta (Balochistan Hub)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <!-- CONDITIONAL: Home Delivery Address Field (Only appears when Home Delivery selected) -->
+                                                <div id="dropoffDoorstepFieldGroup" class="fly-conditional-box">
+                                                    <label class="fly-label"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Drop-off Location (Street Address) <span class="fly-req">*</span></label>
+                                                    <div class="fly-input-box">
+                                                        <i class="bi bi-house-door fly-input-icon text-danger"></i>
+                                                        <input type="text" name="NewDelivery.DropoffLocation" id="inputDropoffAddress" class="fly-control" placeholder="House #, Street Address, Area..." value="Flat 4B, Gulberg III, Lahore" oninput="onDoorstepAddressChanged('dropoff')" required />
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                                        <span class="x-small text-muted"><i class="bi bi-info-circle me-1"></i>Delivered directly to the recipient</span>
+                                                        <span class="x-small text-danger fw-semibold font-mono" id="deliveryLegDistanceTag">~14.5 km from Hub</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- CONDITIONAL: Warehouse Pickup Hub Display (Only appears when Warehouse Pickup selected) -->
+                                                <div id="dropoffWarehouseFieldGroup" class="fly-conditional-box d-none">
+                                                    <label class="fly-label"><i class="bi bi-building text-danger me-1"></i>Destination Warehouse Pickup Hub <span class="fly-req">*</span></label>
+                                                    <div class="fly-input-box">
+                                                        <i class="bi bi-building-check fly-input-icon text-danger"></i>
+                                                        <select id="selectDestWarehouse" class="fly-select" onchange="onDestWarehouseSelectChanged()">
+                                                            <option value="Thokar Niaz Baig, near Multan Road Bypass, Lahore">Thokar Niaz Baig, near Multan Road Bypass, Lahore</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="x-small text-muted mt-1 d-block"><i class="bi bi-check2-circle text-danger me-1"></i>Recipient collects parcel from this warehouse facility</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <textarea name="AdditionalNotes" id="txtAdditionalNotes" class="custom-textarea" placeholder="Any special instructions or additional details..." maxlength="500" oninput="updateCharCount(this)"></textarea>
-                            </div>
 
-                            <!-- 6. Submit Button -->
-                            <button type="submit" class="btn-submit-request" id="btnSubmitRequest">
-                                <i class="bi bi-send-fill"></i>
-                                <span>Submit Request</span>
-                            </button>
-                        </form>
+                                <!-- 5. Additional Notes -->
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fly-label mb-0"><i class="bi bi-chat-left-text text-primary me-1"></i>Additional Notes (Optional)</span>
+                                        <span class="x-small text-muted font-mono" id="charCountDisplay">0/500</span>
+                                    </div>
+                                    <textarea name="AdditionalNotes" id="txtAdditionalNotes" class="fly-textarea" placeholder="Any special instructions or fragile handling instructions..." maxlength="500" oninput="updateCharCount(this)"></textarea>
+                                </div>
+
+                                <!-- 6. Submit Button -->
+                                <button type="submit" class="fly-btn-submit" id="btnSubmitRequest">
+                                    <i class="bi bi-send-fill"></i>
+                                    <span>Submit Delivery Request</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: DELIVERY SUMMARY & LIVE MAP -->
+                    <!-- RIGHT COLUMN: SUMMARY, LIVE MAP & SAFETY -->
                     <div class="d-flex flex-column gap-3">
 
                         <!-- CARD 1: DELIVERY SUMMARY -->
-                        <div class="dash-card p-4">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <i class="bi bi-card-heading text-primary fs-5"></i>
-                                <h3 class="card-title-text" style="font-size: 1.05rem;">Delivery Summary</h3>
+                        <div class="fly-card p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-card-heading text-primary fs-5"></i>
+                                    <h3 class="fly-card-title" style="font-size: 1.05rem;">Delivery Summary</h3>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill small px-2.5 py-1" id="summaryServiceBadge">Home &rarr; Home Express</span>
                             </div>
 
-                            <!-- Route Visual Box -->
-                            <div class="summary-route-box">
-                                <div class="route-stop">
-                                    <i class="bi bi-geo-alt-fill text-success route-pin"></i>
+                            <div class="fly-summary-box">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-geo-alt-fill text-success fs-4" id="summaryOriginIcon"></i>
                                     <div>
-                                        <div class="route-city-name" id="summaryPickupCity">Gujranwala</div>
-                                        <div class="route-city-tag">Pickup City</div>
+                                        <div class="fly-route-city-text" id="summaryPickupCity">Gujranwala</div>
+                                        <div class="fly-route-city-tag" id="summaryPickupTag">Home Pickup</div>
                                     </div>
                                 </div>
                                 
-                                <div class="route-arrow-connector">
+                                <div class="fly-route-connector">
                                     <span>------&gt;</span>
                                 </div>
 
-                                <div class="route-stop">
-                                    <i class="bi bi-geo-alt-fill text-danger route-pin"></i>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-geo-alt-fill text-danger fs-4" id="summaryDestIcon"></i>
                                     <div>
-                                        <div class="route-city-name" id="summaryDropoffCity">Lahore</div>
-                                        <div class="route-city-tag">Delivery City</div>
+                                        <div class="fly-route-city-text" id="summaryDropoffCity">Lahore</div>
+                                        <div class="fly-route-city-tag" id="summaryDropoffTag">Home Delivery</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Row of 3 Stats -->
-                            <div class="summary-stats-row">
-                                <div class="summary-stat-cell">
-                                    <div class="stat-icon-label">
-                                        <i class="bi bi-clock text-primary"></i> Estimated Time
+                            <!-- Leg-by-leg Distance Breakdown Badges -->
+                            <div class="fly-legs-container mb-3" id="summaryLegsContainer">
+                                <span class="fly-leg-chip leg-pickup" id="chipPickupLeg">
+                                    <i class="bi bi-house-door-fill"></i> Pickup Leg: <strong id="lblPickupLeg">9.2 km</strong>
+                                </span>
+                                <span class="fly-leg-chip leg-main" id="chipMainLeg">
+                                    <i class="bi bi-truck"></i> Main Transit: <strong id="lblMainLeg">71.0 km</strong>
+                                </span>
+                                <span class="fly-leg-chip leg-delivery" id="chipDeliveryLeg">
+                                    <i class="bi bi-geo-alt-fill"></i> Delivery Leg: <strong id="lblDeliveryLeg">14.5 km</strong>
+                                </span>
+                                <span class="fly-leg-chip leg-total" id="chipTotalDist">
+                                    <i class="bi bi-speedometer2"></i> Total: <strong id="lblTotalDist">94.7 km</strong>
+                                </span>
+                            </div>
+
+                            <div class="fly-stats-row">
+                                <div class="fly-stat-cell">
+                                    <div class="fly-stat-cell-label">
+                                        <i class="bi bi-clock text-primary"></i> Est. Time
                                     </div>
-                                    <div class="stat-main-value" id="summaryEstTime">2 - 4 Hours</div>
+                                    <div class="fly-stat-cell-val" id="summaryEstTime">5 - 6 Days</div>
                                 </div>
 
-                                <div class="summary-stat-cell">
-                                    <div class="stat-icon-label">
-                                        <i class="bi bi-cash-coin text-primary"></i> Estimated Cost
+                                <div class="fly-stat-cell">
+                                    <div class="fly-stat-cell-label">
+                                        <i class="bi bi-cash-coin text-primary"></i> Est. Cost
                                     </div>
-                                    <div class="stat-main-value text-primary" id="summaryEstCost">PKR 1,200 - 1,800</div>
+                                    <div class="fly-stat-cell-val text-primary font-mono fw-bold" id="summaryEstCost">PKR 3,550</div>
                                 </div>
 
-                                <div class="summary-stat-cell">
-                                    <div class="stat-icon-label">
-                                        <i class="bi bi-shield-check text-primary"></i> Service Type
+                                <div class="fly-stat-cell">
+                                    <div class="fly-stat-cell-label">
+                                        <i class="bi bi-shield-check text-primary"></i> Service
                                     </div>
-                                    <div class="stat-main-value" id="summaryServiceType">Standard</div>
+                                    <div class="fly-stat-cell-val" id="summaryServiceType">Normal</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- CARD 2: LIVE LOCATION PREVIEW (LEAFLET MAP) -->
-                        <div class="dash-card">
+                        <div class="fly-card">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-geo-alt-fill text-primary"></i>
-                                    <strong class="text-dark small">Live Location Preview</strong>
+                                    <i class="bi bi-crosshair2 text-primary"></i>
+                                    <strong class="text-dark small">Multi-Leg Route Telemetry</strong>
                                 </div>
-                                <div class="d-flex align-items-center gap-1">
-                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="recenterRouteMap()" title="Recenter View">
-                                        <i class="bi bi-crosshair"></i>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-secondary border small font-mono" id="mapLegsModeTag">3 Legs Active</span>
+                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2" onclick="recenterRouteMap()" title="Recenter Map View">
+                                        <i class="bi bi-arrow-clockwise"></i>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Map Canvas -->
+                            <!-- Live Map Legs Sub-bar -->
+                            <div class="fly-map-legs-bar" id="mapLegsBar">
+                                <div class="small text-muted" id="mapLegsDescription">
+                                    <span class="text-success fw-bold">Pickup Leg</span> &rarr; <span class="text-primary fw-bold">Hub Transit</span> &rarr; <span class="text-danger fw-bold">Delivery Leg</span>
+                                </div>
+                                <div class="x-small font-mono fw-bold text-dark" id="mapLiveTotalDist">94.7 km Total</div>
+                            </div>
+
                             <div id="routeLiveMap"></div>
 
-                            <!-- Safety Guarantee Banner -->
-                            <div class="map-safety-banner">
-                                <div class="safety-badge-text">
-                                    <i class="bi bi-shield-check safety-badge-icon"></i>
+                            <div class="fly-safety-strip">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <i class="bi bi-shield-check text-success fs-3"></i>
                                     <div>
-                                        <h4 class="safety-title">Your parcel is safe with Fleetify</h4>
-                                        <p class="safety-sub">We ensure fast, secure and reliable delivery.</p>
+                                        <h4 class="fly-safety-title">Your parcel is safe with Fleetify</h4>
+                                        <p class="fly-safety-sub">100% Insured freight with live telemetry guarantee.</p>
                                     </div>
                                 </div>
                                 <i class="bi bi-truck text-muted fs-4"></i>
@@ -1335,20 +882,20 @@
             <div id="requestsListView" class="d-none">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h2 class="welcome-heading">My Delivery Requests</h2>
-                        <p class="welcome-sub">View and track all your booked shipments in real-time.</p>
+                        <h2 class="fly-greeting-head">My Delivery Requests</h2>
+                        <p class="fly-greeting-sub">View and track all your booked shipments in real-time.</p>
                     </div>
                     <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="switchSidebarView('new-delivery')">
                         <i class="bi bi-plus-lg me-1"></i> New Request
                     </button>
                 </div>
 
-                <div class="dash-card p-3 p-md-4">
+                <div class="fly-card p-3 p-md-4">
                     @if (Model.MyDeliveries != null && Model.MyDeliveries.Any())
                     {
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="userRequestsTable">
-                                <thead class="table-light small text-secondary">
+                        <div class="fly-table-wrap">
+                            <table class="fly-table" id="userRequestsTable">
+                                <thead>
                                     <tr>
                                         <th>Tracking #</th>
                                         <th>Date</th>
@@ -1363,8 +910,12 @@
                                     @foreach (var req in Model.MyDeliveries)
                                     {
                                         <tr>
-                                            <td class="fw-bold font-mono text-primary">@req.TrackingNumber</td>
-                                            <td class="small text-muted">@req.RequestDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <a asp-action="Track" asp-route-trackingNumber="@req.TrackingNumber" class="fly-tracking-badge">
+                                                    @req.TrackingNumber
+                                                </a>
+                                            </td>
+                                            <td class="small text-muted font-mono">@req.RequestDate.ToString("MMM dd, yyyy")</td>
                                             <td>
                                                 <div class="small fw-semibold text-dark text-truncate" style="max-width: 200px;">
                                                     <i class="bi bi-circle-fill text-success me-1 x-small"></i>@req.PickupLocation
@@ -1383,19 +934,15 @@
                                             <td>
                                                 @if (req.RequestedStatus == "Delivered")
                                                 {
-                                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1.5">Delivered</span>
+                                                    <span class="fly-status-pill fly-status-delivered">Delivered</span>
                                                 }
-                                                else if (req.RequestedStatus == "In-Transit")
+                                                else if (req.RequestedStatus == "In-Transit" || req.RequestedStatus == "Assigned")
                                                 {
-                                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1.5">In Transit</span>
-                                                }
-                                                else if (req.RequestedStatus == "Assigned")
-                                                {
-                                                    <span class="badge bg-info-subtle text-info rounded-pill px-3 py-1.5">Assigned</span>
+                                                    <span class="fly-status-pill fly-status-transit">In Transit</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 py-1.5">Pending</span>
+                                                    <span class="fly-status-pill fly-status-pending">Pending</span>
                                                 }
                                             </td>
                                             <td class="text-end">
@@ -1424,11 +971,11 @@
             <!-- TRACK PARCEL QUICK LOOKUP VIEW (TOGGLED VIA SIDEBAR) -->
             <div id="trackParcelView" class="d-none">
                 <div class="mb-4">
-                    <h2 class="welcome-heading">Track Your Parcel</h2>
-                    <p class="welcome-sub">Enter any Fleetify tracking code to see its journey in real-time.</p>
+                    <h2 class="fly-greeting-head">Track Your Parcel</h2>
+                    <p class="fly-greeting-sub">Enter any Fleetfly tracking code to see its journey in real-time.</p>
                 </div>
 
-                <div class="dash-card p-4 p-md-5 text-center max-w-600 mx-auto" style="max-width: 650px;">
+                <div class="fly-card p-4 p-md-5 text-center mx-auto" style="max-width: 650px;">
                     <i class="bi bi-radar text-primary fs-1 mb-2 d-inline-block"></i>
                     <h4 class="fw-bold text-dark mb-3">Live Shipment Tracking</h4>
                     <div class="input-group mb-3">
@@ -1441,25 +988,26 @@
 
         </main>
 
-        <!-- DASHBOARD BOTTOM FOOTER (MATCHING SCREENSHOT) -->
-        <footer class="dashboard-footer">
-            <div class="footer-brand">
-                <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetify" style="height: 32px; width: auto; border-radius: 6px; padding: 3px 8px; background: #ffffff;" />
+        <!-- DASHBOARD BOTTOM FOOTER -->
+        <footer class="fly-footer">
+            <div class="d-flex align-items-center gap-2">
+                <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetfly" style="height: 30px; width: auto; border-radius: 6px; padding: 3px 8px; background: #ffffff;" />
+                <span class="text-white fw-bold small ms-1">Fleetfly Logistics</span>
             </div>
 
-            <div class="footer-links">
-                <a href="/" class="footer-link-item">Home</a>
-                <a href="/#about" class="footer-link-item">About</a>
-                <a href="/#services" class="footer-link-item">Services</a>
-                <a href="/#contact" class="footer-link-item">Contact</a>
+            <div class="fly-footer-links">
+                <a href="/" class="fly-footer-link">Home</a>
+                <a href="/#about" class="fly-footer-link">About</a>
+                <a href="/#services" class="fly-footer-link">Services</a>
+                <a href="/#contact" class="fly-footer-link">Contact</a>
             </div>
 
-            <div class="footer-social-wrap">
-                <a href="https://facebook.com" target="_blank" class="footer-social-icon"><i class="bi bi-facebook"></i></a>
-                <a href="https://twitter.com" target="_blank" class="footer-social-icon"><i class="bi bi-twitter-x"></i></a>
-                <a href="https://linkedin.com" target="_blank" class="footer-social-icon"><i class="bi bi-linkedin"></i></a>
-                <a href="https://instagram.com" target="_blank" class="footer-social-icon"><i class="bi bi-instagram"></i></a>
-                <span class="x-small text-secondary ms-2">&copy; 2026 Fleetify. All rights reserved.</span>
+            <div class="fly-footer-social">
+                <a href="https://facebook.com" target="_blank" class="fly-social-icon"><i class="bi bi-facebook"></i></a>
+                <a href="https://twitter.com" target="_blank" class="fly-social-icon"><i class="bi bi-twitter-x"></i></a>
+                <a href="https://linkedin.com" target="_blank" class="fly-social-icon"><i class="bi bi-linkedin"></i></a>
+                <a href="https://instagram.com" target="_blank" class="fly-social-icon"><i class="bi bi-instagram"></i></a>
+                <span class="x-small text-secondary ms-2">&copy; 2026 Fleetfly. All rights reserved.</span>
             </div>
         </footer>
 
@@ -1476,9 +1024,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center py-4">
-                <div class="user-avatar-circle mx-auto mb-3" style="width: 72px; height: 72px; font-size: 1.5rem;">@initials</div>
+                <div class="fly-user-avatar mx-auto mb-3" style="width: 72px; height: 72px; font-size: 1.5rem;">@initials</div>
                 <h4 class="fw-bold text-dark mb-1">@userName</h4>
-                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-3">Customer Account</span>
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-3">Verified Shipper</span>
                 <div class="list-group list-group-flush text-start small mt-3 border-top pt-2">
                     <div class="list-group-item d-flex justify-content-between px-0">
                         <span class="text-secondary">Role:</span>
@@ -1524,252 +1072,8 @@
     </div>
 </div>
 
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
-    // City Coordinates for Pakistan Routing
-    const CITY_COORDINATES = {
-        "Gujranwala": [32.1877, 74.1945],
-        "Lahore": [31.5204, 74.3587],
-        "Sialkot": [32.4945, 74.5229],
-        "Faisalabad": [31.4504, 73.1350],
-        "Karachi": [24.8607, 67.0011],
-        "Islamabad": [33.6844, 73.0479],
-        "Rawalpindi": [33.5651, 73.0169],
-        "Multan": [30.1575, 71.5249],
-        "Peshawar": [34.0151, 71.5249],
-        "Quetta": [30.1798, 66.9750]
-    };
-
-    let liveRouteMap = null;
-    let mapPolyline = null;
-    let pickupMarker = null;
-    let deliveryMarker = null;
-    let truckMarker = null;
-
-    // Sidebar drawer toggle on mobile
-    function toggleSidebarDrawer() {
-        document.getElementById('dashboardSidebar').classList.toggle('show');
-    }
-
-    // Sidebar Navigation View Switcher
-    function switchSidebarView(viewName) {
-        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-        
-        const mainDash = document.getElementById('mainDashboardView');
-        const requestsList = document.getElementById('requestsListView');
-        const trackView = document.getElementById('trackParcelView');
-
-        mainDash.classList.add('d-none');
-        requestsList.classList.add('d-none');
-        trackView.classList.add('d-none');
-
-        if (viewName === 'dashboard' || viewName === 'new-delivery') {
-            mainDash.classList.remove('d-none');
-            document.getElementById(viewName === 'new-delivery' ? 'menuNewDelivery' : 'menuDashboard').classList.add('active');
-            if (viewName === 'new-delivery') {
-                document.getElementById('deliveryCreateForm').scrollIntoView({ behavior: 'smooth' });
-            }
-            if (liveRouteMap) {
-                setTimeout(() => liveRouteMap.invalidateSize(), 200);
-            }
-        } else if (viewName === 'requests') {
-            requestsList.classList.remove('d-none');
-            document.getElementById('menuMyRequests').classList.add('active');
-        } else if (viewName === 'track') {
-            trackView.classList.remove('d-none');
-            document.getElementById('menuTrackParcel').classList.add('active');
-            document.getElementById('directTrackInput').focus();
-        }
-
-        // Close sidebar drawer on mobile
-        document.getElementById('dashboardSidebar').classList.remove('show');
-    }
-
-    function openProfileModal() {
-        const modal = new bootstrap.Modal(document.getElementById('userProfileModal'));
-        modal.show();
-    }
-
-    function openSettingsModal() {
-        const modal = new bootstrap.Modal(document.getElementById('userSettingsModal'));
-        modal.show();
-    }
-
-    function submitDirectTrack() {
-        const num = (document.getElementById('directTrackInput').value || '').trim();
-        if (num) {
-            window.location.href = `/Customer/Track?trackingNumber=${encodeURIComponent(num)}`;
-        } else {
-            alert('Please enter a valid tracking number.');
-        }
-    }
-
-    function updateCharCount(textarea) {
-        const count = textarea.value.length;
-        document.getElementById('charCountDisplay').innerText = `${count}/500`;
-    }
-
-    function getSelectedCity(selectId) {
-        const select = document.getElementById(selectId);
-        if (!select) return "Lahore";
-        const opt = select.options[select.selectedIndex];
-        return opt ? (opt.getAttribute('data-city') || opt.value) : "Lahore";
-    }
-
-    function onLocationsChanged() {
-        const pCity = getSelectedCity('selectPickupLocation');
-        const dCity = getSelectedCity('selectDeliveryLocation');
-
-        document.getElementById('summaryPickupCity').innerText = pCity;
-        document.getElementById('summaryDropoffCity').innerText = dCity;
-
-        updateSummaryPricing();
-        updateMapRoute(pCity, dCity);
-    }
-
-    function updateSummaryPricing() {
-        const pCity = getSelectedCity('selectPickupLocation');
-        const dCity = getSelectedCity('selectDeliveryLocation');
-        const wt = parseFloat(document.getElementById('inputParcelWeight')?.value) || 25;
-
-        // Base distance heuristic
-        let dist = 75;
-        let timeText = "2 - 4 Hours";
-        let costMin = 1200;
-        let costMax = 1800;
-
-        if (pCity === dCity) {
-            dist = 25;
-            timeText = "1 - 2 Hours";
-            costMin = 600;
-            costMax = 950;
-        } else if ((pCity === "Gujranwala" && dCity === "Lahore") || (pCity === "Lahore" && dCity === "Gujranwala")) {
-            dist = 75;
-            timeText = "2 - 4 Hours";
-            costMin = 1200 + Math.round(wt * 15);
-            costMax = 1800 + Math.round(wt * 20);
-        } else if (pCity === "Karachi" || dCity === "Karachi") {
-            dist = 1200;
-            timeText = "2 - 3 Days";
-            costMin = 4500 + Math.round(wt * 40);
-            costMax = 6500 + Math.round(wt * 50);
-        } else {
-            dist = 240;
-            timeText = "5 - 8 Hours";
-            costMin = 2200 + Math.round(wt * 20);
-            costMax = 3200 + Math.round(wt * 25);
-        }
-
-        document.getElementById('hiddenDistanceKm').value = dist;
-        document.getElementById('summaryEstTime').innerText = timeText;
-        document.getElementById('summaryEstCost').innerText = `PKR ${costMin.toLocaleString()} - ${costMax.toLocaleString()}`;
-    }
-
-    // LEAFLET MAP INITIALIZATION
-    function initLeafletRouteMap() {
-        const mapContainer = document.getElementById('routeLiveMap');
-        if (!mapContainer) return;
-
-        const gujranwala = CITY_COORDINATES["Gujranwala"];
-        const lahore = CITY_COORDINATES["Lahore"];
-
-        liveRouteMap = L.map('routeLiveMap', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView([31.85, 74.27], 9);
-
-        // OpenStreetMap Crisp Tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18
-        }).addTo(liveRouteMap);
-
-        // Zoom control on top-right
-        L.control.zoom({ position: 'topright' }).addTo(liveRouteMap);
-
-        updateMapRoute("Gujranwala", "Lahore");
-    }
-
-    function createCustomPin(colorText, iconClass) {
-        return L.divIcon({
-            className: 'custom-map-marker',
-            html: `<div style="background-color: ${colorText}; color: #ffffff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2.5px solid #ffffff;"><i class="${iconClass}" style="font-size: 14px;"></i></div>`,
-            iconSize: [34, 34],
-            iconAnchor: [17, 34]
-        });
-    }
-
-    function createTruckPin() {
-        return L.divIcon({
-            className: 'custom-truck-marker',
-            html: `<div style="background-color: #2563eb; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px #2563eb; border: 2px solid #ffffff;"><i class="bi bi-truck" style="font-size: 15px;"></i></div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-        });
-    }
-
-    function updateMapRoute(pickupCity, dropoffCity) {
-        if (!liveRouteMap) return;
-
-        const pCoord = CITY_COORDINATES[pickupCity] || CITY_COORDINATES["Gujranwala"];
-        const dCoord = CITY_COORDINATES[dropoffCity] || CITY_COORDINATES["Lahore"];
-
-        // Clear existing markers & lines
-        if (pickupMarker) liveRouteMap.removeLayer(pickupMarker);
-        if (deliveryMarker) liveRouteMap.removeLayer(deliveryMarker);
-        if (mapPolyline) liveRouteMap.removeLayer(mapPolyline);
-        if (truckMarker) liveRouteMap.removeLayer(truckMarker);
-
-        // Add Markers
-        pickupMarker = L.marker(pCoord, { icon: createCustomPin('#10b981', 'bi bi-geo-alt-fill') }).addTo(liveRouteMap).bindPopup(`<b>Pickup:</b> ${pickupCity}`);
-        deliveryMarker = L.marker(dCoord, { icon: createCustomPin('#ef4444', 'bi bi-geo-alt-fill') }).addTo(liveRouteMap).bindPopup(`<b>Delivery:</b> ${dropoffCity}`);
-
-        // Interpolated Waypoint Points
-        const midLat = (pCoord[0] + dCoord[0]) / 2 + 0.02;
-        const midLng = (pCoord[1] + dCoord[1]) / 2 - 0.02;
-        const routePoints = [pCoord, [midLat, midLng], dCoord];
-
-        // Draw Vibrant Blue Route Line
-        mapPolyline = L.polyline(routePoints, {
-            color: '#2563eb',
-            weight: 4.5,
-            opacity: 0.9,
-            dashArray: '8, 8'
-        }).addTo(liveRouteMap);
-
-        // Add Midpoint Truck Marker
-        truckMarker = L.marker([midLat, midLng], { icon: createTruckPin() }).addTo(liveRouteMap).bindPopup('<b>Fleetify Express:</b> On Route');
-
-        // Fit Bounds
-        liveRouteMap.fitBounds(L.latLngBounds([pCoord, dCoord]), { padding: [40, 40] });
-    }
-
-    function recenterRouteMap() {
-        if (!liveRouteMap || !mapPolyline) return;
-        liveRouteMap.fitBounds(mapPolyline.getBounds(), { padding: [40, 40] });
-    }
-
-    function filterDeliveriesSearch(term) {
-        const query = (term || '').toLowerCase().trim();
-        const rows = document.querySelectorAll('#userRequestsTable tbody tr');
-        rows.forEach(r => {
-            const text = r.innerText.toLowerCase();
-            r.style.display = text.includes(query) ? '' : 'none';
-        });
-    }
-
-    // Initialize Map upon DOM Ready
-    document.addEventListener('DOMContentLoaded', () => {
-        initLeafletRouteMap();
-        updateSummaryPricing();
-    });
-</script>
-
 <!-- Floating AI & Live Support Chatbot Widget with Contact Admin -->
-<button id="supportChatTrigger" type="button" class="btn btn-primary support-chat-trigger" title="Fleetify Support & Live Chat">
+<button id="supportChatTrigger" type="button" class="btn btn-primary support-chat-trigger" title="Fleetfly Support & Live Chat">
     <i class="bi bi-chat-dots-fill fs-5"></i>
     <span class="support-badge-dot"></span>
 </button>
@@ -1777,9 +1081,9 @@
 <div id="supportChatModal" class="support-chat-modal bg-white border d-none">
     <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
-            <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetify" style="height: 32px; width: auto; border-radius: 6px; padding: 3px 8px; background: #ffffff;" />
+            <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetfly" style="height: 32px; width: auto; border-radius: 6px; padding: 3px 8px; background: #ffffff;" />
             <div>
-                <h6 class="mb-0 fw-bold">Fleetify Support</h6>
+                <h6 class="mb-0 fw-bold">Fleetfly Support</h6>
                 <small id="supportChatStatus" class="badge bg-info text-white rounded-pill px-2 py-0" style="font-size: 0.7rem;">
                     <i class="bi bi-robot me-1"></i>AI Online
                 </small>
@@ -1816,7 +1120,917 @@
     </div>
 </div>
 
+<!-- Bootstrap 5.3.3 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!-- Support Chat JS -->
 <script src="~/js/support-chat.js" asp-append-version="true"></script>
+
+<script>
+    // =========================================================================
+    // FLEETIFY LOGISTICS NETWORK - WAREHOUSE & CITY MATRIX
+    // =========================================================================
+    const WAREHOUSE_NETWORK = {
+        "Gujranwala": {
+            name: "Fleetify GT Road Hub, Gujranwala",
+            hubAddress: "Shaheenabad, near Gulshan Park / GT Road, Gujranwala",
+            hubCoords: [32.1765, 74.1755],
+            doorstepCoords: [32.1877, 74.1945],
+            doorstepDistKm: 9.2
+        },
+        "Lahore": {
+            name: "Fleetify Central Hub, Lahore",
+            hubAddress: "Thokar Niaz Baig, near Multan Road Bypass, Lahore",
+            hubCoords: [31.4707, 74.2415],
+            doorstepCoords: [31.5204, 74.3587],
+            doorstepDistKm: 14.5
+        },
+        "Islamabad": {
+            name: "Fleetify North Hub, Islamabad",
+            hubAddress: "I-9 Industrial Area, near Sector I-9/3, Islamabad",
+            hubCoords: [33.6653, 73.0535],
+            doorstepCoords: [33.6844, 73.0479],
+            doorstepDistKm: 8.4
+        },
+        "Rawalpindi": {
+            name: "Fleetify Twin Cities Hub, Rawalpindi",
+            hubAddress: "Murree Road, near Faizabad Interchange, Rawalpindi",
+            hubCoords: [33.6631, 73.0850],
+            doorstepCoords: [33.5651, 73.0169],
+            doorstepDistKm: 12.6
+        },
+        "Faisalabad": {
+            name: "Fleetify Textile Hub, Faisalabad",
+            hubAddress: "Sargodha Road, near Millat Chowk, Faisalabad",
+            hubCoords: [31.4485, 73.0782],
+            doorstepCoords: [31.4504, 73.1350],
+            doorstepDistKm: 10.3
+        },
+        "Multan": {
+            name: "Fleetify South Punjab Hub, Multan",
+            hubAddress: "Khanewal Road, near Industrial Estate, Multan",
+            hubCoords: [30.2241, 71.5032],
+            doorstepCoords: [30.1575, 71.5249],
+            doorstepDistKm: 11.2
+        },
+        "Peshawar": {
+            name: "Fleetify Khyber Hub, Peshawar",
+            hubAddress: "Hayatabad Industrial Estate, near Phase 7, Peshawar",
+            hubCoords: [33.9788, 71.4282],
+            doorstepCoords: [34.0151, 71.5249],
+            doorstepDistKm: 13.1
+        },
+        "Sialkot": {
+            name: "Fleetify Export Hub, Sialkot",
+            hubAddress: "Wazirabad Road, near Sambrial, Sialkot",
+            hubCoords: [32.4820, 74.3540],
+            doorstepCoords: [32.4945, 74.5229],
+            doorstepDistKm: 16.4
+        },
+        "Karachi": {
+            name: "Fleetify South Hub, Karachi",
+            hubAddress: "S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi",
+            hubCoords: [24.8988, 67.0118],
+            doorstepCoords: [24.8607, 67.0011],
+            doorstepDistKm: 12.5
+        },
+        "Quetta": {
+            name: "Fleetify Balochistan Hub, Quetta",
+            hubAddress: "Zarghoon Road, near Quetta Cantt, Quetta",
+            hubCoords: [30.2012, 67.0185],
+            doorstepCoords: [30.1798, 66.9750],
+            doorstepDistKm: 7.3
+        }
+    };
+
+    // Known Inter-Hub Distances in Pakistan (Road km)
+    const INTER_HUB_DISTANCES = {
+        "gujranwala|lahore": 71.0, "lahore|gujranwala": 71.0,
+        "gujranwala|sialkot": 52.0, "sialkot|gujranwala": 52.0,
+        "gujranwala|islamabad": 215.0, "islamabad|gujranwala": 215.0,
+        "lahore|islamabad": 375.0, "islamabad|lahore": 375.0,
+        "lahore|faisalabad": 180.0, "faisalabad|lahore": 180.0,
+        "lahore|multan": 345.0, "multan|lahore": 345.0,
+        "lahore|karachi": 1215.0, "karachi|lahore": 1215.0,
+        "islamabad|rawalpindi": 18.0, "rawalpindi|islamabad": 18.0,
+        "islamabad|peshawar": 185.0, "peshawar|islamabad": 185.0,
+        "lahore|sialkot": 132.0, "sialkot|lahore": 132.0
+    };
+
+    // State Variables
+    let currentOriginMode = "DoorstepPickup"; // DoorstepPickup, WarehouseDropoff
+    let currentDestinationMode = "DoorstepDelivery"; // DoorstepDelivery, WarehousePickup
+    let currentRouteType = "Normal"; // Normal, Fast, Express
+    let liveRouteMap = null;
+    let mapLayersGroup = null;
+    let activityChart = null;
+    let doughnutChart = null;
+
+    function selectDeliverySpeed(type) {
+        currentRouteType = type;
+        const hiddenRt = document.getElementById('hiddenRouteType');
+        if (hiddenRt) hiddenRt.value = type;
+
+        const cardNormal = document.getElementById('cardSpeedNormal');
+        const cardFast = document.getElementById('cardSpeedFast');
+        const cardExpress = document.getElementById('cardSpeedExpress');
+
+        if (cardNormal) cardNormal.classList.remove('active');
+        if (cardFast) cardFast.classList.remove('active');
+        if (cardExpress) cardExpress.classList.remove('active');
+
+        if (type === 'Normal' && cardNormal) cardNormal.classList.add('active');
+        else if (type === 'Fast' && cardFast) cardFast.classList.add('active');
+        else if ((type === 'Express' || type === 'Urgent') && cardExpress) cardExpress.classList.add('active');
+
+        recalculateAll();
+    }
+
+    function getHub(city) {
+        return WAREHOUSE_NETWORK[city] || WAREHOUSE_NETWORK["Lahore"];
+    }
+
+    function calculateInterHubDistance(cityA, cityB) {
+        if (cityA === cityB) return 15.0; // Intra-city hub transit
+        const key = `${cityA.toLowerCase()}|${cityB.toLowerCase()}`;
+        if (INTER_HUB_DISTANCES[key]) return INTER_HUB_DISTANCES[key];
+
+        const hubA = getHub(cityA);
+        const hubB = getHub(cityB);
+        // Haversine fallback with 25% road curvature
+        const R = 6371;
+        const dLat = (hubB.hubCoords[0] - hubA.hubCoords[0]) * Math.PI / 180;
+        const dLon = (hubB.hubCoords[1] - hubA.hubCoords[1]) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(hubA.hubCoords[0] * Math.PI / 180) * Math.cos(hubB.hubCoords[0] * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return Math.round(R * c * 1.25);
+    }
+
+    // =========================================================================
+    // SERVICE MODE SWITCHERS (CONDITIONAL LOGIC)
+    // =========================================================================
+    function setOriginServiceMode(mode) {
+        currentOriginMode = mode;
+        const btnDoorstep = document.getElementById('btnPickupDoorstep');
+        const btnWarehouse = document.getElementById('btnPickupWarehouse');
+        const doorstepBox = document.getElementById('pickupDoorstepFieldGroup');
+        const warehouseBox = document.getElementById('pickupWarehouseFieldGroup');
+        const badge = document.getElementById('badgePickupMode');
+        const pCity = document.getElementById('selectPickupCity').value;
+        const hub = getHub(pCity);
+
+        if (mode === 'DoorstepPickup') {
+            btnDoorstep.classList.add('active', 'is-success');
+            btnWarehouse.classList.remove('active');
+            doorstepBox.classList.remove('d-none');
+            warehouseBox.classList.add('d-none');
+            badge.innerText = 'Home Pickup';
+            badge.className = 'badge bg-success-subtle text-success small';
+            document.getElementById('hiddenOriginType').value = 'DoorstepPickup';
+            document.getElementById('inputPickupAddress').setAttribute('required', 'required');
+            const userAddr = document.getElementById('inputPickupAddress').value.trim();
+            if (!userAddr || userAddr === hub.hubAddress) {
+                document.getElementById('inputPickupAddress').value = `House 14, Street 5, Model Town, ${pCity}`;
+            }
+        } else {
+            btnWarehouse.classList.add('active');
+            btnDoorstep.classList.remove('active', 'is-success');
+            doorstepBox.classList.add('d-none');
+            warehouseBox.classList.remove('d-none');
+            badge.innerText = 'Warehouse Drop-off';
+            badge.className = 'badge bg-primary-subtle text-primary small';
+            document.getElementById('hiddenOriginType').value = 'WarehouseDropoff';
+            document.getElementById('inputPickupAddress').removeAttribute('required');
+            // When warehouse dropoff, PickupLocation takes warehouse address
+            document.getElementById('inputPickupAddress').value = hub.hubAddress;
+        }
+
+        recalculateAll();
+    }
+
+    function setDestinationServiceMode(mode) {
+        currentDestinationMode = mode;
+        const btnDoorstep = document.getElementById('btnDeliveryDoorstep');
+        const btnWarehouse = document.getElementById('btnDeliveryWarehouse');
+        const doorstepBox = document.getElementById('dropoffDoorstepFieldGroup');
+        const warehouseBox = document.getElementById('dropoffWarehouseFieldGroup');
+        const badge = document.getElementById('badgeDeliveryMode');
+        const dCity = document.getElementById('selectDeliveryCity').value;
+        const hub = getHub(dCity);
+
+        if (mode === 'DoorstepDelivery') {
+            btnDoorstep.classList.add('active', 'is-danger');
+            btnWarehouse.classList.remove('active');
+            doorstepBox.classList.remove('d-none');
+            warehouseBox.classList.add('d-none');
+            badge.innerText = 'Home Delivery';
+            badge.className = 'badge bg-danger-subtle text-danger small';
+            document.getElementById('hiddenDestinationType').value = 'DoorstepDelivery';
+            document.getElementById('inputDropoffAddress').setAttribute('required', 'required');
+            const userAddr = document.getElementById('inputDropoffAddress').value.trim();
+            if (!userAddr || userAddr === hub.hubAddress) {
+                document.getElementById('inputDropoffAddress').value = `Flat 4B, Gulberg III, ${dCity}`;
+            }
+        } else {
+            btnWarehouse.classList.add('active');
+            btnDoorstep.classList.remove('active', 'is-danger');
+            doorstepBox.classList.add('d-none');
+            warehouseBox.classList.remove('d-none');
+            badge.innerText = 'Warehouse Pickup';
+            badge.className = 'badge bg-primary-subtle text-primary small';
+            document.getElementById('hiddenDestinationType').value = 'WarehousePickup';
+            document.getElementById('inputDropoffAddress').removeAttribute('required');
+            // When warehouse pickup, DropoffLocation takes destination warehouse address
+            document.getElementById('inputDropoffAddress').value = hub.hubAddress;
+        }
+
+        recalculateAll();
+    }
+
+    function onPickupCityChanged() {
+        const pCity = document.getElementById('selectPickupCity').value;
+        const hub = getHub(pCity);
+
+        // Update warehouse select option
+        const selWh = document.getElementById('selectOriginWarehouse');
+        selWh.innerHTML = `<option value="${hub.hubAddress}">${hub.hubAddress} (${hub.name})</option>`;
+        document.getElementById('hiddenOriginWarehouse').value = hub.hubAddress;
+
+        if (currentOriginMode === 'WarehouseDropoff') {
+            document.getElementById('inputPickupAddress').value = hub.hubAddress;
+        } else {
+            const cur = document.getElementById('inputPickupAddress').value;
+            if (!cur.toLowerCase().includes(pCity.toLowerCase())) {
+                document.getElementById('inputPickupAddress').value = `House 14, Street 5, ${pCity}`;
+            }
+        }
+
+        recalculateAll();
+    }
+
+    function onDeliveryCityChanged() {
+        const dCity = document.getElementById('selectDeliveryCity').value;
+        const hub = getHub(dCity);
+
+        // Update warehouse select option
+        const selWh = document.getElementById('selectDestWarehouse');
+        selWh.innerHTML = `<option value="${hub.hubAddress}">${hub.hubAddress} (${hub.name})</option>`;
+        document.getElementById('hiddenDestinationWarehouse').value = hub.hubAddress;
+
+        if (currentDestinationMode === 'WarehousePickup') {
+            document.getElementById('inputDropoffAddress').value = hub.hubAddress;
+        } else {
+            const cur = document.getElementById('inputDropoffAddress').value;
+            if (!cur.toLowerCase().includes(dCity.toLowerCase())) {
+                document.getElementById('inputDropoffAddress').value = `Flat 4B, Gulberg III, ${dCity}`;
+            }
+        }
+
+        recalculateAll();
+    }
+
+    function onOriginWarehouseSelectChanged() {
+        const selWh = document.getElementById('selectOriginWarehouse');
+        document.getElementById('hiddenOriginWarehouse').value = selWh.value;
+        if (currentOriginMode === 'WarehouseDropoff') {
+            document.getElementById('inputPickupAddress').value = selWh.value;
+        }
+        recalculateAll();
+    }
+
+    function onDestWarehouseSelectChanged() {
+        const selWh = document.getElementById('selectDestWarehouse');
+        document.getElementById('hiddenDestinationWarehouse').value = selWh.value;
+        if (currentDestinationMode === 'WarehousePickup') {
+            document.getElementById('inputDropoffAddress').value = selWh.value;
+        }
+        recalculateAll();
+    }
+
+    function onDoorstepAddressChanged(type) {
+        if (window._addrTimeout) clearTimeout(window._addrTimeout);
+        window._addrTimeout = setTimeout(() => {
+            recalculateAll();
+        }, 350);
+    }
+
+    function parseDimensions(dimStr) {
+        if (!dimStr) return { length: 0, width: 0, height: 0, cft: 0 };
+        const matches = dimStr.match(/[0-9]+(\.[0-9]+)?/g);
+        if (!matches || matches.length === 0) return { length: 0, width: 0, height: 0, cft: 0 };
+        const nums = matches.map(n => parseFloat(n)).filter(n => !isNaN(n) && n > 0);
+        if (nums.length >= 3) {
+            const l = nums[0];
+            const w = nums[1];
+            const h = nums[2];
+            const cft = Math.round(l * w * h * 100) / 100;
+            return { length: l, width: w, height: h, cft: cft };
+        } else if (nums.length === 2) {
+            const l = nums[0];
+            const w = nums[1];
+            const cft = Math.round(l * w * 100) / 100;
+            return { length: l, width: w, height: 1, cft: cft };
+        } else if (nums.length === 1) {
+            return { length: nums[0], width: 1, height: 1, cft: nums[0] };
+        }
+        return { length: 0, width: 0, height: 0, cft: 0 };
+    }
+
+    function onParcelParamsChanged(shouldRecalculate = true) {
+        const weightInput = document.getElementById('inputSingleWeight');
+        let singleWt = 0;
+        if (weightInput && weightInput.value.trim() !== '') {
+            const parsed = parseFloat(weightInput.value);
+            singleWt = !isNaN(parsed) && parsed >= 0 ? parsed : 0;
+        }
+
+        const qtyInput = document.getElementById('inputQuantity');
+        let qty = 1;
+        if (qtyInput && qtyInput.value.trim() !== '') {
+            const parsed = parseInt(qtyInput.value);
+            qty = !isNaN(parsed) && parsed > 0 ? parsed : 1;
+        }
+
+        const rawDims = document.getElementById('inputSingleDimensions')?.value || '';
+        const dims = parseDimensions(rawDims);
+        const singleCft = dims.cft;
+
+        const totalWeight = Math.round(singleWt * qty * 100) / 100;
+        const totalCft = Math.round(singleCft * qty * 100) / 100;
+
+        // Update dedicated display box
+        const elTotalWeight = document.getElementById('calcTotalWeight');
+        if (elTotalWeight) elTotalWeight.innerText = totalWeight.toLocaleString();
+
+        const elWeightBreakdown = document.getElementById('calcWeightBreakdown');
+        if (elWeightBreakdown) elWeightBreakdown.innerText = `${singleWt} kg × ${qty} item${qty > 1 ? 's' : ''}`;
+
+        const elTotalCft = document.getElementById('calcTotalCft');
+        if (elTotalCft) elTotalCft.innerText = totalCft.toLocaleString();
+
+        const elSingleCft = document.getElementById('calcSingleCft');
+        if (elSingleCft) elSingleCft.innerText = singleCft.toLocaleString();
+
+        const elDimL = document.getElementById('calcDimL');
+        if (elDimL) elDimL.innerText = dims.length;
+
+        const elDimW = document.getElementById('calcDimW');
+        if (elDimW) elDimW.innerText = dims.width;
+
+        const elDimH = document.getElementById('calcDimH');
+        if (elDimH) elDimH.innerText = dims.height;
+
+        const elQty = document.getElementById('calcQty');
+        if (elQty) elQty.innerText = qty;
+
+        // Update weight tier badge
+        const wtBadge = document.getElementById('calcWeightTierBadge');
+        if (wtBadge) {
+            wtBadge.className = totalWeight < 1000 ? 'badge bg-secondary-subtle text-secondary small' : 'badge bg-primary-subtle text-primary small';
+            wtBadge.innerText = totalWeight < 1000 ? '< 1,000 kg (Rs. 2/kg)' : '≥ 1,000 kg (Rs. 200/ton)';
+        }
+
+        // Update volume tier badge
+        const volBadge = document.getElementById('calcVolumeTierBadge');
+        if (volBadge) {
+            if (totalCft < 1000) {
+                volBadge.className = 'badge bg-secondary-subtle text-secondary small';
+                volBadge.innerText = '< 1,000 CFT (1.0x Rate)';
+            } else if (totalCft < 2000) {
+                volBadge.className = 'badge bg-info-subtle text-info small';
+                volBadge.innerText = '1,000 - 2,000 CFT (1.25x Rate)';
+            } else if (totalCft < 3000) {
+                volBadge.className = 'badge bg-primary-subtle text-primary small';
+                volBadge.innerText = '2,000 - 3,000 CFT (1.40x Rate)';
+            } else {
+                volBadge.className = 'badge bg-warning-subtle text-warning small';
+                volBadge.innerText = '≥ 3,000 CFT (1.50x Rate)';
+            }
+        }
+
+        // Update hidden inputs for POST & calculation
+        const hWeight = document.getElementById('hiddenTotalWeight');
+        if (hWeight) hWeight.value = totalWeight;
+
+        const hL = document.getElementById('hiddenLength');
+        if (hL) hL.value = dims.length;
+
+        const hW = document.getElementById('hiddenWidth');
+        if (hW) hW.value = dims.width;
+
+        const hH = document.getElementById('hiddenHeight');
+        if (hH) hH.value = dims.height;
+
+        const hTotalCft = document.getElementById('hiddenTotalCubicFeet');
+        if (hTotalCft) hTotalCft.value = totalCft;
+
+        const hDims = document.getElementById('hiddenDimensionsInput');
+        if (hDims) hDims.value = rawDims;
+
+        if (shouldRecalculate) {
+            recalculateAll();
+        }
+    }
+
+    function onDimensionsChanged() {
+        onParcelParamsChanged();
+    }
+
+    // =========================================================================
+    // RECALCULATE LEGS, PRICING & ROUTE MAP
+    // =========================================================================
+    function recalculateAll() {
+        const pCity = document.getElementById('selectPickupCity').value;
+        const dCity = document.getElementById('selectDeliveryCity').value;
+        const pHub = getHub(pCity);
+        const dHub = getHub(dCity);
+
+        // 1. Calculate Leg Distances
+        const isHomePickup = currentOriginMode === "DoorstepPickup";
+        const isHomeDelivery = currentDestinationMode === "DoorstepDelivery";
+
+        const pLegKm = isHomePickup ? pHub.doorstepDistKm : 0.0;
+        const mainKm = calculateInterHubDistance(pCity, dCity);
+        const dLegKm = isHomeDelivery ? dHub.doorstepDistKm : 0.0;
+
+        let totalKm = 0.0;
+        if (isHomePickup && isHomeDelivery) {
+            totalKm = Math.round((pLegKm + mainKm + dLegKm) * 10) / 10;
+        } else if (isHomePickup) {
+            totalKm = Math.round((pLegKm + mainKm) * 10) / 10;
+        } else if (isHomeDelivery) {
+            totalKm = Math.round((mainKm + dLegKm) * 10) / 10;
+        } else {
+            // Neither selected: "default to showing the distance between the pickup and drop-off warehouses"
+            totalKm = Math.round(mainKm * 10) / 10;
+        }
+
+        // 2. Update Summary Badges & Tags
+        document.getElementById('summaryPickupCity').innerText = pCity;
+        document.getElementById('summaryDropoffCity').innerText = dCity;
+        document.getElementById('summaryPickupTag').innerText = isHomePickup ? 'Home Pickup' : 'Warehouse Hub';
+        document.getElementById('summaryDropoffTag').innerText = isHomeDelivery ? 'Home Delivery' : 'Warehouse Hub';
+
+        document.getElementById('pickupLegDistanceTag').innerText = `~${pHub.doorstepDistKm} km to Hub`;
+        document.getElementById('deliveryLegDistanceTag').innerText = `~${dHub.doorstepDistKm} km from Hub`;
+
+        // Update Leg Breakdown Chips
+        const chipPickup = document.getElementById('chipPickupLeg');
+        const chipMain = document.getElementById('chipMainLeg');
+        const chipDelivery = document.getElementById('chipDeliveryLeg');
+
+        document.getElementById('lblPickupLeg').innerText = `${pLegKm.toFixed(1)} km`;
+        document.getElementById('lblMainLeg').innerText = `${mainKm.toFixed(1)} km`;
+        document.getElementById('lblDeliveryLeg').innerText = `${dLegKm.toFixed(1)} km`;
+        document.getElementById('lblTotalDist').innerText = `${totalKm.toFixed(1)} km`;
+
+        if (isHomePickup && isHomeDelivery) {
+            chipPickup.style.display = 'inline-flex';
+            chipDelivery.style.display = 'inline-flex';
+            document.getElementById('summaryServiceBadge').innerText = 'Home ➔ Home Express';
+            document.getElementById('mapLegsModeTag').innerText = '3 Legs Active';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-success fw-bold">Pickup Leg (${pLegKm}km)</span> &rarr; <span class="text-primary fw-bold">Hub Route (${mainKm}km)</span> &rarr; <span class="text-danger fw-bold">Delivery Leg (${dLegKm}km)</span>`;
+        } else if (isHomePickup) {
+            chipPickup.style.display = 'inline-flex';
+            chipDelivery.style.display = 'none';
+            document.getElementById('summaryServiceBadge').innerText = 'Home ➔ Warehouse';
+            document.getElementById('mapLegsModeTag').innerText = '2 Legs Active';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-success fw-bold">Pickup Leg (${pLegKm}km)</span> &rarr; <span class="text-primary fw-bold">Inter-Hub Route (${mainKm}km)</span>`;
+        } else if (isHomeDelivery) {
+            chipPickup.style.display = 'none';
+            chipDelivery.style.display = 'inline-flex';
+            document.getElementById('summaryServiceBadge').innerText = 'Warehouse ➔ Home';
+            document.getElementById('mapLegsModeTag').innerText = '2 Legs Active';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-primary fw-bold">Inter-Hub Route (${mainKm}km)</span> &rarr; <span class="text-danger fw-bold">Delivery Leg (${dLegKm}km)</span>`;
+        } else {
+            // Neither selected (Warehouse-to-Warehouse)
+            chipPickup.style.display = 'none';
+            chipDelivery.style.display = 'none';
+            document.getElementById('summaryServiceBadge').innerText = 'Warehouse-to-Warehouse';
+            document.getElementById('mapLegsModeTag').innerText = 'Direct Hub Route';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-primary fw-bold">Origin Hub (${pCity})</span> &rarr; <span class="text-primary fw-bold">Destination Hub (${dCity})</span>: <strong>${mainKm} km</strong>`;
+        }
+
+        document.getElementById('mapLiveTotalDist').innerText = `${totalKm.toFixed(1)} km Total`;
+        document.getElementById('hiddenDistanceKm').value = Math.round(totalKm);
+
+        // 3. Exact Excel Rate Calculation Formula
+        // Total Weight (Cell B2) & Total Cubic Feet (Cell D2) from the dedicated calculation box
+        const wtVal = document.getElementById('hiddenTotalWeight')?.value;
+        const wt = (wtVal !== undefined && wtVal !== null && wtVal !== '') ? (parseFloat(wtVal) || 0) : 0;
+
+        const cftVal = document.getElementById('hiddenTotalCubicFeet')?.value;
+        const volumeCft = (cftVal !== undefined && cftVal !== null && cftVal !== '') ? (parseFloat(cftVal) || 0) : 0;
+
+        const calculatedPrice = calculateAccuratePrice(totalKm, wt, volumeCft, currentRouteType);
+        document.getElementById('summaryEstCost').innerText = `PKR ${calculatedPrice.toLocaleString()}`;
+
+        // 4. Update Estimated Delivery Time based on Delivery Type selection
+        let estTime = "5 - 6 Days";
+        let serviceDisplayName = "Normal";
+        if (currentRouteType === "Fast") {
+            estTime = "3 - 4 Days";
+            serviceDisplayName = "Express";
+        } else if (currentRouteType === "Express" || currentRouteType === "Urgent") {
+            estTime = "1 - 2 Days";
+            serviceDisplayName = "Urgent";
+        }
+        document.getElementById('summaryEstTime').innerText = estTime;
+        document.getElementById('summaryServiceType').innerText = serviceDisplayName;
+
+        // 5. Update Leaflet Multi-Leg Route Map
+        updateMultiLegMap(pCity, dCity, isHomePickup, isHomeDelivery, pLegKm, mainKm, dLegKm);
+    }
+
+    // Exact Excel Rate Calculation Formula:
+    // =((IF(B2<1000, B2*2, ((B2-MOD(B2,1000))/1000*200) + (MOD(B2,1000)*2)))+IFS(A2<50,1500,A2<150,2500,A2<250,4000,A2<500,7000,A2<1000,12000,A2<1500,18000))*SWITCH(C2,"Normal",1,"Fast",1.75,"Express",2.5,1)*IFS(D2<1000,1,D2<2000,1.25,D2<3000,1.40,D2>=3000,1.50)
+    function calculateAccuratePrice(totalKm, weight, volumeCft, routeType) {
+        // Distance (Km) is in cell A2
+        // Weight (Kg) is in cell B2
+        // Delivery Type (Normal, Fast, Express) is in cell C2
+        // Total parcel size in cubic feet is in cell D2
+
+        // Weight Part: IF(B2<1000, B2*2, ((B2-MOD(B2,1000))/1000*200) + (MOD(B2,1000)*2))
+        const b2 = Math.max(0, weight || 0);
+        let weightPart = 0;
+        if (b2 <= 0) {
+            weightPart = 0;
+        } else if (b2 < 1000) {
+            weightPart = b2 * 2;
+        } else {
+            const modB2 = b2 % 1000;
+            const fullTons = Math.floor((b2 - modB2) / 1000);
+            weightPart = (fullTons * 200) + (modB2 * 2);
+        }
+
+        // Distance Part: IFS(A2<50,1500,A2<150,2500,A2<250,4000,A2<500,7000,A2<1000,12000,A2<1500,18000)
+        const a2 = totalKm;
+        let distPart = 18000;
+        if (a2 < 50) distPart = 1500;
+        else if (a2 < 150) distPart = 2500;
+        else if (a2 < 250) distPart = 4000;
+        else if (a2 < 500) distPart = 7000;
+        else if (a2 < 1000) distPart = 12000;
+        else distPart = 18000;
+
+        // Delivery Type Multiplier: SWITCH(C2,"Normal",1,"Fast",1.75,"Express",2.5,1)
+        let c2Multiplier = 1.0;
+        const c2 = (routeType || currentRouteType || "Normal").toLowerCase();
+        if (c2 === "fast") c2Multiplier = 1.75;
+        else if (c2 === "express" || c2 === "urgent") c2Multiplier = 2.5;
+        else c2Multiplier = 1.0;
+
+        // Volume Multiplier: IFS(D2<1000,1,D2<2000,1.25,D2<3000,1.40,D2>=3000,1.50)
+        const d2 = volumeCft || 0;
+        let d2Multiplier = 1.0;
+        if (d2 < 1000) d2Multiplier = 1.0;
+        else if (d2 < 2000) d2Multiplier = 1.25;
+        else if (d2 < 3000) d2Multiplier = 1.40;
+        else d2Multiplier = 1.50;
+
+        // Exactly: ((WeightPart + DistPart)) * C2Multiplier * D2Multiplier
+        const total = (weightPart + distPart) * c2Multiplier * d2Multiplier;
+        return Math.floor(total);
+    }
+
+    // =========================================================================
+    // LEAFLET MULTI-LEG MAP ROUTING
+    // =========================================================================
+    function initLeafletRouteMap() {
+        const mapContainer = document.getElementById('routeLiveMap');
+        if (!mapContainer) return;
+
+        liveRouteMap = L.map('routeLiveMap', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([31.85, 74.27], 9);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18
+        }).addTo(liveRouteMap);
+
+        L.control.zoom({ position: 'topright' }).addTo(liveRouteMap);
+        mapLayersGroup = L.featureGroup().addTo(liveRouteMap);
+
+        recalculateAll();
+    }
+
+    function createCustomPin(colorText, iconClass) {
+        return L.divIcon({
+            className: 'custom-map-marker',
+            html: `<div style="background-color: ${colorText}; color: #ffffff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2.5px solid #ffffff;"><i class="${iconClass}" style="font-size: 14px;"></i></div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 34],
+            popupAnchor: [0, -32]
+        });
+    }
+
+    function createTruckPin() {
+        return L.divIcon({
+            className: 'custom-truck-marker',
+            html: `<div style="background-color: #2563eb; color: #ffffff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 14px #2563eb; border: 2.5px solid #ffffff;"><i class="bi bi-truck" style="font-size: 15px;"></i></div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 17],
+            popupAnchor: [0, -17]
+        });
+    }
+
+    function updateMultiLegMap(pCity, dCity, isHomePickup, isHomeDelivery, pLegKm, mainKm, dLegKm) {
+        if (!liveRouteMap || !mapLayersGroup) return;
+
+        mapLayersGroup.clearLayers();
+
+        const pHub = getHub(pCity);
+        const dHub = getHub(dCity);
+        const boundsPoints = [];
+
+        // 1. Pickup Doorstep Marker & Leg Polyline (if Home Pickup)
+        if (isHomePickup) {
+            const pDoorstepCoords = pHub.doorstepCoords;
+            boundsPoints.push(pDoorstepCoords);
+
+            const mPickup = L.marker(pDoorstepCoords, {
+                icon: createCustomPin('#10b981', 'bi bi-house-door-fill')
+            }).bindPopup(`<b>Home Pickup Location:</b><br>${document.getElementById('inputPickupAddress').value}<br><span class="badge bg-success-subtle text-success mt-1">Pickup Leg: ${pLegKm.toFixed(1)} km to Hub</span>`);
+            mapLayersGroup.addLayer(mPickup);
+
+            // Polyline: Doorstep -> Origin Hub (Green dashed)
+            const pickupLine = L.polyline([pDoorstepCoords, pHub.hubCoords], {
+                color: '#10b981',
+                weight: 4,
+                opacity: 0.9,
+                dashArray: '6, 6'
+            }).bindPopup(`<b>Pickup Leg:</b> ${pLegKm.toFixed(1)} km (Doorstep &rarr; Origin Hub)`);
+            mapLayersGroup.addLayer(pickupLine);
+        }
+
+        // 2. Origin Warehouse Hub Marker
+        boundsPoints.push(pHub.hubCoords);
+        const mOriginHub = L.marker(pHub.hubCoords, {
+            icon: createCustomPin('#0f172a', 'bi bi-building')
+        }).bindPopup(`<b>Origin Hub:</b><br>${pHub.name}<br><small class="text-muted">${pHub.hubAddress}</small>`);
+        mapLayersGroup.addLayer(mOriginHub);
+
+        // 3. Destination Warehouse Hub Marker
+        boundsPoints.push(dHub.hubCoords);
+        const mDestHub = L.marker(dHub.hubCoords, {
+            icon: createCustomPin('#1d4ed8', 'bi bi-building')
+        }).bindPopup(`<b>Destination Hub:</b><br>${dHub.name}<br><small class="text-muted">${dHub.hubAddress}</small>`);
+        mapLayersGroup.addLayer(mDestHub);
+
+        // 4. Main Line-Haul Inter-Hub Route
+        const midLat = (pHub.hubCoords[0] + dHub.hubCoords[0]) / 2 + 0.02;
+        const midLng = (pHub.hubCoords[1] + dHub.hubCoords[1]) / 2 - 0.02;
+        const mainRouteLine = L.polyline([pHub.hubCoords, [midLat, midLng], dHub.hubCoords], {
+            color: '#2563eb',
+            weight: 5,
+            opacity: 0.95
+        }).bindPopup(`<b>Inter-Hub Transit:</b> ${mainKm.toFixed(1)} km (${pCity} &rarr; ${dCity})`);
+        mapLayersGroup.addLayer(mainRouteLine);
+
+        // Midpoint Truck Icon
+        const truckMarker = L.marker([midLat, midLng], { icon: createTruckPin() })
+            .bindPopup(`<b>Fleetify Line-Haul:</b> ${mainKm.toFixed(1)} km<br><small class="text-muted">On Schedule</small>`);
+        mapLayersGroup.addLayer(truckMarker);
+
+        // 5. Delivery Doorstep Marker & Leg Polyline (if Home Delivery)
+        if (isHomeDelivery) {
+            const dDoorstepCoords = dHub.doorstepCoords;
+            boundsPoints.push(dDoorstepCoords);
+
+            const mDelivery = L.marker(dDoorstepCoords, {
+                icon: createCustomPin('#ef4444', 'bi bi-geo-alt-fill')
+            }).bindPopup(`<b>Home Delivery Location:</b><br>${document.getElementById('inputDropoffAddress').value}<br><span class="badge bg-danger-subtle text-danger mt-1">Delivery Leg: ${dLegKm.toFixed(1)} km from Hub</span>`);
+            mapLayersGroup.addLayer(mDelivery);
+
+            // Polyline: Destination Hub -> Doorstep (Red dashed)
+            const deliveryLine = L.polyline([dHub.hubCoords, dDoorstepCoords], {
+                color: '#ef4444',
+                weight: 4,
+                opacity: 0.9,
+                dashArray: '6, 6'
+            }).bindPopup(`<b>Delivery Leg:</b> ${dLegKm.toFixed(1)} km (Destination Hub &rarr; Doorstep)`);
+            mapLayersGroup.addLayer(deliveryLine);
+        }
+
+        // Fit map bounds smoothly
+        if (boundsPoints.length > 0) {
+            liveRouteMap.fitBounds(L.latLngBounds(boundsPoints), { padding: [45, 45] });
+        }
+    }
+
+    function recenterRouteMap() {
+        if (!liveRouteMap || !mapLayersGroup) return;
+        const bounds = mapLayersGroup.getBounds();
+        if (bounds.isValid()) {
+            liveRouteMap.fitBounds(bounds, { padding: [45, 45] });
+        }
+    }
+
+    // =========================================================================
+    // CHART.JS DATA VISUALIZATION
+    // =========================================================================
+    function initCustomerCharts() {
+        // 1. Weekly / Monthly Activity Chart
+        const actCanvas = document.getElementById('customerActivityChart');
+        if (actCanvas) {
+            const ctxAct = actCanvas.getContext('2d');
+            const gradientAct = ctxAct.createLinearGradient(0, 0, 0, 220);
+            gradientAct.addColorStop(0, 'rgba(37, 99, 235, 0.28)');
+            gradientAct.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+            activityChart = new Chart(ctxAct, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Shipments',
+                        data: [1, 2, 0, 3, 2, 1, 4],
+                        borderColor: '#2563eb',
+                        borderWidth: 2.8,
+                        backgroundColor: gradientAct,
+                        fill: true,
+                        tension: 0.38,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4.5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '700' },
+                            bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' } }
+                        },
+                        y: {
+                            min: 0,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1,
+                                color: '#94a3b8',
+                                font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' }
+                            },
+                            grid: { color: 'rgba(226, 232, 240, 0.6)', borderDash: [4, 4] }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Status Breakdown Doughnut Chart
+        const doughCanvas = document.getElementById('customerStatusDoughnut');
+        if (doughCanvas) {
+            const ctxDough = doughCanvas.getContext('2d');
+            doughnutChart = new Chart(ctxDough, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Delivered', 'In Transit', 'Pending'],
+                    datasets: [{
+                        data: [@delivered, @inTransit, @pending],
+                        backgroundColor: ['#10b981', '#2563eb', '#f59e0b'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '72%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '700' },
+                            bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function toggleCustomerChart(period) {
+        if (!activityChart) return;
+        const btnWeek = document.getElementById('btnChartWeekly');
+        const btnMonth = document.getElementById('btnChartMonthly');
+
+        if (period === 'week') {
+            btnWeek.classList.add('active');
+            btnMonth.classList.remove('active');
+            activityChart.data.labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            activityChart.data.datasets[0].data = [1, 2, 0, 3, 2, 1, 4];
+            activityChart.options.scales.y.max = 5;
+        } else {
+            btnMonth.classList.add('active');
+            btnWeek.classList.remove('active');
+            activityChart.data.labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+            activityChart.data.datasets[0].data = [6, 11, 8, 14];
+            activityChart.options.scales.y.max = 16;
+        }
+        activityChart.update();
+    }
+
+    function toggleSidebarDrawer() {
+        document.getElementById('dashboardSidebar').classList.toggle('show');
+    }
+
+    function switchSidebarView(viewName) {
+        document.querySelectorAll('.fly-nav-link').forEach(el => el.classList.remove('active'));
+        
+        const mainDash = document.getElementById('mainDashboardView');
+        const requestsList = document.getElementById('requestsListView');
+        const trackView = document.getElementById('trackParcelView');
+
+        mainDash.classList.add('d-none');
+        requestsList.classList.add('d-none');
+        trackView.classList.add('d-none');
+
+        if (viewName === 'dashboard' || viewName === 'new-delivery') {
+            mainDash.classList.remove('d-none');
+            document.getElementById(viewName === 'new-delivery' ? 'menuNewDelivery' : 'menuDashboard').classList.add('active');
+            if (viewName === 'new-delivery') {
+                document.getElementById('deliveryCreateForm').scrollIntoView({ behavior: 'smooth' });
+            }
+            if (liveRouteMap) {
+                setTimeout(() => liveRouteMap.invalidateSize(), 200);
+            }
+        } else if (viewName === 'requests') {
+            requestsList.classList.remove('d-none');
+            document.getElementById('menuMyRequests').classList.add('active');
+        } else if (viewName === 'track') {
+            trackView.classList.remove('d-none');
+            document.getElementById('menuTrackParcel').classList.add('active');
+            document.getElementById('directTrackInput').focus();
+        }
+
+        document.getElementById('dashboardSidebar').classList.remove('show');
+    }
+
+    function openProfileModal() {
+        const modal = new bootstrap.Modal(document.getElementById('userProfileModal'));
+        modal.show();
+    }
+
+    function openSettingsModal() {
+        const modal = new bootstrap.Modal(document.getElementById('userSettingsModal'));
+        modal.show();
+    }
+
+    function submitDirectTrack() {
+        const num = (document.getElementById('directTrackInput').value || '').trim();
+        if (num) {
+            window.location.href = `/Customer/Track?trackingNumber=${encodeURIComponent(num)}`;
+        } else {
+            alert('Please enter a valid tracking number.');
+        }
+    }
+
+    function updateCharCount(textarea) {
+        const count = textarea.value.length;
+        document.getElementById('charCountDisplay').innerText = `${count}/500`;
+    }
+
+    function filterDeliveriesSearch(term) {
+        const query = (term || '').toLowerCase().trim();
+        const rows = document.querySelectorAll('#userRequestsTable tbody tr');
+        rows.forEach(r => {
+            const text = r.innerText.toLowerCase();
+            r.style.display = text.includes(query) ? '' : 'none';
+        });
+    }
+
+    // Keep backwards compatibility for parcel weight & package type changes
+    function updateSummaryPricing() {
+        onParcelParamsChanged();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initCustomerCharts();
+        onParcelParamsChanged(false);
+        setTimeout(initLeafletRouteMap, 200);
+    });
+</script>
 </body>
 </html>

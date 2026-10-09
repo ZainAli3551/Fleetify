@@ -40,7 +40,7 @@ namespace Fleetify.Services.Implementations
             // 1. Attempt real Gmail SMTP dispatch if password/app-password is configured
             if (!string.IsNullOrWhiteSpace(password))
             {
-                var cleanPassword = password.Trim();
+                var cleanPassword = password.Replace(" ", "").Trim();
                 var hostsToTry = new[] { smtpServer, "smtp.googlemail.com" };
 
                 foreach (var host in hostsToTry)
@@ -73,7 +73,7 @@ namespace Fleetify.Services.Implementations
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "SMTP attempt {Attempt} on {Host} failed for {ToEmail}: {Error}", attempt, host, ex.Message);
+                            _logger.LogWarning(ex, "SMTP attempt {Attempt} on {Host} failed for {ToEmail}: {Error}", attempt, host, toEmail, ex.Message);
                             if (attempt < 2)
                             {
                                 await Task.Delay(1000);

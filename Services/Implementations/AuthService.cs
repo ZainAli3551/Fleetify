@@ -163,5 +163,37 @@ namespace Fleetify.Services.Implementations
             await _context.SaveChangesAsync();
             return admin;
         }
+
+        public async Task<bool> ResetPasswordAsync(string email, string newPassword)
+        {
+            email = email.Trim().ToLower();
+            var newHash = HashPassword(newPassword);
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+            if (user != null)
+            {
+                user.PasswordHash = newHash;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == email);
+            if (admin != null)
+            {
+                admin.PasswordHash = newHash;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+
+            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Email.ToLower() == email);
+            if (driver != null)
+            {
+                driver.PasswordHash = newHash;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
+        }
     }
 }

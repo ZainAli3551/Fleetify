@@ -10,6 +10,7 @@ using Fleetify.Models.Entities;
 using Fleetify.Models.ViewModels;
 using Fleetify.Services;
 using Fleetify.Services.Interfaces;
+using Fleetify.Services.Implementations;
 
 namespace Fleetify.Controllers
 {
@@ -103,16 +104,13 @@ namespace Fleetify.Controllers
                     model.DropoffLocation = Request.Form["DropoffLocation"].ToString();
                 }
             }
-            if (model.ParcelWeight <= 0)
+            if (double.TryParse(Request.Form["NewDelivery.ParcelWeight"], out var w) || double.TryParse(Request.Form["ParcelWeight"], out w))
             {
-                if (double.TryParse(Request.Form["NewDelivery.ParcelWeight"], out var w) || double.TryParse(Request.Form["ParcelWeight"], out w))
-                {
-                    model.ParcelWeight = w;
-                }
-                else
-                {
-                    model.ParcelWeight = 2.0;
-                }
+                model.ParcelWeight = Math.Max(0.0, w);
+            }
+            else if (model.ParcelWeight < 0)
+            {
+                model.ParcelWeight = 0.0;
             }
 
             if (model.Length <= 0)
@@ -207,32 +205,73 @@ namespace Fleetify.Controllers
             if (quantity <= 0 && int.TryParse(Request.Form["NewDelivery.Quantity"], out var qVal)) quantity = qVal;
             if (quantity <= 0) quantity = 1;
 
-            double singleItemWeight = model.SingleItemWeight > 0 ? model.SingleItemWeight : 2.0;
-            if (double.TryParse(Request.Form["NewDelivery.SingleItemWeight"], out var siwVal) || double.TryParse(Request.Form["SingleItemWeight"], out siwVal))
+            double totalWeight = 0.0;
+            if (double.TryParse(Request.Form["NewDelivery.ParcelWeight"], out var pwVal))
             {
-                if (siwVal > 0) singleItemWeight = siwVal;
+                totalWeight = Math.Max(0.0, pwVal);
+            }
+            else if (model.ParcelWeight >= 0)
+            {
+                totalWeight = model.ParcelWeight;
+            }
+            else if (double.TryParse(Request.Form["ParcelWeight"], out var pwVal2))
+            {
+                totalWeight = Math.Max(0.0, pwVal2);
+            }
+            model.ParcelWeight = totalWeight;
+            double singleItemWeight = quantity > 0 ? Math.Round(totalWeight / quantity, 2) : totalWeight;
+            model.SingleItemWeight = singleItemWeight;
+
+            // Dimensions & Cubic Feet (D2 in rate formula)
+            string dimInput = Request.Form["DimensionsInput"].ToString();
+            if (string.IsNullOrWhiteSpace(dimInput))
+            {
+                dimInput = Request.Form["NewDelivery.Dimensions"].ToString();
             }
 
-            // Calculate Total Weight (B2 in rate formula): Single Item Weight * Quantity
-            double totalWeight = Math.Round(singleItemWeight * quantity, 2);
-            if (totalWeight <= 0) totalWeight = 2.0;
-            model.SingleItemWeight = singleItemWeight;
-            model.ParcelWeight = totalWeight;
+            double length = 0.0;
+            double width = 0.0;
+            double height = 0.0;
+            double totalCft = 0.0;
 
-            double length = model.Length > 0 ? model.Length : 2.0;
-            if (length <= 0 && double.TryParse(Request.Form["NewDelivery.Length"], out var lVal)) length = lVal;
-            if (length <= 0) length = 2.0;
+            if (!string.IsNullOrWhiteSpace(dimInput))
+            {
+                var dims = CostEstimationService.ParseDimensions(dimInput, quantity);
+                length = dims.length;
+                width = dims.width;
+                height = dims.height;
+                totalCft = dims.cft;
+            }
 
-            double width = model.Width > 0 ? model.Width : 1.5;
-            if (width <= 0 && double.TryParse(Request.Form["NewDelivery.Width"], out var wVal)) width = wVal;
-            if (width <= 0) width = 1.5;
+            if (totalCft <= 0)
+            {
+                if (double.TryParse(Request.Form["NewDelivery.TotalCubicFeet"], out var cftForm) && cftForm > 0)
+                {
+                    totalCft = cftForm;
+                }
+                else
+                {
+                    double lVal = 0, wVal = 0, hVal = 0;
+                    if (double.TryParse(Request.Form["NewDelivery.Length"], out lVal)) length = lVal;
+                    else if (model.Length > 0) length = model.Length;
 
-            double height = model.Height > 0 ? model.Height : 1.0;
-            if (height <= 0 && double.TryParse(Request.Form["NewDelivery.Height"], out var hVal)) height = hVal;
-            if (height <= 0) height = 1.0;
+                    if (double.TryParse(Request.Form["NewDelivery.Width"], out wVal)) width = wVal;
+                    else if (model.Width > 0) width = model.Width;
 
-            double singleCft = Math.Round(length * width * height, 2);
-            double totalCft = Math.Round(singleCft * quantity, 2);
+                    if (double.TryParse(Request.Form["NewDelivery.Height"], out hVal)) height = hVal;
+                    else if (model.Height > 0) height = model.Height;
+
+                    if (length > 0 && width > 0 && height > 0)
+                    {
+                        totalCft = Math.Round(length * width * height * (quantity > 0 ? quantity : 1), 2);
+                    }
+                }
+            }
+
+            model.Length = length;
+            model.Width = width;
+            model.Height = height;
+            model.TotalCubicFeet = totalCft;
 
             var originWhForm = !string.IsNullOrWhiteSpace(model.OriginWarehouse)
                 ? model.OriginWarehouse

@@ -118,6 +118,16 @@ namespace Fleetify.Data
                         ALTER TABLE Drivers ADD VehicleOwned NVARCHAR(100) NULL;
                     END
 
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Vehicles') AND name = 'InitialMileage')
+                    BEGIN
+                        ALTER TABLE Vehicles ADD InitialMileage FLOAT NOT NULL DEFAULT 0.0;
+                        EXEC('UPDATE Vehicles SET InitialMileage = CurrentMileage WHERE InitialMileage = 0.0;');
+                    END
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Vehicles') AND name = 'CompletedRouteMileage')
+                    BEGIN
+                        ALTER TABLE Vehicles ADD CompletedRouteMileage FLOAT NOT NULL DEFAULT 0.0;
+                    END
+
                     UPDATE Vehicles SET VehicleType = 'Pickup', CapacityKg = 800 WHERE VehicleType = 'Car';
                     UPDATE DeliveryRequests SET VehicleType = 'Pickup' WHERE VehicleType = 'Car';
                 ");
@@ -133,6 +143,23 @@ namespace Fleetify.Data
                         PasswordHash = authService.HashPassword("admin123"),
                         PhoneNumber = "+923001234567",
                         Role = "Admin",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync();
+                }
+                // Ensure default Customer exists
+                var defaultCustomer = await context.Users.FirstOrDefaultAsync(u => u.Email == "customer@fleetify.com");
+                if (defaultCustomer == null)
+                {
+                    context.Users.Add(new Models.Entities.User
+                    {
+                        FullName = "Demo Customer",
+                        Email = "customer@fleetify.com",
+                        PasswordHash = authService.HashPassword("customer123"),
+                        PhoneNumber = "+923009876543",
+                        Role = "Customer",
+                        Address = "House 14, Street 5, Model Town, Lahore",
+                        AccountStatus = "Active",
                         CreatedAt = DateTime.UtcNow
                     });
                     await context.SaveChangesAsync();
