@@ -30,7 +30,7 @@ namespace Fleetify.Services.Implementations
 
             var smtpServer = _config["EmailSettings:SmtpServer"] ?? "smtp.gmail.com";
             var smtpPort = int.TryParse(_config["EmailSettings:SmtpPort"], out int port) ? port : 587;
-            var senderEmail = _config["EmailSettings:SenderEmail"] ?? "fleetify.logistics.pk@gmail.com";
+            var senderEmail = _config["EmailSettings:SenderEmail"] ?? "fypfleetify@gmail.com";
             var senderName = _config["EmailSettings:SenderName"] ?? "Fleetify Logistics";
             var password = _config["EmailSettings:Password"];
             var enableSsl = bool.TryParse(_config["EmailSettings:EnableSsl"], out bool ssl) ? ssl : true;
@@ -40,7 +40,7 @@ namespace Fleetify.Services.Implementations
             // 1. Attempt real Gmail SMTP dispatch if password/app-password is configured
             if (!string.IsNullOrWhiteSpace(password))
             {
-                var cleanPassword = password.Trim();
+                var cleanPassword = password.Replace(" ", "").Trim();
                 var hostsToTry = new[] { smtpServer, "smtp.googlemail.com" };
 
                 foreach (var host in hostsToTry)

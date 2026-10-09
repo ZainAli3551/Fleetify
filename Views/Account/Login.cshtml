@@ -523,17 +523,17 @@
                             </span>
                             <input asp-for="Email" 
                                    id="inputEmail" 
-                                   type="email" 
+                                   type="text" 
                                    class="pill-input-control" 
                                    placeholder="Email or Username" 
                                    autocomplete="off" 
-                                   data-lpignore="true"
-                                   data-form-type="other"
-                                   autocorrect="off"
-                                   autocapitalize="off"
-                                   spellcheck="false"
-                                   readonly
-                                   onfocus="this.removeAttribute('readonly');"
+                                   data-lpignore="true" 
+                                   data-form-type="other" 
+                                   autocorrect="off" 
+                                   autocapitalize="off" 
+                                   spellcheck="false" 
+                                   readonly 
+                                   onfocus="this.removeAttribute('readonly');" 
                                    required 
                                    oninput="validateEmailField(this)" />
                         </div>
@@ -607,8 +607,16 @@
         </p>
 
         <div id="forgotSuccessNotice" class="clean-alert clean-alert-success d-none mb-3">
-            <i class="bi bi-check-circle-fill text-success fs-5"></i>
-            <div>Password reset instructions have been sent to your email.</div>
+            <i class="bi bi-check-circle-fill text-success fs-5 flex-shrink-0"></i>
+            <div>
+                <strong id="forgotSuccessTitle" class="d-block mb-1">Reset Link Sent to Gmail!</strong>
+                <div class="small" id="forgotSuccessMsg">A password reset link has been dispatched to your email address. Please check your Gmail inbox and click the link to set your new password.</div>
+            </div>
+        </div>
+
+        <div id="forgotErrorNotice" class="clean-alert clean-alert-danger d-none mb-3">
+            <i class="bi bi-exclamation-triangle-fill text-danger fs-5 flex-shrink-0"></i>
+            <div id="forgotErrorMsg" class="small"></div>
         </div>
 
         <form id="forgotPasswordForm" onsubmit="submitForgotPassword(event)" autocomplete="off">
@@ -617,7 +625,7 @@
                     <span class="pill-input-icon">
                         <i class="bi bi-envelope"></i>
                     </span>
-                    <input type="email" id="forgotEmailInput" class="pill-input-control" placeholder="Email Address" required autocomplete="off" data-lpignore="true" />
+                    <input type="text" id="forgotEmailInput" class="pill-input-control" placeholder="Email Address or Username" required autocomplete="off" data-lpignore="true" />
                 </div>
             </div>
 
@@ -658,14 +666,9 @@
             const errorSpan = document.getElementById('emailClientError');
             const box = document.getElementById('emailInputBox');
             const val = (input.value || '').trim();
-            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
 
             if (!val) {
                 errorSpan.textContent = 'Email or username is required.';
-                box.classList.add('is-invalid');
-                return false;
-            } else if (!emailRegex.test(val) && !val.includes('admin')) {
-                errorSpan.textContent = 'Please enter a valid email format (e.g. name@company.com).';
                 box.classList.add('is-invalid');
                 return false;
             } else {
@@ -739,25 +742,52 @@
             }
         }
 
-        function submitForgotPassword(event) {
+        async function submitForgotPassword(event) {
             event.preventDefault();
             const btnForgot = document.getElementById('btnForgotSubmit');
             const btnForgotSpinner = document.getElementById('btnForgotSpinner');
             const successNotice = document.getElementById('forgotSuccessNotice');
+            const errorNotice = document.getElementById('forgotErrorNotice');
+            const emailInput = document.getElementById('forgotEmailInput');
 
+            const emailVal = (emailInput.value || '').trim();
+            if (!emailVal) return;
+
+            successNotice.classList.add('d-none');
+            errorNotice.classList.add('d-none');
             btnForgot.disabled = true;
             btnForgotSpinner.classList.remove('d-none');
 
-            setTimeout(() => {
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+
+                const response = await fetch('/Account/ForgotPassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ email: emailVal })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('forgotSuccessMsg').textContent = data.message || ('A password reset link has been dispatched to your email address (' + (data.email || emailVal) + '). Please check your Gmail inbox and click the link to reset your password.');
+                    successNotice.classList.remove('d-none');
+                    emailInput.value = '';
+                } else {
+                    document.getElementById('forgotErrorMsg').textContent = data.message || 'Unable to find an account matching that email address.';
+                    errorNotice.classList.remove('d-none');
+                }
+            } catch (err) {
+                document.getElementById('forgotErrorMsg').textContent = 'An unexpected network error occurred. Please try again.';
+                errorNotice.classList.remove('d-none');
+            } finally {
+                btnForgot.disabled = false;
                 btnForgotSpinner.classList.add('d-none');
-                successNotice.classList.remove('d-none');
-                document.getElementById('forgotPasswordForm').reset();
-                setTimeout(() => {
-                    closeForgotPasswordModal();
-                    successNotice.classList.add('d-none');
-                    btnForgot.disabled = false;
-                }, 3000);
-            }, 800);
+            }
         }
 
         // Clear any lingering browser autofill values on fresh page load
