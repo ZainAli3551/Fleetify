@@ -296,6 +296,157 @@ Fleetify Operations & Logistics Team";
             return RedirectToAction("Login", new { role = model.Role });
         }
 
+        // POST: /Account/ForgotPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Email))
+            {
+                return Json(new { success = false, message = "Please enter your registered email address or username." });
+            }
+
+            var input = request.Email.Trim();
+            var user = await _authService.FindUserByEmailOrUsernameAsync(input);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "No account found matching this email address or username. Please check and try again." });
+            }
+
+            var normalizedEmail = user.Email.Trim().ToLowerInvariant();
+
+            // Generate reset token
+            var token = Guid.NewGuid().ToString("N");
+            var cacheKey = $"PasswordResetToken_{normalizedEmail}";
+            _memoryCache.Set(cacheKey, token, TimeSpan.FromMinutes(30));
+            HttpContext.Session.SetString(cacheKey, token);
+
+            // Construct Reset URL
+            var resetUrl = Url.Action("ResetPassword", "Account", new { email = normalizedEmail, token = token }, Request.Scheme)
+                ?? $"{Request.Scheme}://{Request.Host}/Account/ResetPassword?email={Uri.EscapeDataString(normalizedEmail)}&token={token}";
+
+            // Send Email
+            string subject = "Fleetify: Reset Your Account Password";
+            string body = $@"Dear {user.FullName},
+
+We received a request to reset your password for your Fleetify account ({user.Email}).
+
+To reset your password, please click the secure link below:
+
+{resetUrl}
+
+This link is valid for 30 minutes.
+
+If you did not request a password reset, please ignore this email. Your current password remains safe and unchanged.
+
+Best regards,
+Fleetify Operations & Logistics Team";
+
+            var emailSent = await _emailService.SendEmailAsync(normalizedEmail, subject, body);
+
+            return Json(new
+            {
+                success = true,
+                message = $"A password reset link has been dispatched to your email address ({normalizedEmail}). Please check your Gmail inbox and click the link to set your new password.",
+                email = normalizedEmail,
+                emailDispatched = emailSent
+            });
+        }
+
+        // GET: /Account/ResetPassword
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string? email, string? token)
+        {
+            var model = new ResetPasswordViewModel
+            {
+                Email = email ?? string.Empty,
+                Token = token ?? string.Empty
+            };
+
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+            {
+                ViewBag.ErrorMessage = "The password reset link is invalid or missing required parameters.";
+                return View(model);
+            }
+
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+            var user = await _authService.FindUserByEmailOrUsernameAsync(normalizedEmail);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = "No account found associated with this reset link.";
+                return View(model);
+            }
+
+            var cacheKey = $"PasswordResetToken_{normalizedEmail}";
+            string? expectedToken = null;
+            if (_memoryCache.TryGetValue(cacheKey, out string? cached))
+            {
+                expectedToken = cached;
+            }
+            else
+            {
+                expectedToken = HttpContext.Session.GetString(cacheKey);
+            }
+
+            if (expectedToken == null || expectedToken != token)
+            {
+                ViewBag.ErrorMessage = "This password reset link has expired or has already been used. Please request a new link.";
+                return View(model);
+            }
+
+            return View(model);
+        }
+
+        // POST: /Account/ResetPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var normalizedEmail = model.Email.Trim().ToLowerInvariant();
+            var user = await _authService.FindUserByEmailOrUsernameAsync(normalizedEmail);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Account not found.");
+                return View(model);
+            }
+
+            var cacheKey = $"PasswordResetToken_{normalizedEmail}";
+            string? expectedToken = null;
+            if (_memoryCache.TryGetValue(cacheKey, out string? cached))
+            {
+                expectedToken = cached;
+            }
+            else
+            {
+                expectedToken = HttpContext.Session.GetString(cacheKey);
+            }
+
+            if (expectedToken == null || expectedToken != model.Token)
+            {
+                ModelState.AddModelError(string.Empty, "This password reset token has expired or is invalid. Please request a new link.");
+                return View(model);
+            }
+
+            var updated = await _authService.ResetPasswordAsync(normalizedEmail, model.NewPassword);
+            if (!updated)
+            {
+                ModelState.AddModelError(string.Empty, "Failed to update password. Please try again.");
+                return View(model);
+            }
+
+            // Invalidate token
+            _memoryCache.Remove(cacheKey);
+            HttpContext.Session.Remove(cacheKey);
+
+            TempData["SuccessMessage"] = "Your password has been reset successfully! You can now sign in with your new password.";
+            return RedirectToAction("Login", new { role = user.Role });
+        }
+
         // POST: /Account/Logout
         [HttpPost]
         [ValidateAntiForgeryToken]

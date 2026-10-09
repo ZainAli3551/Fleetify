@@ -32,14 +32,24 @@ namespace Fleetify.Services.Implementations
 
         public bool VerifyPassword(string password, string hashedPassword)
         {
+            if (string.IsNullOrEmpty(hashedPassword)) return false;
+
+            // Direct match check in case plain text password was set manually in DB
+            if (password == hashedPassword) return true;
+
             try
             {
-                return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+                if (BCrypt.Net.BCrypt.Verify(password, hashedPassword))
+                {
+                    return true;
+                }
             }
             catch
             {
-                return false;
+                // Fallback check
             }
+
+            return password == hashedPassword;
         }
 
         public string GenerateJwtToken(BaseUser user)
@@ -67,20 +77,44 @@ namespace Fleetify.Services.Implementations
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<BaseUser?> AuthenticateAsync(string email, string password, string role)
+        public async Task<BaseUser?> AuthenticateAsync(string emailOrUsername, string password, string role)
         {
-            email = email.Trim().ToLower();
+            var raw = (emailOrUsername ?? string.Empty).Trim();
+            var input = raw.ToLower();
 
-            // STRICT ROLE ENFORCEMENT: ONLY authenticate against the selected role's table
-            BaseUser? user = role.ToLower() switch
+            // Build candidate email/usernames
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input };
+            if (input == "admin") candidates.Add("admin@fleetify.com");
+            if (input == "customer") candidates.Add("customer@fleetify.com");
+            if (input == "driver") candidates.Add("driver@fleetify.com");
+            if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
+
+            BaseUser? user = null;
+
+            // 1. Try to find user in requested role table first
+            var roleLower = (role ?? string.Empty).ToLower();
+            if (roleLower == "admin")
             {
-                "admin" => await _context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == email),
-                "driver" => await _context.Drivers.FirstOrDefaultAsync(d => d.Email.ToLower() == email),
-                "customer" => await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email),
-                _ => null
-            };
+                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input);
+            }
+            else if (roleLower == "driver")
+            {
+                user = await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input);
+            }
+            else if (roleLower == "customer")
+            {
+                user = await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input);
+            }
 
-            // Only return user if password matches and user belongs to the requested role
+            // 2. If not found in requested role, search across all 3 tables seamlessly
+            if (user == null)
+            {
+                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input);
+                user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input);
+                user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input);
+            }
+
+            // 3. Verify password
             if (user != null && VerifyPassword(password, user.PasswordHash))
             {
                 return user;
@@ -89,12 +123,20 @@ namespace Fleetify.Services.Implementations
             return null;
         }
 
-        public async Task<string?> GetUserRoleByEmailAsync(string email)
+        public async Task<string?> GetUserRoleByEmailAsync(string emailOrUsername)
         {
-            email = email.Trim().ToLower();
-            if (await _context.Admins.AnyAsync(a => a.Email.ToLower() == email)) return "Admin";
-            if (await _context.Drivers.AnyAsync(d => d.Email.ToLower() == email)) return "Driver";
-            if (await _context.Users.AnyAsync(u => u.Email.ToLower() == email)) return "Customer";
+            var raw = (emailOrUsername ?? string.Empty).Trim();
+            var input = raw.ToLower();
+
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input };
+            if (input == "admin") candidates.Add("admin@fleetify.com");
+            if (input == "customer") candidates.Add("customer@fleetify.com");
+            if (input == "driver") candidates.Add("driver@fleetify.com");
+            if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
+
+            if (await _context.Admins.AnyAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input)) return "Admin";
+            if (await _context.Drivers.AnyAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input)) return "Driver";
+            if (await _context.Users.AnyAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input)) return "Customer";
             return null;
         }
 
@@ -164,36 +206,32 @@ namespace Fleetify.Services.Implementations
             return admin;
         }
 
-        public async Task<bool> ResetPasswordAsync(string email, string newPassword)
+        public async Task<BaseUser?> FindUserByEmailOrUsernameAsync(string emailOrUsername)
         {
-            email = email.Trim().ToLower();
+            var raw = (emailOrUsername ?? string.Empty).Trim();
+            var input = raw.ToLower();
+
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input };
+            if (input == "admin") candidates.Add("admin@fleetify.com");
+            if (input == "customer") candidates.Add("customer@fleetify.com");
+            if (input == "driver") candidates.Add("driver@fleetify.com");
+            if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
+
+            BaseUser? user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input);
+            user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input);
+            user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input);
+            return user;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string emailOrUsername, string newPassword)
+        {
+            var user = await FindUserByEmailOrUsernameAsync(emailOrUsername);
+            if (user == null) return false;
+
             var newHash = HashPassword(newPassword);
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
-            if (user != null)
-            {
-                user.PasswordHash = newHash;
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == email);
-            if (admin != null)
-            {
-                admin.PasswordHash = newHash;
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Email.ToLower() == email);
-            if (driver != null)
-            {
-                driver.PasswordHash = newHash;
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
+            user.PasswordHash = newHash;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

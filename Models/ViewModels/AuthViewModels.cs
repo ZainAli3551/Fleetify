@@ -4,7 +4,7 @@ namespace Fleetify.Models.ViewModels
 {
     public class LoginViewModel
     {
-        [Required(ErrorMessage = "Email is required"), EmailAddress]
+        [Required(ErrorMessage = "Email or Username is required")]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required"), DataType(DataType.Password)]
@@ -65,16 +65,16 @@ namespace Fleetify.Models.ViewModels
 
     public class ForgotPasswordRequest
     {
-        [Required(ErrorMessage = "Email is required"), EmailAddress(ErrorMessage = "Please provide a valid email address")]
+        [Required(ErrorMessage = "Email or username is required")]
         public string Email { get; set; } = string.Empty;
     }
 
     public class ResetPasswordViewModel
     {
-        [Required, EmailAddress]
+        [Required(ErrorMessage = "Email is required")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Reset token is required")]
         public string Token { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "New password is required"), DataType(DataType.Password), MinLength(6, ErrorMessage = "Password must be at least 6 characters")]

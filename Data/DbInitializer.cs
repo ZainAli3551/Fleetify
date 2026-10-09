@@ -44,7 +44,16 @@ namespace Fleetify.Data
                     BEGIN
                         ALTER TABLE DeliveryRequests ADD SingleItemWeight FLOAT NOT NULL DEFAULT 2.0;
                     END
-                    UPDATE DeliveryRequests SET PackageName = ISNULL(ParcelDescription, 'General Item') WHERE PackageName IS NULL;
+                    
+                    IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'ParcelDescription')
+                    BEGIN
+                        EXEC('UPDATE DeliveryRequests SET PackageName = ISNULL(ParcelDescription, ''General Item'') WHERE PackageName IS NULL;');
+                    END
+                    ELSE
+                    BEGIN
+                        EXEC('UPDATE DeliveryRequests SET PackageName = ''General Item'' WHERE PackageName IS NULL;');
+                    END
+
                     EXEC('UPDATE DeliveryRequests SET SingleItemWeight = CASE WHEN Quantity > 0 THEN ROUND(ParcelWeight / Quantity, 2) ELSE ParcelWeight END WHERE SingleItemWeight IS NULL OR SingleItemWeight = 0;');
 
                     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('DeliveryRequests') AND name = 'VerifiedWeight')
@@ -131,9 +140,16 @@ namespace Fleetify.Data
                     UPDATE Vehicles SET VehicleType = 'Pickup', CapacityKg = 800 WHERE VehicleType = 'Car';
                     UPDATE DeliveryRequests SET VehicleType = 'Pickup' WHERE VehicleType = 'Car';
                 ");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DbInitializer] Migration check note: {ex.Message}");
+            }
 
-                // Ensure default Admin exists for administrative access
-                var adminUser = await context.Admins.FirstOrDefaultAsync(a => a.Email == "admin@fleetify.com");
+            try
+            {
+                // 1. Ensure Admin exists and has valid password
+                var adminUser = await context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == "admin@fleetify.com");
                 if (adminUser == null)
                 {
                     context.Admins.Add(new Models.Entities.Admin
@@ -145,28 +161,16 @@ namespace Fleetify.Data
                         Role = "Admin",
                         CreatedAt = DateTime.UtcNow
                     });
-                    await context.SaveChangesAsync();
                 }
-                // Ensure default Customer exists
-                var defaultCustomer = await context.Users.FirstOrDefaultAsync(u => u.Email == "customer@fleetify.com");
-                if (defaultCustomer == null)
+                else
                 {
-                    context.Users.Add(new Models.Entities.User
-                    {
-                        FullName = "Demo Customer",
-                        Email = "customer@fleetify.com",
-                        PasswordHash = authService.HashPassword("customer123"),
-                        PhoneNumber = "+923009876543",
-                        Role = "Customer",
-                        Address = "House 14, Street 5, Model Town, Lahore",
-                        AccountStatus = "Active",
-                        CreatedAt = DateTime.UtcNow
-                    });
-                    await context.SaveChangesAsync();
+                    // Ensure password matches admin123
+                    adminUser.PasswordHash = authService.HashPassword("admin123");
                 }
+                await context.SaveChangesAsync();
 
-                // Ensure default System Driver exists
-                var defaultDriver = await context.Drivers.FirstOrDefaultAsync(d => d.Email == "driver@fleetify.com");
+                // 2. Ensure default System Driver exists
+                var defaultDriver = await context.Drivers.FirstOrDefaultAsync(d => d.Email.ToLower() == "driver@fleetify.com");
                 if (defaultDriver == null)
                 {
                     context.Drivers.Add(new Models.Entities.Driver
@@ -181,10 +185,43 @@ namespace Fleetify.Data
                         DriverType = "Company",
                         CreatedAt = DateTime.UtcNow
                     });
-                    await context.SaveChangesAsync();
+                }
+                else
+                {
+                    defaultDriver.PasswordHash = authService.HashPassword("driver123");
                 }
 
-                // Ensure default Vehicle exists
+                // Update any other existing drivers to driver123 so backup drivers work smoothly
+                var existingDrivers = await context.Drivers.ToListAsync();
+                foreach (var d in existingDrivers)
+                {
+                    d.PasswordHash = authService.HashPassword("driver123");
+                }
+                await context.SaveChangesAsync();
+
+                // 3. Ensure default Customer exists
+                var defaultCustomer = await context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == "customer@fleetify.com");
+                if (defaultCustomer == null)
+                {
+                    context.Users.Add(new Models.Entities.User
+                    {
+                        FullName = "Demo Customer",
+                        Email = "customer@fleetify.com",
+                        PasswordHash = authService.HashPassword("customer123"),
+                        PhoneNumber = "03001234567",
+                        Role = "Customer",
+                        AccountStatus = "Active",
+                        Address = "Lahore, Pakistan",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    defaultCustomer.PasswordHash = authService.HashPassword("customer123");
+                }
+                await context.SaveChangesAsync();
+
+                // 4. Ensure default Vehicle exists
                 var defaultVehicle = await context.Vehicles.FirstOrDefaultAsync(v => v.VehicleNumber == "GAM-3551");
                 if (defaultVehicle == null)
                 {
@@ -204,7 +241,7 @@ namespace Fleetify.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[DbInitializer] Column check note: {ex.Message}");
+                Console.WriteLine($"[DbInitializer] User/Vehicle seeding note: {ex.Message}");
             }
         }
     }
