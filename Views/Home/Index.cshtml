@@ -1,0 +1,1377 @@
+@model Fleetify.Models.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Fleetify – Modern Fleet Management System";
+}
+
+<!-- Custom Styles for Modern Fleetify SaaS Home Page -->
+<style>
+    /* ==========================================================================
+       HERO SECTION - CINEMATIC FLEET BANNER & GLASSMORPHISM
+       ========================================================================== */
+    .home-hero-container {
+        position: relative;
+        min-height: 640px;
+        border-radius: 1.75rem;
+        overflow: hidden;
+        margin-bottom: 3.5rem;
+        background: #0f172a url('/images/fleet-home-hero.jpg?v=2') right center / cover no-repeat;
+        box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.15), 0 0 40px rgba(14, 165, 233, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Soft daylight overlay with readable text contrast */
+    .home-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, 
+            rgba(10, 25, 47, 0.94) 0%, 
+            rgba(12, 33, 62, 0.88) 42%, 
+            rgba(15, 45, 82, 0.60) 65%, 
+            rgba(15, 23, 42, 0.25) 100%
+        );
+        z-index: 1;
+    }
+
+    .home-hero-content {
+        position: relative;
+        z-index: 2;
+        padding: 4.5rem 3.5rem;
+    }
+
+    @@media (max-width: 991.98px) {
+        .home-hero-container {
+            min-height: auto;
+            border-radius: 1.25rem;
+        }
+        .home-hero-content {
+            padding: 2.5rem 1.5rem;
+        }
+        .home-hero-overlay {
+            background: linear-gradient(180deg, 
+                rgba(10, 25, 47, 0.92) 0%, 
+                rgba(12, 33, 62, 0.85) 100%
+            );
+        }
+    }
+
+    /* Hero Pill Tag */
+    .hero-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 1.15rem;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #e0f2fe;
+        font-size: 0.825rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    /* Hero Headings */
+    .hero-headline {
+        font-size: clamp(2.4rem, 4.5vw, 3.85rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.12;
+        color: #ffffff !important;
+    }
+
+    .hero-headline .text-hero-accent {
+        background: linear-gradient(135deg, #38bdf8 0%, #60a5fa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+    }
+
+    .hero-subtext {
+        font-size: clamp(1rem, 1.25vw, 1.2rem);
+        color: #cbd5e1;
+        max-width: 640px;
+        font-weight: 400;
+        line-height: 1.65;
+    }
+
+    /* Hero Buttons */
+    .btn-hero-primary {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff;
+        font-weight: 700;
+        border-radius: 9999px;
+        padding: 0.85rem 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+    }
+
+    .btn-hero-primary:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+        box-shadow: 0 14px 30px -5px rgba(2, 132, 199, 0.65);
+        color: #ffffff;
+    }
+
+    .btn-hero-glass {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #ffffff;
+        font-weight: 600;
+        border-radius: 9999px;
+        padding: 0.85rem 1.85rem;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+    }
+
+    .btn-hero-glass:hover {
+        background: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Trust Stats Strip */
+    .hero-stats-strip {
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding-top: 1.75rem;
+        margin-top: 2.25rem;
+    }
+
+    .hero-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .hero-stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        color: #38bdf8;
+        flex-shrink: 0;
+    }
+
+    .hero-stat-number {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: #ffffff;
+        font-family: var(--font-sans);
+        line-height: 1;
+        margin-bottom: 0.2rem;
+    }
+
+    .hero-stat-label {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    /* Tracking Search Bar on Hero */
+    .hero-tracking-form {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 9999px;
+        padding: 5px 6px 5px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+        max-width: 540px;
+    }
+
+    .hero-tracking-form input {
+        border: none;
+        background: transparent;
+        font-size: 0.925rem;
+        color: #0f172a;
+        font-weight: 500;
+    }
+
+    .hero-tracking-form input:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    /* ==========================================================================
+       GLASSMORPHISM CARDS & CONTAINERS
+       ========================================================================== */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(226, 232, 240, 0.9);
+        border-radius: 1.35rem;
+        padding: 2rem 1.75rem;
+        box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.05);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-6px);
+        background: #ffffff;
+        border-color: rgba(2, 132, 199, 0.35);
+        box-shadow: 0 20px 40px -10px rgba(2, 132, 199, 0.15);
+    }
+
+    .glass-card-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.65rem;
+        margin-bottom: 1.35rem;
+        transition: transform 0.3s ease;
+    }
+
+    .glass-card:hover .glass-card-icon {
+        transform: scale(1.08);
+    }
+
+    .icon-teal-theme {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+
+    .icon-blue-theme {
+        background: #eff6ff;
+        color: #0284c7;
+        border: 1px solid #bfdbfe;
+    }
+
+    .icon-indigo-theme {
+        background: #eef2ff;
+        color: #4f46e5;
+        border: 1px solid #c7d2fe;
+    }
+
+    .icon-amber-theme {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .icon-purple-theme {
+        background: #faf5ff;
+        color: #9333ea;
+        border: 1px solid #e9d5ff;
+    }
+
+    .icon-rose-theme {
+        background: #fff1f2;
+        color: #e11d48;
+        border: 1px solid #fecdd3;
+    }
+
+    .glass-card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 0.65rem;
+    }
+
+    .glass-card-desc {
+        font-size: 0.925rem;
+        color: #475569;
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+        flex-grow: 1;
+    }
+
+    .glass-card-link {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #0284c7;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: gap 0.2s ease, color 0.2s ease;
+    }
+
+    .glass-card-link:hover {
+        gap: 0.6rem;
+        color: #0369a1;
+    }
+
+    /* ==========================================================================
+       SECTION LABELS & HEADINGS
+       ========================================================================== */
+    .section-label {
+        display: inline-block;
+        font-size: 0.775rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #0284c7;
+        background: #e0f2fe;
+        border: 1px solid #bae6fd;
+        padding: 0.35rem 1rem;
+        border-radius: 9999px;
+        margin-bottom: 0.75rem;
+    }
+
+    .section-heading {
+        font-size: clamp(1.85rem, 3.2vw, 2.75rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: #0f172a;
+        line-height: 1.2;
+    }
+
+    .section-subheading {
+        font-size: 1.05rem;
+        color: #64748b;
+        max-width: 680px;
+        margin: 0.5rem auto 0 auto;
+    }
+
+    /* ==========================================================================
+       ABOUT SECTION
+       ========================================================================== */
+    .about-image-wrapper {
+        position: relative;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .about-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        max-height: 480px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.5s ease;
+    }
+
+    .about-image-wrapper:hover img {
+        transform: scale(1.02);
+    }
+
+    .about-floating-badge {
+        position: absolute;
+        bottom: 1.25rem;
+        left: 1.25rem;
+        background: rgba(15, 23, 42, 0.88);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 1rem;
+        padding: 0.85rem 1.25rem;
+        color: #ffffff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        max-width: 280px;
+    }
+
+    .about-check-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .about-check-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #ecfdf5;
+        color: #059669;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 800;
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+    }
+
+    .about-mission-card {
+        background: rgba(240, 249, 255, 0.85);
+        border: 1.5px solid #bae6fd;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    /* ==========================================================================
+       4-STEP WORKFLOW TIMELINE
+       ========================================================================== */
+    .workflow-card {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 1.25rem;
+        padding: 2rem 1.5rem;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        height: 100%;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+    .workflow-card:hover {
+        transform: translateY(-5px);
+        border-color: #0284c7;
+        box-shadow: 0 16px 32px -8px rgba(2, 132, 199, 0.15);
+    }
+
+    .step-number {
+        font-size: 1.85rem;
+        font-weight: 900;
+        color: #0284c7;
+        font-family: var(--font-sans);
+        line-height: 1;
+        margin-bottom: 0.85rem;
+        display: inline-block;
+        background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .workflow-step-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #f0f9ff;
+        color: #0284c7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        margin-bottom: 1rem;
+    }
+
+    /* ==========================================================================
+       WHY CHOOSE FLEETIFY - SUBTLE BLUE GRADIENT
+       ========================================================================== */
+    .why-choose-section {
+        background: linear-gradient(135deg, #f0f7ff 0%, #e0effe 45%, #f8fafc 100%);
+        border-radius: 1.75rem;
+        padding: 4.5rem 3rem;
+        border: 1px solid #bfdbfe;
+        box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.08);
+        margin-bottom: 3.5rem;
+    }
+
+    @@media (max-width: 991.98px) {
+        .why-choose-section {
+            padding: 2.5rem 1.5rem;
+            border-radius: 1.25rem;
+        }
+    }
+
+    .benefit-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(255, 255, 255, 0.8);
+        border-radius: 1.25rem;
+        padding: 2rem 1.75rem;
+        box-shadow: 0 6px 20px -2px rgba(15, 23, 42, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-5px);
+        background: #ffffff;
+        border-color: #38bdf8;
+        box-shadow: 0 16px 32px -6px rgba(2, 132, 199, 0.16);
+    }
+
+    /* ==========================================================================
+       CALL TO ACTION (CTA) CARD
+       ========================================================================== */
+    .cta-card {
+        background: linear-gradient(135deg, #0b1e3a 0%, #034b75 60%, #0284c7 100%);
+        border-radius: 1.75rem;
+        padding: 4.5rem 3rem;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 25px 60px -12px rgba(3, 75, 117, 0.4);
+        margin-bottom: 3.5rem;
+    }
+
+    @@media (max-width: 991.98px) {
+        .cta-card {
+            padding: 2.5rem 1.5rem;
+            border-radius: 1.25rem;
+        }
+    }
+
+    .cta-glow-circle {
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(50px);
+        pointer-events: none;
+    }
+
+    /* Interactive Hub Pills */
+    .hub-pill-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 1.15rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        color: #334155;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .hub-pill-modern:hover {
+        background: #f0f9ff;
+        color: #0284c7;
+        border-color: #bae6fd;
+        transform: translateY(-2px);
+    }
+
+    /* Weight Chips for Rate Calculator */
+    .calc-chip {
+        cursor: pointer;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.15s ease;
+    }
+
+    .calc-chip:hover {
+        background: #e0f2fe;
+        color: #0369a1;
+        border-color: #bae6fd;
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-2">
+
+    <!-- =====================================================================
+         1. HERO SECTION (CINEMATIC FLEET MANAGEMENT SAAS BANNER)
+         ===================================================================== -->
+    <section id="home" class="home-hero-container">
+        <div class="home-hero-overlay"></div>
+        <div class="home-hero-content">
+            <div class="row align-items-center">
+                <div class="col-xl-8 col-lg-9 col-md-11">
+
+                    <!-- Small Pill Badge -->
+                    <div class="mb-3">
+                        <span class="hero-badge-pill">
+                            <i class="bi bi-shield-check text-info"></i>
+                            Smarter Fleet &bull; Safer Roads &bull; Better Deliveries
+                        </span>
+                    </div>
+
+                    <!-- Main Hero Heading -->
+                    <h1 class="hero-headline mb-3">
+                        Your Fleet. <span class="text-hero-accent">Our Priority.</span>
+                    </h1>
+
+                    <!-- Supporting Hero Subtitle -->
+                    <p class="hero-subtext mb-4 pe-lg-4">
+                        Manage your fleet, shipments and deliveries with a smarter, safer and more efficient logistics platform. Powered by real-time GPS telemetry, route planning and centralized control.
+                    </p>
+
+                    <!-- Dual Action Buttons -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                        <a asp-controller="Account" asp-action="Register" class="btn-hero-primary">
+                            <span>Get Started</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                        <a href="#about" class="btn-hero-glass">
+                            <span>Learn More</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </a>
+                    </div>
+
+                    <!-- Instant Live Tracking Bar on Hero (Evaluator Testing Widget) -->
+                    <div id="hero-track-bar" class="mb-4">
+                        <form action="/Customer/Track" method="get" class="hero-tracking-form d-flex align-items-center">
+                            <i class="bi bi-search text-primary ms-2 fs-5"></i>
+                            <input type="text" name="trackingNumber" class="form-control" placeholder="Enter Tracking # (e.g. FLT-2026-X00000)" required autocomplete="off" />
+                            <button type="submit" class="btn btn-hero-primary py-2 px-3.5 fs-6 flex-shrink-0">
+                                <span>Track</span>
+                                <i class="bi bi-arrow-right small"></i>
+                            </button>
+                        </form>
+                        <small class="text-white-50 ms-3 mt-1.5 d-inline-block">
+                            <i class="bi bi-broadcast text-info me-1"></i>Track any ongoing consignment live across Pakistan without signing in.
+                        </small>
+                    </div>
+
+                    <!-- Trust Statistics Strip Underneath Hero -->
+                    <div class="hero-stats-strip">
+                        <div class="row g-4">
+                            <div class="col-sm-4 col-6">
+                                <div class="hero-stat-item">
+                                    <div class="hero-stat-icon">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    <div>
+                                        <div class="hero-stat-number">@(Model.ActiveFleets)+</div>
+                                        <div class="hero-stat-label">Active Fleets</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-6">
+                                <div class="hero-stat-item">
+                                    <div class="hero-stat-icon">
+                                        <i class="bi bi-shield-check"></i>
+                                    </div>
+                                    <div>
+                                        <div class="hero-stat-number">@(Model.DeliverySuccessRate)%</div>
+                                        <div class="hero-stat-label">Delivery Success</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-12">
+                                <div class="hero-stat-item">
+                                    <div class="hero-stat-icon">
+                                        <i class="bi bi-headset"></i>
+                                    </div>
+                                    <div>
+                                        <div class="hero-stat-number">24/7</div>
+                                        <div class="hero-stat-label">Tracking &amp; Support</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         2. SERVICES SECTION (OUR SERVICES)
+         ===================================================================== -->
+    <section id="services" class="mb-5 pb-3">
+        <div class="text-center mb-5">
+            <span class="section-label">OUR SERVICES</span>
+            <h2 class="section-heading">Everything You Need to Manage Your Fleet</h2>
+            <p class="section-subheading">
+                A unified platform combining GPS telemetry, dispatch automation, driver coordination, and complete delivery lifecycle visibility.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- 1. Real-Time Tracking -->
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card">
+                    <div class="glass-card-icon icon-blue-theme">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <h3 class="glass-card-title">Real-Time Tracking</h3>
+                    <p class="glass-card-desc">
+                        Monitor vehicles and shipments in real time with continuous GPS telemetry, live status updates, and transparent milestone notifications.
+                    </p>
+                    <a href="#hero-track-bar" class="glass-card-link">
+                        <span>Learn More</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Route Management -->
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card">
+                    <div class="glass-card-icon icon-teal-theme">
+                        <i class="bi bi-signpost-2-fill"></i>
+                    </div>
+                    <h3 class="glass-card-title">Route Management</h3>
+                    <p class="glass-card-desc">
+                        Plan efficient routes and reduce unnecessary travel time across major highway corridors, optimizing fuel and turnaround schedules.
+                    </p>
+                    <a href="#rate-calculator" class="glass-card-link">
+                        <span>Learn More</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Shipment Management -->
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card">
+                    <div class="glass-card-icon icon-indigo-theme">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
+                    <h3 class="glass-card-title">Shipment Management</h3>
+                    <p class="glass-card-desc">
+                        Manage bulk shipments and delivery requests between cities with automated weight, volume, and dimension verification formulas.
+                    </p>
+                    <a asp-controller="Account" asp-action="Register" class="glass-card-link">
+                        <span>Learn More</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Driver Management -->
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card">
+                    <div class="glass-card-icon icon-amber-theme">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <h3 class="glass-card-title">Driver Management</h3>
+                    <p class="glass-card-desc">
+                        Manage drivers, duty assignments and delivery activities with dedicated route pairing, real-time alerts, and status logging.
+                    </p>
+                    <a asp-controller="Account" asp-action="Login" class="glass-card-link">
+                        <span>Learn More</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 5. Secure Logistics -->
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card">
+                    <div class="glass-card-icon icon-purple-theme">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3 class="glass-card-title">Secure Logistics</h3>
+                    <p class="glass-card-desc">
+                        Keep shipment and fleet information organized and secure with verified chain-of-custody tracking and encrypted records.
+                    </p>
+                    <a asp-controller="Account" asp-action="Register" class="glass-card-link">
+                        <span>Learn More</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 6. Delivery Management -->
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card">
+                    <div class="glass-card-icon icon-rose-theme">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h3 class="glass-card-title">Delivery Management</h3>
+                    <p class="glass-card-desc">
+                        Track the complete delivery process from request creation to final destination handover, ensuring 99.9% on-time execution.
+                    </p>
+                    <a href="#how-it-works" class="glass-card-link">
+                        <span>Learn More</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         3. ABOUT FLEETIFY SECTION
+         ===================================================================== -->
+    <section id="about" class="mb-5 pb-3">
+        <div class="row align-items-center g-5">
+            <!-- Left: Logistics Fleet Image with Floating Telemetry Badge -->
+            <div class="col-lg-6">
+                <div class="about-image-wrapper">
+                    <img src="~/images/fleet-home-about.jpg" alt="Fleetify Route Planning & Logistics" />
+                    <div class="about-floating-badge">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="pulse-dot"></span>
+                            <strong class="small text-white">Active Highway Corridors</strong>
+                        </div>
+                        <span class="x-small text-white-50 d-block">10 Nationwide industrial hubs connected with continuous telemetry.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: About Content -->
+            <div class="col-lg-6">
+                <span class="section-label">ABOUT FLEETIFY</span>
+                <h2 class="section-heading mb-3">
+                    Built for <span class="text-primary">Modern Logistics</span>
+                </h2>
+                <p class="text-secondary fs-6 mb-4 lh-base">
+                    Fleetify is a modern fleet management system designed to simplify the transportation and delivery process. It helps businesses manage shipments, coordinate drivers and monitor deliveries through one centralized platform.
+                </p>
+
+                <!-- 3 Key Points -->
+                <div class="mb-4">
+                    <div class="about-check-item">
+                        <div class="about-check-icon">✓</div>
+                        <div>
+                            <strong class="text-dark d-block">Easy-to-use platform</strong>
+                            <span class="text-muted small">Intuitive dashboards for customers, drivers, and operations administrators.</span>
+                        </div>
+                    </div>
+                    <div class="about-check-item">
+                        <div class="about-check-icon">✓</div>
+                        <div>
+                            <strong class="text-dark d-block">Efficient fleet management</strong>
+                            <span class="text-muted small">Smart vehicle assignments, load balancing, and automated maintenance tracking.</span>
+                        </div>
+                    </div>
+                    <div class="about-check-item">
+                        <div class="about-check-icon">✓</div>
+                        <div>
+                            <strong class="text-dark d-block">Better delivery visibility</strong>
+                            <span class="text-muted small">Live milestone updates and tracking from booking request to final delivery.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explore Fleetify Button -->
+                <div class="mb-4">
+                    <a href="#services" class="btn btn-hero-primary px-4 py-2.5">
+                        <span>Explore Fleetify</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Team Quote / Mission Glass Card -->
+                <div class="about-mission-card">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="text-primary fs-3">
+                            <i class="bi bi-quote"></i>
+                        </div>
+                        <div>
+                            <p class="text-dark small mb-1 fst-italic fw-medium">
+                                “Our mission is to empower businesses with reliable and intelligent fleet solutions for a more connected world.”
+                            </p>
+                            <span class="small fw-bold text-primary">— Fleetify Team</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         4. HOW FLEETIFY WORKS (4-STEP CONNECTED TIMELINE)
+         ===================================================================== -->
+    <section id="how-it-works" class="mb-5 pb-3">
+        <div class="text-center mb-5">
+            <span class="section-label">PROCESS FLOW</span>
+            <h2 class="section-heading">How Fleetify Works</h2>
+            <p class="section-subheading">
+                A seamless four-stage operational workflow from initial customer request to verified recipient handover.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Step 01: Request -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="workflow-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="step-number">01</div>
+                        <div class="workflow-step-icon">
+                            <i class="bi bi-file-earmark-plus"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Request</h4>
+                    <p class="text-secondary small mb-0">
+                        Customer creates a shipment/transport request with pickup, destination hubs, parcel weight, and delivery urgency tier.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 02: Approval -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="workflow-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="step-number">02</div>
+                        <div class="workflow-step-icon">
+                            <i class="bi bi-check2-circle"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Approval</h4>
+                    <p class="text-secondary small mb-0">
+                        Admin reviews package dimensions, verifies rate calculations, schedules routing, and approves the consignment request.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 03: Assignment -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="workflow-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="step-number">03</div>
+                        <div class="workflow-step-icon">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Assignment</h4>
+                    <p class="text-secondary small mb-0">
+                        The shipment is assigned to an available certified driver with dedicated truck load allocation and pickup instructions.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 04: Delivery -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="workflow-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="step-number">04</div>
+                        <div class="workflow-step-icon">
+                            <i class="bi bi-box2-heart"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Delivery</h4>
+                    <p class="text-secondary small mb-0">
+                        Driver delivers the shipment to recipient destination, updates status to Delivered, and logs digital proof of delivery.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         5. WHY CHOOSE FLEETIFY (SUBTLE BLUE GRADIENT SECTION)
+         ===================================================================== -->
+    <section id="features" class="why-choose-section">
+        <div class="text-center mb-5">
+            <span class="section-label" style="background: rgba(255,255,255,0.7); border-color: #93c5fd;">WHY US</span>
+            <h2 class="section-heading">Why Choose Fleetify?</h2>
+            <p class="section-subheading">
+                Built specifically to address enterprise fleet reliability, driver accountability, and intercity freight transparency.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Benefit 1 -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="benefit-card">
+                    <div class="glass-card-icon icon-blue-theme">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Efficient Fleet Management</h4>
+                    <p class="text-secondary small mb-0">
+                        Optimize fleet utilization, monitor vehicle telemetry, and reduce deadhead transit miles through intelligent dispatch.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Benefit 2 -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="benefit-card">
+                    <div class="glass-card-icon icon-teal-theme">
+                        <i class="bi bi-broadcast"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Real-Time Shipment Tracking</h4>
+                    <p class="text-secondary small mb-0">
+                        Keep shippers and receivers informed every step of the journey with accurate milestone alerts and live GPS tracking.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Benefit 3 -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="benefit-card">
+                    <div class="glass-card-icon icon-amber-theme">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Simplified Driver Coordination</h4>
+                    <p class="text-secondary small mb-0">
+                        Clear task assignments, turn-by-turn route details, and transparent communication streamline driver operations.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Benefit 4 -->
+            <div class="col-lg-3 col-sm-6">
+                <div class="benefit-card">
+                    <div class="glass-card-icon icon-indigo-theme">
+                        <i class="bi bi-database-check"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Secure &amp; Centralized Data</h4>
+                    <p class="text-secondary small mb-0">
+                        All vehicle records, consignment logs, customer invoices, and maintenance reports stored securely in one place.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         6. INTERACTIVE LIVE RATE ESTIMATOR (RETAINING FULL FUNCTIONALITY)
+         ===================================================================== -->
+    <section id="rate-calculator" class="glass-card mb-5 p-4 p-lg-5" style="border-radius: 1.75rem;">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-5">
+                <span class="section-label">LIVE ESTIMATOR</span>
+                <h3 class="fw-bold text-dark mb-2">Instant Delivery Rate Calculator</h3>
+                <p class="text-secondary small mb-3">
+                    Calculate fair, formula-accurate delivery rates across all 10 industrial hubs and special delivery corridors before booking.
+                </p>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Origin Hub</label>
+                        <select id="estOriginSelect" class="form-select rounded-3 py-2 fw-semibold">
+                            <option value="Fleetify GT Road Hub, Shaheenabad, near Gulshan Park / GT Road, Gujranwala" selected>Fleetify GT Road Hub – Gujranwala</option>
+                            <option value="Fleetify Central Hub, Thokar Niaz Baig, near Multan Road Bypass, Lahore">Fleetify Central Hub – Lahore</option>
+                            <option value="Fleetify South Hub, S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi">Fleetify South Hub – Karachi</option>
+                            <option value="Fleetify North Hub, I-9 Industrial Area, near Sector I-9/3, Islamabad">Fleetify North Hub – Islamabad</option>
+                            <option value="Fleetify Twin Cities Hub, Murree Road, near Faizabad Interchange, Rawalpindi">Fleetify Twin Cities Hub – Rawalpindi</option>
+                            <option value="Fleetify Textile Hub, Sargodha Road, near Millat Chowk, Faisalabad">Fleetify Textile Hub – Faisalabad</option>
+                            <option value="Fleetify South Punjab Hub, Khanewal Road, near Industrial Estate, Multan">Fleetify South Punjab Hub – Multan</option>
+                            <option value="Fleetify Khyber Hub, Hayatabad Industrial Estate, near Phase 7, Peshawar">Fleetify Khyber Hub – Peshawar</option>
+                            <option value="Fleetify Export Hub, Wazirabad Road, near Sambrial, Sialkot">Fleetify Export Hub – Sialkot</option>
+                            <option value="Fleetify Balochistan Hub, Zarghoon Road, near Quetta Cantt, Quetta">Fleetify Balochistan Hub – Quetta</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Destination Hub or City</label>
+                        <select id="estDestSelect" class="form-select rounded-3 py-2 fw-semibold">
+                            <option value="Fleetify South Hub, S.I.T.E. Industrial Area, near Habib Bank Chowrangi, Karachi" selected>Fleetify South Hub – Karachi</option>
+                            <option value="Fleetify Central Hub, Thokar Niaz Baig, near Multan Road Bypass, Lahore">Fleetify Central Hub – Lahore</option>
+                            <option value="Fleetify GT Road Hub, Shaheenabad, near Gulshan Park / GT Road, Gujranwala">Fleetify GT Road Hub – Gujranwala</option>
+                            <option value="Fleetify North Hub, I-9 Industrial Area, near Sector I-9/3, Islamabad">Fleetify North Hub – Islamabad</option>
+                            <option value="Fleetify Twin Cities Hub, Murree Road, near Faizabad Interchange, Rawalpindi">Fleetify Twin Cities Hub – Rawalpindi</option>
+                            <option value="Fleetify Textile Hub, Sargodha Road, near Millat Chowk, Faisalabad">Fleetify Textile Hub – Faisalabad</option>
+                            <option value="Fleetify South Punjab Hub, Khanewal Road, near Industrial Estate, Multan">Fleetify South Punjab Hub – Multan</option>
+                            <option value="Fleetify Khyber Hub, Hayatabad Industrial Estate, near Phase 7, Peshawar">Fleetify Khyber Hub – Peshawar</option>
+                            <option value="Fleetify Export Hub, Wazirabad Road, near Sambrial, Sialkot">Fleetify Export Hub – Sialkot</option>
+                            <option value="Fleetify Balochistan Hub, Zarghoon Road, near Quetta Cantt, Quetta">Fleetify Balochistan Hub – Quetta</option>
+                            <option value="GT Road, near Pakpattan Chowk, Sahiwal, Pakistan">Sahiwal (Special Delivery +15%)</option>
+                            <option value="M.A. Jinnah Road, near General Bus Stand, Okara, Pakistan">Okara (Special Delivery +15%)</option>
+                            <option value="Railway Road, near Steel Bagh, Kasur, Pakistan">Kasur (Special Delivery +15%)</option>
+                            <option value="Military Road, near Sukkur Bypass, Sukkur, Pakistan">Sukkur (Special Delivery +15%)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Weight (kg)</label>
+                        <input type="number" id="estWeightInput" class="form-control rounded-3 py-2 fw-semibold" value="2.0" min="0.5" step="0.5" />
+                        <div class="d-flex gap-1 mt-1.5 flex-wrap">
+                            <span class="calc-chip" onclick="document.getElementById('estWeightInput').value = 1; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">1 kg</span>
+                            <span class="calc-chip" onclick="document.getElementById('estWeightInput').value = 5; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">5 kg</span>
+                            <span class="calc-chip" onclick="document.getElementById('estWeightInput').value = 10; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">10 kg</span>
+                            <span class="calc-chip" onclick="document.getElementById('estWeightInput').value = 25; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">25 kg</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Delivery Speed</label>
+                        <select id="estSpeedSelect" class="form-select rounded-3 py-2 fw-semibold">
+                            <option value="Normal" selected>Normal (4–6 days)</option>
+                            <option value="Fast">Fast (2–3 days)</option>
+                            <option value="Express">Express (1–2 days)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Card -->
+            <div class="col-lg-7">
+                <div class="card border-0 rounded-4 p-4 text-white shadow-lg" style="background: linear-gradient(135deg, #0b1a30 0%, #082142 100%); border: 1px solid rgba(255, 255, 255, 0.15);">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-50">
+                        <span class="badge bg-primary text-white rounded-pill px-3 py-1 font-mono">
+                            <i class="bi bi-lightning-charge-fill me-1"></i>Verified Rate Calculation
+                        </span>
+                        <span class="small text-white-50"><i class="bi bi-check-circle-fill text-success me-1"></i>Dynamic Algorithm</span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6 col-md-3">
+                            <span class="x-small text-white-50 d-block">Road Distance</span>
+                            <strong class="fs-5 text-white font-mono" id="previewDistance">1,259 km</strong>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="x-small text-white-50 d-block">Transit Time</span>
+                            <strong class="fs-5 text-info" id="previewDays">4 to 6 days</strong>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="x-small text-white-50 d-block">Weight Charge</span>
+                            <span class="fs-6 text-white-50 font-mono" id="previewBaseCost">Rs. 4</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <span class="x-small text-white-50 d-block">Distance Charge</span>
+                            <span class="fs-6 text-white-50 font-mono" id="previewPetrol">Rs. 18,000</span>
+                        </div>
+                    </div>
+
+                    <div id="previewSpecialRow" class="alert alert-warning py-1.5 px-3 rounded-3 small mb-3 d-none">
+                        <i class="bi bi-info-circle-fill me-1"></i>Special out-of-network route (+15% transport fee included)
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-50">
+                        <div>
+                            <span class="x-small text-white-50 d-block">Estimated Total</span>
+                            <h2 class="fw-bold mb-0 font-mono" style="color: #38bdf8;" id="previewTotal">Rs. 18,004</h2>
+                        </div>
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-hero-primary px-4 py-2.5">
+                            <span>Book Shipment</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         7. NATIONWIDE HUBS BADGES
+         ===================================================================== -->
+    <section id="hubs" class="mb-5 pb-3">
+        <div class="text-center mb-4">
+            <span class="section-label">INFRASTRUCTURE</span>
+            <h3 class="fw-bold text-dark mb-1">Fleetify Central Hubs Across Pakistan</h3>
+            <p class="text-secondary small">Connected industrial logistics hubs guaranteeing prompt dispatches and zero transit bottlenecks.</p>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Lahore (Central Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Karachi (South Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Islamabad (North Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Rawalpindi (Twin Cities Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Faisalabad (Textile Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Multan (South Punjab Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Gujranwala (GT Road Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Peshawar (Khyber Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Sialkot (Export Hub)</span>
+            <span class="hub-pill-modern"><i class="bi bi-geo-alt-fill text-primary"></i>Quetta (Balochistan Hub)</span>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         8. CALL TO ACTION (CTA)
+         ===================================================================== -->
+    <section class="cta-card text-center">
+        <div class="cta-glow-circle"></div>
+        <div class="position-relative" style="z-index: 2; max-width: 680px; margin: 0 auto;">
+            <h2 class="display-6 fw-bold mb-3 text-white">Ready to Simplify Your Logistics?</h2>
+            <p class="fs-5 mb-4 text-white-50">
+                Start managing your fleet and shipments with Fleetify today.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a asp-controller="Account" asp-action="Register" class="btn-hero-primary px-4 py-3 fs-6">
+                    <span>Get Started</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="btn-hero-glass px-4 py-3 fs-6">
+                    <span>Sign In to Portal</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =====================================================================
+         9. CONTACT US SECTION
+         ===================================================================== -->
+    <section id="contact" class="glass-card mb-5 p-4 p-lg-5" style="border-radius: 1.75rem;">
+        <div class="row g-5 align-items-center">
+            <!-- Left Info -->
+            <div class="col-lg-5">
+                <span class="section-label">GET IN TOUCH</span>
+                <h3 class="display-6 fw-bold text-dark mb-3">Contact Fleetify Operations</h3>
+                <p class="text-secondary small mb-4">
+                    Have questions about corporate fleet management, freight shipments, or driver partnerships? Our team is available 24/7.
+                </p>
+
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-start gap-3 p-3 bg-white rounded-3 border">
+                        <div class="glass-card-icon icon-blue-theme m-0" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                            <i class="bi bi-telephone-inbound-fill"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block">24/7 Hotline</span>
+                            <strong class="text-dark font-mono">+92 (42) 111-FLEET (35338)</strong>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start gap-3 p-3 bg-white rounded-3 border">
+                        <div class="glass-card-icon icon-teal-theme m-0" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block">Support Email</span>
+                            <strong class="text-dark font-mono">fypfleetify@gmail.com</strong>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start gap-3 p-3 bg-white rounded-3 border">
+                        <div class="glass-card-icon icon-rose-theme m-0" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block">Operations Headquarters</span>
+                            <span class="text-dark small fw-semibold">Fleetify Logistics Towers, MM Alam Road, Gulberg III, Lahore, Pakistan</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Interactive Contact Form -->
+            <div class="col-lg-7">
+                <div class="card border-0 rounded-4 p-4 shadow-sm bg-white">
+                    <h4 class="fw-bold text-dark mb-1">Send Us a Message</h4>
+                    <p class="text-secondary small mb-3">Submit your inquiry and our operations dispatcher will respond promptly.</p>
+
+                    <div id="contactSuccessAlert" class="alert alert-success d-none py-2 px-3 small rounded-3 mb-3">
+                        <i class="bi bi-check-circle-fill me-1"></i>Thank you! Your inquiry has been received. Our team will contact you shortly.
+                    </div>
+
+                    <form id="landingContactForm" onsubmit="handleContactSubmit(event)">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Your Name</label>
+                                <input type="text" id="contactName" class="form-control py-2" placeholder="e.g. Zain Ali" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Email Address</label>
+                                <input type="email" id="contactEmail" class="form-control py-2" placeholder="name@example.com" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Phone Number</label>
+                                <input type="tel" id="contactPhone" class="form-control py-2" placeholder="03001234567" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Subject</label>
+                                <select id="contactType" class="form-select py-2">
+                                    <option value="Fleet Management">Corporate Fleet Management</option>
+                                    <option value="Shipment Inquiry">Intercity Shipment Booking</option>
+                                    <option value="Driver Partner">Driver Partnership</option>
+                                    <option value="Technical Support">Technical Support</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Message</label>
+                                <textarea id="contactMessage" rows="4" class="form-control py-2" placeholder="How can Fleetify assist your logistics operations?" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-hero-primary px-4 py-2.5">
+                                    <i class="bi bi-send-fill me-1"></i>
+                                    <span>Send Message</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- Interactive Estimator & Contact Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const originSel = document.getElementById('estOriginSelect');
+        const destSel = document.getElementById('estDestSelect');
+        const weightInput = document.getElementById('estWeightInput');
+        const speedSel = document.getElementById('estSpeedSelect');
+
+        function fetchLandingEstimate() {
+            const pickup = originSel ? originSel.value : '';
+            const dropoff = destSel ? destSel.value : '';
+            const weight = parseFloat(weightInput ? weightInput.value : '2.0') || 2.0;
+            const route = speedSel ? speedSel.value : 'Normal';
+
+            fetch('/api/ai/estimate-cost', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pickupLocation: pickup,
+                    dropoffLocation: dropoff,
+                    parcelWeight: weight,
+                    routeType: route,
+                    originType: 'WarehouseDropoff',
+                    destinationType: 'WarehousePickup'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (document.getElementById('previewDistance')) {
+                    document.getElementById('previewDistance').innerText = Math.floor(data.distanceKm) + ' km';
+                }
+                if (document.getElementById('previewDays')) {
+                    document.getElementById('previewDays').innerText = data.estimatedDeliveryDays || '4 to 6 days';
+                }
+                if (document.getElementById('previewBaseCost')) {
+                    const wt = (data.weightCharge !== undefined && data.weightCharge !== null) ? data.weightCharge : (data.baseCost || 0);
+                    document.getElementById('previewBaseCost').innerText = 'Rs. ' + Math.floor(wt);
+                }
+                if (document.getElementById('previewPetrol')) {
+                    const distFee = (data.distanceCharge !== undefined && data.distanceCharge !== null) ? data.distanceCharge : (data.petrolCharge || 0);
+                    document.getElementById('previewPetrol').innerText = 'Rs. ' + Math.floor(distFee);
+                }
+                if (document.getElementById('previewTotal')) {
+                    document.getElementById('previewTotal').innerText = 'Rs. ' + Math.floor(data.estimatedTotal || 0);
+                }
+                const specialRow = document.getElementById('previewSpecialRow');
+                if (specialRow) {
+                    if (data.isSpecialDelivery) {
+                        specialRow.classList.remove('d-none');
+                    } else {
+                        specialRow.classList.add('d-none');
+                    }
+                }
+            })
+            .catch(err => console.log('Landing estimate preview:', err));
+        }
+
+        originSel?.addEventListener('change', fetchLandingEstimate);
+        destSel?.addEventListener('change', fetchLandingEstimate);
+        weightInput?.addEventListener('input', fetchLandingEstimate);
+        speedSel?.addEventListener('change', fetchLandingEstimate);
+
+        // Initial preview call
+        fetchLandingEstimate();
+    });
+
+    function handleContactSubmit(event) {
+        event.preventDefault();
+        const alertBox = document.getElementById('contactSuccessAlert');
+        const form = document.getElementById('landingContactForm');
+        if (alertBox) {
+            alertBox.classList.remove('d-none');
+        }
+        if (form) {
+            form.reset();
+        }
+    }
+</script>

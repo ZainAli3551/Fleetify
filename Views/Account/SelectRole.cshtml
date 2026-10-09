@@ -1,140 +1,145 @@
 @{
-    ViewData["Title"] = "Intelligent Logistics & Fleet Management";
+    ViewData["Title"] = "Next-Gen Enterprise Logistics & Fleet Operations - Fleetify";
 }
 
-<!-- Custom High-End Styling for Public Landing Page -->
+<!-- Custom High-End International Logistics Design Tokens -->
 <style>
-    /* Hero Container & Multi-Layered Cosmic Dark Aesthetic */
+    /* Hero Container with Ultra-Realistic Logistics Fleet Banner & Atmospheric Ambient Glows */
     .landing-hero {
-        background: radial-gradient(circle at 15% 25%, rgba(37, 99, 235, 0.28) 0%, transparent 45%),
-                    radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.20) 0%, transparent 45%),
-                    radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.18) 0%, transparent 55%),
-                    linear-gradient(135deg, #060913 0%, #0a1124 50%, #0e1938 100%);
-        color: #ffffff;
+        background: linear-gradient(to right, rgba(248, 247, 244, 0.96) 0%, rgba(248, 247, 244, 0.88) 45%, rgba(248, 247, 244, 0.45) 68%, rgba(15, 23, 42, 0.15) 100%),
+                    url('/images/fleet-hero-banner.jpg') center/cover no-repeat;
+        color: #0f172a;
         position: relative;
         overflow: hidden;
-        border-radius: 1.5rem;
-        box-shadow: 0 25px 60px -15px rgba(2, 6, 23, 0.5);
-    }
-
-    .landing-hero::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-        background-size: 32px 32px;
-        opacity: 0.4;
-        pointer-events: none;
+        border-radius: 2rem;
+        box-shadow: 0 20px 50px -15px rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(226, 220, 205, 0.85);
     }
 
     /* Modern Glassmorphic Container */
     .glass-panel {
-        background: rgba(255, 255, 255, 0.94);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(226, 232, 240, 0.85);
-        box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.06);
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .glass-panel:hover {
-        box-shadow: 0 20px 35px -12px rgba(37, 99, 235, 0.14);
-        border-color: rgba(147, 197, 253, 0.8);
+        box-shadow: 0 12px 30px -5px rgba(13, 148, 136, 0.1);
+        border-color: rgba(13, 148, 136, 0.3);
     }
 
-    /* Live Route Showcase Card */
+    /* Live Route Showcase Telemetry Terminal (High Contrast Dark Slate Card) */
     .route-telemetry-card {
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.55), 0 0 30px rgba(13, 148, 136, 0.15);
+        border-radius: 1.5rem;
     }
 
     /* Tracking Search Bar */
     .hero-tracking-bar {
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1.5px solid #d1d5db;
         border-radius: 9999px;
-        padding: 6px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-        transition: all 0.25s ease;
+        padding: 5px 6px 5px 14px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .hero-tracking-bar:focus-within {
-        border-color: #60a5fa;
-        background: rgba(255, 255, 255, 0.18);
-        box-shadow: 0 10px 35px rgba(37, 99, 235, 0.4);
+        border-color: #0d9488;
+        background: #ffffff;
+        box-shadow: 0 6px 24px rgba(13, 148, 136, 0.25);
     }
 
     .hero-tracking-bar input {
         background: transparent;
         border: none;
-        color: #ffffff;
-        padding-left: 1.25rem;
+        color: #0f172a;
+        padding-left: 0.75rem;
+        font-weight: 500;
     }
 
     .hero-tracking-bar input::placeholder {
-        color: rgba(255, 255, 255, 0.65);
+        color: #64748b;
     }
 
     .hero-tracking-bar input:focus {
         outline: none;
         box-shadow: none;
-        color: #ffffff;
+        color: #0f172a;
     }
 
-    /* Service Cards */
+    .hero-stat-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        transition: all 0.25s ease;
+    }
+
+    .hero-stat-card:hover {
+        background: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    /* International Service & Feature Cards */
     .service-card {
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 1.25rem;
-        padding: 2rem 1.75rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 1.35rem;
+        padding: 2.25rem 2rem;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         height: 100%;
+        position: relative;
+        overflow: hidden;
     }
 
     .service-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 20px 35px -12px rgba(37, 99, 235, 0.14);
-        border-color: #93c5fd;
+        box-shadow: 0 24px 45px -12px rgba(13, 148, 136, 0.15);
+        border-color: #99f6e4;
     }
 
-    /* Icon Circles */
-    .icon-box {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
+    /* Floating Icon Squircle */
+    .icon-box-lg {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.75rem;
+        font-size: 1.85rem;
+        box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.05);
     }
 
     /* Hub Badges */
     .hub-pill {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
+        gap: 0.55rem;
+        padding: 0.65rem 1.25rem;
         border-radius: 9999px;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
         background: #ffffff;
-        border: 1px solid #e2e8f0;
+        border: 1.5px solid #e2e8f0;
         color: #334155;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
 
     .hub-pill:hover {
-        background: #eff6ff;
-        color: #2563eb;
-        border-color: #bfdbfe;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 14px -3px rgba(37, 99, 235, 0.15);
+        background: #f0fdfa;
+        color: #0d9488;
+        border-color: #99f6e4;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px -3px rgba(13, 148, 136, 0.18);
     }
 
     /* Glowing Status Dot */
@@ -145,6 +150,7 @@
         border-radius: 50%;
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
         animation: pulseAnimation 2s infinite;
+        display: inline-block;
     }
 
     @@keyframes pulseAnimation {
@@ -152,118 +158,133 @@
         70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
+
+    /* Weight Chip for Calculator */
+    .weight-chip {
+        cursor: pointer;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.15s ease;
+    }
+
+    .weight-chip:hover {
+        background: #ccfbf1;
+        color: #0f766e;
+        border-color: #99f6e4;
+        transform: translateY(-1px);
+    }
 </style>
 
 <div class="container-fluid px-lg-5 py-2">
 
-    <!-- 1. HERO SECTION (FULL WIDTH & MODERN) -->
-    <section class="landing-hero p-4 p-md-5 mb-5">
-        <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+    <!-- 1. HERO BANNER (INTERNATIONAL CLEAN COMMAND CENTER & LIVE TELEMETRY) -->
+    <section id="home" class="landing-hero p-4 p-md-5 mb-5">
+        <div class="row align-items-center g-5 position-relative" style="z-index: 2;">
             <div class="col-lg-7 text-center text-lg-start">
                 
-                <!-- Live Network Badge -->
-                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill mb-3" style="background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(96, 165, 250, 0.35); font-size: 0.8rem; color: #93c5fd;">
-                    <span class="status-pulse"></span>
-                    <span class="fw-semibold">Fleetify Nationwide Network Active</span>
-                    <span class="opacity-50">|</span>
-                    <span class="opacity-75">10 Connected Hubs</span>
-                </div>
-
-                <!-- Hero Title -->
-                <h1 class="display-4 fw-bold text-white mb-3 lh-sm" style="letter-spacing: -0.03em;">
-                    Intelligent Fleet Operations &amp; Nationwide Logistics
+                <!-- Main Title without sub-headline badge for ultra-clean modern aesthetic -->
+                <h1 class="display-4 fw-extrabold text-dark mb-3 lh-sm" style="letter-spacing: -0.035em; color: #0f172a !important;">
+                    Advanced Logistics Platform<br class="d-none d-md-inline" /> &amp; Extensive Freight Network
                 </h1>
                 
                 <!-- Subtitle -->
-                <p class="fs-5 text-light opacity-75 mb-4 pe-lg-3" style="max-width: 640px; font-weight: 400; line-height: 1.6;">
-                    Connect your cargo across Pakistan with precision GPS route visualizer, central warehouse facilities, doorstep courier pickups, and automated AI rate calculations.
+                <p class="fs-5 mb-4 pe-lg-3" style="color: #475569; max-width: 660px; font-weight: 450; line-height: 1.6;">
+                    Empowering modern supply chains across Pakistan with automated AI route pricing, real-time GPS telemetry, central warehouse facilities, and doorstep courier fulfillment.
                 </p>
 
-                <!-- Hero Action CTAs -->
+                <!-- International Hero Action CTAs (Teal & Sand) -->
                 <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start gap-3 mb-4">
-                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2">
-                        <span>Get Started / Sign In</span>
-                        <i class="bi bi-arrow-right"></i>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-teal btn-lg px-4 py-2.5 d-flex align-items-center gap-2">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Ship Now / Sign In</span>
+                        <i class="bi bi-arrow-right small"></i>
                     </a>
-                    <a href="#rate-calculator" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-semibold d-flex align-items-center gap-2">
+                    <a href="#rate-calculator" class="btn btn-sand btn-lg px-4 py-2.5 d-flex align-items-center gap-2">
                         <i class="bi bi-calculator"></i>
                         <span>Calculate Rates</span>
                     </a>
                 </div>
 
                 <!-- Live Tracking Search Bar right on Hero -->
-                <div id="track" class="pe-lg-3 mb-4" style="max-width: 580px;">
+                <div id="track" class="pe-lg-3 mb-4" style="max-width: 600px;">
                     <form action="/Customer/Track" method="get" class="hero-tracking-bar d-flex align-items-center">
-                        <i class="bi bi-search text-info fs-5 ms-3"></i>
-                        <input type="text" name="trackingNumber" class="form-control" placeholder="Enter Tracking # (e.g. FLT-2026-XXXXXX)" required autocomplete="off" />
-                        <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 text-white fw-bold d-flex align-items-center gap-1.5 flex-shrink-0 shadow-sm">
-                            <span>Track</span>
+                        <i class="bi bi-search fs-5 ms-2" style="color: #0d9488;"></i>
+                        <input type="text" name="trackingNumber" class="form-control" placeholder="Enter Tracking # (e.g. FLT-2026-X00000)" required autocomplete="off" />
+                        <button type="submit" class="btn btn-teal px-4 py-2.5 text-white fw-bold d-flex align-items-center gap-2 flex-shrink-0">
+                            <span>Track Shipment</span>
                             <i class="bi bi-arrow-right"></i>
                         </button>
                     </form>
-                    <span class="x-small text-white-50 ms-3 mt-1.5 d-block text-center text-lg-start">
-                        <i class="bi bi-shield-check text-success me-1"></i>Track any ongoing shipment live across Pakistan without signing in.
+                    <span class="x-small ms-3 mt-1.5 d-block text-center text-lg-start" style="color: #64748b;">
+                        <i class="bi bi-shield-check me-1" style="color: #0d9488;"></i>Track any ongoing consignment live across Pakistan without signing in.
                     </span>
                 </div>
 
-                <!-- Trust Metrics Strip -->
+                <!-- Trust Metrics Strip: High-Contrast White Frosted Glass Cards -->
                 <div class="row g-3 pe-lg-3 pt-2 text-center text-lg-start">
                     <div class="col-4">
-                        <div class="p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
-                            <h4 class="fw-bold text-white mb-0 font-mono">10+</h4>
-                            <span class="x-small text-white-50">Central Hubs</span>
+                        <div class="p-3 rounded-4 hero-stat-card">
+                            <h3 class="fw-bold mb-0 font-mono" style="color: #0f172a;">10+</h3>
+                            <span class="x-small fw-semibold text-uppercase" style="color: #64748b;">Central Hubs</span>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
-                            <h4 class="fw-bold text-white mb-0 font-mono">99.4%</h4>
-                            <span class="x-small text-white-50">On-Time Dispatch</span>
+                        <div class="p-3 rounded-4 hero-stat-card">
+                            <h3 class="fw-bold mb-0 font-mono" style="color: #0f172a;">99.8%</h3>
+                            <span class="x-small fw-semibold text-uppercase" style="color: #64748b;">On-Time Dispatch</span>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);">
-                            <h4 class="fw-bold text-white mb-0 font-mono">1-Hour</h4>
-                            <span class="x-small text-white-50">Edit / Cancel Lock</span>
+                        <div class="p-3 rounded-4 hero-stat-card">
+                            <h3 class="fw-bold mb-0 font-mono" style="color: #0f172a;">1-Hour</h3>
+                            <span class="x-small fw-semibold text-uppercase" style="color: #64748b;">Free Edit Window</span>
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <!-- Right Hero Card: Live Telemetry & Active Route Showcase -->
+            <!-- Right Hero Card: High-Contrast Dark Slate Live Telemetry Card -->
             <div class="col-lg-5 text-center">
-                <div class="position-relative mx-auto" style="max-width: 440px;">
-                    <div class="card route-telemetry-card rounded-4 p-4 text-white text-start">
+                <div class="position-relative mx-auto" style="max-width: 450px;">
+                    <div class="card route-telemetry-card p-4 text-white text-start">
                         <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-secondary border-opacity-25 mb-3">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 small">
+                                <span class="badge text-white rounded-pill px-2.5 py-1 small" style="background: #10b981;">
                                     <i class="bi bi-broadcast me-1"></i>Live Telemetry
                                 </span>
-                                <span class="small fw-semibold text-light">Intercity Transit</span>
+                                <span class="small fw-semibold text-light">Intercity Highway Transit</span>
                             </div>
-                            <span class="badge bg-success-subtle text-success font-mono small px-2.5 py-1">GPS Active</span>
+                            <span class="badge font-mono small px-2.5 py-1 rounded-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);">
+                                <span class="status-pulse me-1" style="width: 6px; height: 6px;"></span>GPS Active
+                            </span>
                         </div>
 
                         <!-- Route Details -->
                         <div class="mb-3">
-                            <div class="d-flex align-items-start gap-2 mb-2">
+                            <div class="d-flex align-items-start gap-2.5 mb-2.5">
                                 <i class="bi bi-geo-alt-fill text-success fs-5 mt-0.5"></i>
                                 <div>
-                                    <span class="x-small text-white-50 d-block">Origin Hub</span>
-                                    <strong class="text-white small">Fleetify GT Road Hub - Gujranwala</strong>
+                                    <span class="x-small text-white-50 d-block">Origin Industrial Hub</span>
+                                    <strong class="text-white small">Fleetify GT Road Hub – Gujranwala</strong>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-start gap-2">
+                            <div class="d-flex align-items-start gap-2.5">
                                 <i class="bi bi-flag-fill text-danger fs-5 mt-0.5"></i>
                                 <div>
-                                    <span class="x-small text-white-50 d-block">Destination Hub</span>
-                                    <strong class="text-white small">Fleetify South Hub - Karachi</strong>
+                                    <span class="x-small text-white-50 d-block">Destination Transit Hub</span>
+                                    <strong class="text-white small">Fleetify South Hub – Karachi</strong>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Telemetry Stats Box -->
-                        <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.09);">
                             <div class="row g-2">
                                 <div class="col-6">
                                     <span class="x-small text-white-50 d-block">Road Distance</span>
@@ -271,38 +292,189 @@
                                 </div>
                                 <div class="col-6">
                                     <span class="x-small text-white-50 d-block">Estimated Transit</span>
-                                    <strong class="text-info font-mono fs-5">4 to 6 days</strong>
+                                    <strong class="font-mono fs-5" style="color: #2dd4bf;">4 to 6 days</strong>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Calculated Total Strip -->
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                        <div class="d-flex justify-content-between align-items-center pt-2.5 border-top border-secondary border-opacity-25">
                             <div>
                                 <span class="x-small text-white-50 d-block">Formula Accurate Total</span>
-                                <h3 class="fw-bold text-info mb-0 font-mono">Rs. 7,977</h3>
+                                <h3 class="fw-bold mb-0 font-mono" style="color: #2dd4bf;">Rs. 18,004</h3>
                             </div>
-                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-info btn-sm rounded-pill px-3 py-1.5 fw-semibold">
-                                Book Delivery &rarr;
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-teal btn-sm px-3.5 py-2 fw-semibold d-flex align-items-center gap-1 shadow-sm">
+                                <span>Book Now</span>
+                                <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>
                     </div>
 
                     <!-- Glowing Decorative Backdrop Glow -->
-                    <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 rounded-circle" style="background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, transparent 65%); filter: blur(35px); z-index: 1;"></div>
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 rounded-circle" style="background: radial-gradient(circle, rgba(13, 148, 136, 0.35) 0%, transparent 65%); filter: blur(40px); z-index: 1;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. ABOUT US SECTION -->
+    <section id="about" class="glass-panel rounded-4 p-4 p-lg-5 mb-5 shadow-sm">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">ABOUT FLEETIFY LOGISTICS</span>
+                <h2 class="display-6 fw-bold text-dark mb-3">
+                    Engineering Pakistan’s Most Dependable Supply Chain Grid
+                </h2>
+                <p class="text-secondary leading-relaxed mb-4">
+                    Founded with the vision to modernize freight and parcel transportation, Fleetify bridges industrial transit hubs, regional warehouses, and doorstep couriers through artificial intelligence and real-time vehicle telemetry.
+                </p>
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-white rounded-3 border">
+                            <i class="bi bi-cpu text-primary fs-4 d-block mb-1"></i>
+                            <h6 class="fw-bold text-dark mb-1">AI-Powered Dispatch</h6>
+                            <p class="text-muted x-small mb-0">Dynamic route mapping calculating exact fuel, road distances, and toll metrics.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-white rounded-3 border">
+                            <i class="bi bi-clock-history text-success fs-4 d-block mb-1"></i>
+                            <h6 class="fw-bold text-dark mb-1">1-Hour Guarantee</h6>
+                            <p class="text-muted x-small mb-0">Full liberty to modify parcel specifications or cancel within 60 minutes free of charge.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-white rounded-3 border">
+                            <i class="bi bi-buildings text-warning fs-4 d-block mb-1"></i>
+                            <h6 class="fw-bold text-dark mb-1">10 Industrial Hubs</h6>
+                            <p class="text-muted x-small mb-0">Direct intercity warehousing connecting Karachi, Lahore, Islamabad, and nationwide corridors.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-white rounded-3 border">
+                            <i class="bi bi-tools text-info fs-4 d-block mb-1"></i>
+                            <h6 class="fw-bold text-dark mb-1">Predictive Safety</h6>
+                            <p class="text-muted x-small mb-0">AI sensor diagnostics ensure our trucks and vans are always roadworthy and safe.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-3">
+                    <a href="#services" class="btn btn-intl-primary rounded-pill px-4 py-2.5 fw-bold text-white shadow-sm d-flex align-items-center gap-2">
+                        <span>Explore Our Services</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="#contact" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-semibold">
+                        Get in Touch
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="position-relative mx-auto" style="max-width: 500px;">
+                    <img src="~/images/fleet-auth-banner.jpg" alt="Fleet Logistics Hub" class="img-fluid rounded-4 shadow-lg border" style="object-fit: cover; max-height: 480px; width: 100%;" />
+                    <div class="position-absolute bottom-0 start-0 m-3 p-3 bg-white rounded-3 shadow border text-start" style="max-width: 270px;">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="status-pulse"></span>
+                            <strong class="text-dark small">Continuous Telemetry</strong>
+                        </div>
+                        <span class="text-muted x-small d-block">Zero transit bottlenecks with active GPS satellite monitoring.</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
 
-    <!-- 2. INTERACTIVE LIVE RATE CALCULATOR (FEATURE SPOTLIGHT) -->
+    <!-- 4. CORE LOGISTICS SERVICES -->
+    <section id="services" class="mb-5">
+        <div class="text-center mb-4 pb-2">
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">SERVICES &amp; CAPABILITIES</span>
+            <h2 class="display-6 fw-bold text-dark mb-1">Comprehensive Freight &amp; Express Solutions</h2>
+            <p class="text-secondary small">Engineered for businesses, manufacturers, e-commerce shippers, and individual parcels.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box-lg bg-primary-subtle text-primary mb-3">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Central Hub Logistics</h4>
+                    <p class="text-muted small mb-0">
+                        Direct intercity freight transport connecting our 10 industrial transit hubs with dedicated tracking barcodes and secured warehouse intake.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box-lg bg-success-subtle text-success mb-3">
+                        <i class="bi bi-door-open"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Doorstep Pickup &amp; Delivery</h4>
+                    <p class="text-muted small mb-0">
+                        Rider doorstep arrival right at your scheduled date and time. No need to visit the warehouse; our fleet handles collection and doorstep handover.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box-lg bg-warning-subtle text-warning mb-3">
+                        <i class="bi bi-stopwatch"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Flexible Speed Tiers</h4>
+                    <p class="text-muted small mb-0">
+                        Choose between Normal Delivery (4–6 days), Fast Delivery (2–3 days), and Express Delivery (1–2 days) based on urgency and schedule.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box-lg bg-info-subtle text-info mb-3">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Verified Weight &amp; Dimensions</h4>
+                    <p class="text-muted small mb-0">
+                        Automated cubic feet volume formulas and on-site scale checks protect you against unfair rate inflation and ensure precision billing.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box-lg bg-danger-subtle text-danger mb-3">
+                        <i class="bi bi-truck-front"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Private Dedicated Transport</h4>
+                    <p class="text-muted small mb-0">
+                        Deploy an exclusive dedicated vehicle (Pickup or Heavy Truck) for priority industrial shipments with zero intermediate co-loading.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="service-card shadow-sm">
+                    <div class="icon-box-lg bg-secondary-subtle text-dark mb-3">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">24/7 AI &amp; Human Helpdesk</h4>
+                    <p class="text-muted small mb-0">
+                        Instant parcel status answers via our embedded AI assistant, with seamless one-click escalation to human fleet managers whenever needed.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- 5. INTERACTIVE LIVE RATE CALCULATOR (FEATURE SPOTLIGHT) -->
     <section id="rate-calculator" class="glass-panel rounded-4 p-4 p-lg-5 mb-5 shadow-sm">
         <div class="row align-items-center g-4">
             <div class="col-lg-5">
                 <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">LIVE ESTIMATOR</span>
                 <h2 class="fw-bold text-dark mb-2">Instant Delivery Rate Calculator</h2>
-                <p class="text-secondary small mb-4">
+                <p class="text-secondary small mb-3">
                     Calculate fair, formula-accurate delivery rates across all 10 hubs and special delivery routes before booking your parcel.
                 </p>
 
@@ -346,14 +518,20 @@
                     <div class="col-6">
                         <label class="form-label small fw-semibold text-secondary mb-1">Weight (kg)</label>
                         <input type="number" id="estWeightInput" class="form-control rounded-3 py-2 fw-semibold" value="2.0" min="0.5" step="0.5" />
+                        <div class="d-flex gap-1 mt-1.5 flex-wrap">
+                            <span class="weight-chip" onclick="document.getElementById('estWeightInput').value = 1; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">1 kg</span>
+                            <span class="weight-chip" onclick="document.getElementById('estWeightInput').value = 5; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">5 kg</span>
+                            <span class="weight-chip" onclick="document.getElementById('estWeightInput').value = 10; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">10 kg</span>
+                            <span class="weight-chip" onclick="document.getElementById('estWeightInput').value = 25; document.getElementById('estWeightInput').dispatchEvent(new Event('input'));">25 kg</span>
+                        </div>
                     </div>
 
                     <div class="col-6">
                         <label class="form-label small fw-semibold text-secondary mb-1">Delivery Speed</label>
                         <select id="estSpeedSelect" class="form-select rounded-3 py-2 fw-semibold">
-                            <option value="Normal" selected>Normal Delivery</option>
-                            <option value="Fast">Fast Delivery</option>
-                            <option value="Express">Express Delivery</option>
+                            <option value="Normal" selected>Normal (4–6 days)</option>
+                            <option value="Fast">Fast (2–3 days)</option>
+                            <option value="Express">Express (1–2 days)</option>
                         </select>
                     </div>
                 </div>
@@ -361,17 +539,17 @@
 
             <!-- Result Card -->
             <div class="col-lg-7">
-                <div class="card border-0 rounded-4 p-4 text-white shadow-lg" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                <div class="card border-0 rounded-4 p-4 text-white shadow-lg" style="background: linear-gradient(135deg, #111a36 0%, #080e22 100%); border: 1px solid rgba(255, 255, 255, 0.1);">
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-50">
-                        <span class="badge bg-primary text-white rounded-pill px-3 py-1">
+                        <span class="badge bg-primary text-white rounded-pill px-3 py-1 font-mono">
                             <i class="bi bi-lightning-charge-fill me-1"></i>Instant AI Quote
                         </span>
-                        <span class="small text-white-50"><i class="bi bi-check-circle-fill text-success me-1"></i>Verified Distance</span>
+                        <span class="small text-white-50"><i class="bi bi-check-circle-fill text-success me-1"></i>Formula Verified</span>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-6 col-md-3">
-                            <span class="x-small text-white-50 d-block">Distance</span>
+                            <span class="x-small text-white-50 d-block">Road Distance</span>
                             <strong class="fs-5 text-white font-mono" id="previewDistance">1,259 km</strong>
                         </div>
                         <div class="col-6 col-md-3">
@@ -395,10 +573,11 @@
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-50">
                         <div>
                             <span class="x-small text-white-50 d-block">Total Estimated Cost</span>
-                            <h2 class="fw-bold text-info mb-0 font-mono" id="previewTotal">Rs. 18,004</h2>
+                            <h2 class="fw-bold mb-0 font-mono" style="color: #2dd4bf;" id="previewTotal">Rs. 18,004</h2>
                         </div>
-                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2">
-                            <span>Book Delivery &rarr;</span>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-teal rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm d-flex align-items-center gap-2">
+                            <span>Book Delivery</span>
+                            <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -407,73 +586,25 @@
     </section>
 
 
-    <!-- 3. CORE LOGISTICS SERVICES -->
-    <section id="services" class="mb-5">
-        <div class="text-center mb-4">
-            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">SERVICES &amp; CAPABILITIES</span>
-            <h2 class="fw-bold text-dark mb-1">Engineered for Reliable Shipping</h2>
-            <p class="text-secondary small">Comprehensive freight and express delivery solutions tailored for corporate and personal parcels.</p>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="service-card shadow-sm">
-                    <div class="icon-box bg-primary-subtle text-primary mb-3">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <h4 class="fw-bold text-dark mb-2">Central Hub Logistics</h4>
-                    <p class="text-muted small mb-0">
-                        Direct intercity freight transport connecting our 10 industrial transit hubs with dedicated tracking barcodes and secured warehouse intake.
-                    </p>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="service-card shadow-sm">
-                    <div class="icon-box bg-success-subtle text-success mb-3">
-                        <i class="bi bi-door-open"></i>
-                    </div>
-                    <h4 class="fw-bold text-dark mb-2">Doorstep Pickup &amp; Delivery</h4>
-                    <p class="text-muted small mb-0">
-                        Rider doorstep arrival right at your scheduled date and time. No need to visit the warehouse; our fleet handles collection and doorstep handover.
-                    </p>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="service-card shadow-sm">
-                    <div class="icon-box bg-warning-subtle text-warning mb-3">
-                        <i class="bi bi-stopwatch"></i>
-                    </div>
-                    <h4 class="fw-bold text-dark mb-2">Flexible Speed Tiers</h4>
-                    <p class="text-muted small mb-0">
-                        Choose between Normal Delivery (4–6 days), Fast Delivery (2–3 days), and Express Delivery (1–2 days) based on urgency and schedule.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- 4. NATIONWIDE 10 HUB INFRASTRUCTURE -->
+    <!-- 6. NATIONWIDE 10 HUB INFRASTRUCTURE -->
     <section id="hubs" class="mb-5">
-        <div class="text-center mb-4">
-            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">NATIONWIDE REACH</span>
-            <h2 class="fw-bold text-dark mb-1">Fleetify Central Hubs Across Pakistan</h2>
+        <div class="text-center mb-4 pb-2">
+            <span class="badge rounded-pill px-3 py-1 font-mono fw-semibold mb-2" style="background: #ccfbf1; color: #0f766e;">NATIONWIDE REACH</span>
+            <h2 class="display-6 fw-bold text-dark mb-1">Fleetify Central Hubs Across Pakistan</h2>
             <p class="text-secondary small">Strategically positioned industrial facilities guaranteeing quick turnarounds and zero transit bottlenecks.</p>
         </div>
 
-        <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Lahore (Central Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Karachi (South Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Islamabad (North Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Rawalpindi (Twin Cities Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Faisalabad (Textile Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Multan (South Punjab Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Gujranwala (GT Road Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Peshawar (Khyber Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Sialkot (Export Hub)</span>
-            <span class="hub-pill"><i class="bi bi-geo-alt-fill text-primary"></i>Quetta (Balochistan Hub)</span>
+        <div class="d-flex flex-wrap justify-content-center gap-2.5 mb-3">
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Lahore (Central Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Karachi (South Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Islamabad (North Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Rawalpindi (Twin Cities Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Faisalabad (Textile Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Multan (South Punjab Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Gujranwala (GT Road Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Peshawar (Khyber Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Sialkot (Export Hub)</span>
+            <span class="hub-pill"><i class="bi bi-geo-alt-fill" style="color: #0d9488;"></i>Quetta (Balochistan Hub)</span>
         </div>
 
         <div class="text-center">
@@ -484,63 +615,119 @@
     </section>
 
 
-    <!-- 5. FLEETIFY VALUE PILLARS -->
-    <section class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="service-card text-center">
-                <div class="icon-box bg-primary-subtle text-primary mx-auto mb-3">
-                    <i class="bi bi-hourglass-split"></i>
-                </div>
-                <h5 class="fw-bold text-dark mb-2">1-Hour Guarantee</h5>
-                <p class="text-muted small mb-0">Modify parcel details, adjust weight, or cancel completely within 60 minutes with zero penalties.</p>
-            </div>
-        </div>
+    <!-- 7. CONTACT US SECTION -->
+    <section id="contact" class="glass-panel rounded-4 p-4 p-lg-5 mb-5 shadow-sm">
+        <div class="row g-5 align-items-center">
+            <!-- Left Info -->
+            <div class="col-lg-5">
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 font-mono fw-semibold mb-2">24/7 ASSISTANCE</span>
+                <h2 class="display-6 fw-bold text-dark mb-3">Contact Our Logistics Operations</h2>
+                <p class="text-secondary small mb-4">
+                    Have inquiries regarding high-volume corporate shipments, dedicated fleet leasing, or custom cargo routes? Our team is available 24/7.
+                </p>
 
-        <div class="col-md-3">
-            <div class="service-card text-center">
-                <div class="icon-box bg-success-subtle text-success mx-auto mb-3">
-                    <i class="bi bi-shield-check"></i>
-                </div>
-                <h5 class="fw-bold text-dark mb-2">Exact Rate Formula</h5>
-                <p class="text-muted small mb-0">Transparent distance and weight algorithm ensuring fair pricing with zero hidden surcharges.</p>
-            </div>
-        </div>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-start gap-3 p-3 bg-white rounded-3 border">
+                        <div class="icon-box-lg bg-primary-subtle text-primary flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.3rem;">
+                            <i class="bi bi-telephone-inbound-fill"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block">Toll-Free Operations Helpline</span>
+                            <strong class="text-dark font-mono">+92 (42) 111-FLEET (35338)</strong>
+                        </div>
+                    </div>
 
-        <div class="col-md-3">
-            <div class="service-card text-center">
-                <div class="icon-box bg-info-subtle text-info mx-auto mb-3">
-                    <i class="bi bi-broadcast"></i>
-                </div>
-                <h5 class="fw-bold text-dark mb-2">Real-Time Telemetry</h5>
-                <p class="text-muted small mb-0">Live GPS route tracking from origin pickup all the way to final recipient destination handover.</p>
-            </div>
-        </div>
+                    <div class="d-flex align-items-start gap-3 p-3 bg-white rounded-3 border">
+                        <div class="icon-box-lg bg-success-subtle text-success flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.3rem;">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block">Official Inquiries &amp; Support</span>
+                            <strong class="text-dark font-mono">fypfleetify@gmail.com</strong>
+                        </div>
+                    </div>
 
-        <div class="col-md-3">
-            <div class="service-card text-center">
-                <div class="icon-box bg-warning-subtle text-warning mx-auto mb-3">
-                    <i class="bi bi-cpu"></i>
+                    <div class="d-flex align-items-start gap-3 p-3 bg-white rounded-3 border">
+                        <div class="icon-box-lg bg-danger-subtle text-danger flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.3rem;">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <div>
+                            <span class="x-small text-muted d-block">National Operations HQ</span>
+                            <span class="text-dark small fw-semibold">Fleetify Logistics Towers, MM Alam Road, Gulberg III, Lahore, Pakistan</span>
+                        </div>
+                    </div>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">AI Diagnostic Support</h5>
-                <p class="text-muted small mb-0">Predictive maintenance diagnostics for our fleet and 24/7 AI-assisted customer helpdesk.</p>
+            </div>
+
+            <!-- Right Interactive Contact Form -->
+            <div class="col-lg-7">
+                <div class="card border-0 rounded-4 p-4 shadow-sm bg-white">
+                    <h4 class="fw-bold text-dark mb-1">Send Us an Inquiry</h4>
+                    <p class="text-secondary small mb-3">Fill out the form below and our operations dispatcher will respond promptly.</p>
+
+                    <div id="contactSuccessAlert" class="alert alert-success d-none py-2 px-3 small rounded-3 mb-3">
+                        <i class="bi bi-check-circle-fill me-1"></i>Thank you! Your message has been received. Our team will contact you shortly.
+                    </div>
+
+                    <form id="landingContactForm" onsubmit="handleContactSubmit(event)">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Your Full Name</label>
+                                <input type="text" id="contactName" class="form-control py-2" placeholder="e.g. Zain Ali" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Email Address</label>
+                                <input type="email" id="contactEmail" class="form-control py-2" placeholder="name@example.com" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Phone Number</label>
+                                <input type="tel" id="contactPhone" class="form-control py-2" placeholder="03001234567" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Inquiry Type</label>
+                                <select id="contactType" class="form-select py-2">
+                                    <option value="Rate Quote">Business Shipping &amp; Volume Rates</option>
+                                    <option value="Fleet Leasing">Dedicated Fleet Leasing</option>
+                                    <option value="Driver Partner">Driver Partnership Inquiry</option>
+                                    <option value="Support">Consignment Tracking &amp; Support</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Message / Requirements</label>
+                                <textarea id="contactMessage" rows="4" class="form-control py-2" placeholder="Describe your parcel volume, origin/destination cities, or questions..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-teal rounded-pill px-4 py-2.5 fw-bold text-white shadow-sm d-flex align-items-center gap-2">
+                                    <i class="bi bi-send-fill"></i>
+                                    <span>Send Inquiry Message</span>
+                                    <i class="bi bi-arrow-right small"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </section>
 
 
-    <!-- 6. HIGH-CONVERTING BOTTOM CTA BANNER -->
-    <section class="landing-hero p-4 p-md-5 text-center text-white mb-4">
+    <!-- 8. HIGH-CONVERTING BOTTOM CTA BANNER -->
+    <section class="landing-hero p-4 p-md-5 text-center mb-4">
         <div class="position-relative" style="z-index: 2; max-width: 720px; margin: 0 auto;">
-            <h2 class="display-6 fw-bold mb-3">Ready to Ship with Complete Confidence?</h2>
-            <p class="fs-5 text-light opacity-75 mb-4">
+            <h2 class="display-5 fw-bold mb-3" style="color: #0f172a !important;">Ready to Ship with Complete Confidence?</h2>
+            <p class="fs-5 mb-4" style="color: #475569 !important;">
                 Join thousands of businesses and individuals utilizing Fleetify for dependable, formula-accurate logistics across Pakistan.
             </p>
-            <div class="d-flex justify-content-center gap-3">
-                <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 text-white fw-bold shadow-sm">
-                    <span>Create Free Account &rarr;</span>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a asp-controller="Account" asp-action="Register" class="btn btn-teal btn-lg px-4 py-2.5 d-flex align-items-center gap-2">
+                    <span>Create Free Account</span>
+                    <i class="bi bi-arrow-right"></i>
                 </a>
-                <a href="#rate-calculator" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-semibold">
+                <a href="#rate-calculator" class="btn btn-sand btn-lg px-4 py-2.5">
                     <span>Calculate Rates</span>
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-intl-glass btn-lg px-4 py-2.5">
+                    <span>Sign In to Portal</span>
                 </a>
             </div>
         </div>
@@ -548,7 +735,7 @@
 
 </div>
 
-<!-- Interactive Estimator Script -->
+<!-- Interactive Estimator & Contact Script -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const originSel = document.getElementById('estOriginSelect');
@@ -613,4 +800,16 @@
         // Initial preview call
         fetchLandingEstimate();
     });
+
+    function handleContactSubmit(event) {
+        event.preventDefault();
+        const alertBox = document.getElementById('contactSuccessAlert');
+        const form = document.getElementById('landingContactForm');
+        if (alertBox) {
+            alertBox.classList.remove('d-none');
+        }
+        if (form) {
+            form.reset();
+        }
+    }
 </script>

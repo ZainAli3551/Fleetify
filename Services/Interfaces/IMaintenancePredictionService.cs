@@ -10,5 +10,6 @@ namespace Fleetify.Services.Interfaces
         MaintenancePredictionResult EvaluateVehicle(Vehicle vehicle);
         Task<MaintenanceAlert?> CheckAndGenerateAlertAsync(int vehicleId);
         Task<List<MaintenanceAlert>> EvaluateAllVehiclesAsync();
+        Task<MaintenanceAlert?> ProcessCompletedDeliveryMileageAsync(int vehicleId, double distanceAdded = 0);
     }
 }

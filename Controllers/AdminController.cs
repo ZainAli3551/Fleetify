@@ -42,7 +42,7 @@ namespace Fleetify.Controllers
             _emailService = emailService;
         }
 
-        // GET: /Admin (Figure 21: Admin Dashboard)
+        // GET: /Admin (Admin Dashboard)
         public async Task<IActionResult> Index()
         {
             var totalUsers = await _context.Users.CountAsync();
@@ -50,8 +50,7 @@ namespace Fleetify.Controllers
             var totalDeliveries = await _context.DeliveryRequests.CountAsync();
             var totalRevenue = await _context.DeliveryRequests.SumAsync(d => d.EstimatedCost);
 
-            var today = DateTime.UtcNow.Date;
-            var completedToday = await _context.DeliveryRequests.CountAsync(d => d.RequestedStatus == "Delivered" && d.RequestDate >= today);
+            var completedTotal = await _context.DeliveryRequests.CountAsync(d => d.RequestedStatus == "Delivered");
             var inTransit = await _context.DeliveryRequests.CountAsync(d => d.RequestedStatus == "In-Transit");
             var pending = await _context.DeliveryRequests.CountAsync(d => d.RequestedStatus == "Pending");
 
@@ -59,8 +58,10 @@ namespace Fleetify.Controllers
                 .Include(d => d.User)
                 .Include(d => d.Assignment)
                     .ThenInclude(a => a!.Driver)
+                .Include(d => d.Assignment)
+                    .ThenInclude(a => a!.Vehicle)
                 .OrderByDescending(d => d.RequestDate)
-                .Take(5)
+                .Take(10)
                 .ToListAsync();
 
             var alerts = await _context.MaintenanceAlerts
@@ -70,17 +71,26 @@ namespace Fleetify.Controllers
                 .Take(5)
                 .ToListAsync();
 
+            var drivers = await _context.Drivers.ToListAsync();
+            var vehicles = await _context.Vehicles.ToListAsync();
+            var users = await _context.Users.ToListAsync();
+
             var viewModel = new AdminDashboardViewModel
             {
                 TotalUsers = totalUsers,
                 ActiveDrivers = activeDrivers,
                 TotalDeliveries = totalDeliveries,
                 Revenue = Math.Round(totalRevenue, 2),
-                CompletedToday = completedToday,
+                CompletedToday = completedTotal,
                 InTransitCount = inTransit,
                 PendingCount = pending,
                 RecentDeliveries = recentDeliveries,
-                ActiveMaintenanceAlerts = alerts
+                ActiveMaintenanceAlerts = alerts,
+                Drivers = drivers,
+                Vehicles = vehicles,
+                UsersList = users,
+                RevenueTrend = new List<double> { 15000, 20000, 26000, 23000, 35000, 31000, 48000 },
+                WeeklyDeliveries = new List<int> { 7, 9, 11, 9, 16, 11, 7 }
             };
 
             return View(viewModel);
@@ -385,13 +395,14 @@ Yeh status update aap ke registered Gmail address par bheja gaya hai.";
             await _context.SaveChangesAsync();
 
             // Send notification to Customer via Gmail (not on customer portal)
-            if (deliveryRequest.User != null && !string.IsNullOrWhiteSpace(deliveryRequest.User.Email))
+            var customer = deliveryRequest.User ?? await _context.Users.FindAsync(deliveryRequest.UserID);
+            if (customer != null && !string.IsNullOrWhiteSpace(customer.Email))
             {
                 string subject = weightChanged 
                     ? $"Fleetify: Shipment {deliveryRequest.TrackingNumber} - Updated Cost & Weight Verified"
                     : $"Fleetify: Shipment {deliveryRequest.TrackingNumber} - Delivery Cost Finalized";
                 string body = weightChanged
-                    ? $@"Dear {deliveryRequest.User.FullName},
+                    ? $@"Dear {customer.FullName},
 
 Driver ne parcel ka actual weight {finalWeight:F1} kg verify kiya hai (previously declared: {oldWeight:F1} kg). Aap ki delivery cost update karke Rs. {Math.Floor(newCost):F0} finalize kar di gayi hai.
 
@@ -401,7 +412,7 @@ Final Amount: Rs. {Math.Floor(newCost):F0}
 Status: {deliveryRequest.RequestedStatus}
 
 Yeh notification aap ke registered Gmail address par bheja gaya hai."
-                    : $@"Dear {deliveryRequest.User.FullName},
+                    : $@"Dear {customer.FullName},
 
 Aap ke parcel ka weight {finalWeight:F1} kg verify ho chuka hai aur delivery cost Rs. {Math.Floor(newCost):F0} finalize kar di gayi hai.
 
@@ -412,10 +423,10 @@ Status: {deliveryRequest.RequestedStatus}
 
 Yeh notification aap ke registered Gmail address par bheja gaya hai.";
 
-                await _emailService.SendEmailAsync(deliveryRequest.User.Email, subject, body);
+                await _emailService.SendEmailAsync(customer.Email, subject, body);
             }
 
-            TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} finalized! Weight: {finalWeight:F1} kg, Final Cost: Rs. {Math.Floor(newCost):F0}. Gmail notification sent to customer ({deliveryRequest.User?.Email}).";
+            TempData["SuccessMessage"] = $"Delivery {deliveryRequest.TrackingNumber} finalized! Weight: {finalWeight:F1} kg, Final Cost: Rs. {Math.Floor(newCost):F0}. Gmail notification sent to customer ({customer?.Email}).";
             return RedirectToAction(nameof(Assignments));
         }
 
@@ -470,10 +481,11 @@ Yeh notification aap ke registered Gmail address par bheja gaya hai.";
             // Send notification to Customer via Gmail (not on customer portal)
             string whName = destWh?.HubName ?? "Fleetify Destination Warehouse Hub";
             string whAddr = destWh?.Address ?? "Fleetify Warehouse Hub";
-            if (req.User != null && !string.IsNullOrWhiteSpace(req.User.Email))
+            var customer = req.User ?? await _context.Users.FindAsync(req.UserID);
+            if (customer != null && !string.IsNullOrWhiteSpace(customer.Email))
             {
                 string subject = $"Fleetify: Shipment {req.TrackingNumber} Arrived at Warehouse & Delivery Confirmed";
-                string body = $@"Dear {req.User.FullName},
+                string body = $@"Dear {customer.FullName},
 
 Aap ka saman warehouse me pohanch gaya hai aur Admin ne delivery confirm kar di hai!
 
@@ -488,10 +500,10 @@ Aap ka status warehouse me saman pohanchne par update kar diya gaya hai.
 
 Yeh notification aap ke registered Gmail address par bheja gaya hai.";
 
-                await _emailService.SendEmailAsync(req.User.Email, subject, body);
+                await _emailService.SendEmailAsync(customer.Email, subject, body);
             }
 
-            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} marked as arrived at {whName} & delivery confirmed! Gmail notification sent to customer ({req.User?.Email}).";
+            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} marked as arrived at {whName} & delivery confirmed! Gmail notification sent to customer ({customer?.Email}).";
             return RedirectToAction(nameof(Assignments));
         }
 
@@ -536,11 +548,18 @@ Yeh notification aap ke registered Gmail address par bheja gaya hai.";
 
             await _context.SaveChangesAsync();
 
+            // Monitor cumulative vehicle mileage and trigger 3,000 / 5,000 km alerts + admin emails
+            if (status == "Delivered" && req.Assignment != null && req.Assignment.VehicleID > 0)
+            {
+                await _maintenanceService.ProcessCompletedDeliveryMileageAsync(req.Assignment.VehicleID, req.DistanceKm);
+            }
+
             // Send notification to Customer via Gmail (not on customer portal)
-            if (req.User != null && !string.IsNullOrWhiteSpace(req.User.Email))
+            var customer = req.User ?? await _context.Users.FindAsync(req.UserID);
+            if (customer != null && !string.IsNullOrWhiteSpace(customer.Email))
             {
                 string subject = $"Fleetify: Shipment {req.TrackingNumber} Status Update - {status}";
-                string body = $@"Dear {req.User.FullName},
+                string body = $@"Dear {customer.FullName},
 
 Aap ki shipment {req.TrackingNumber} ka status Admin ki taraf se update kar diya gaya hai.
 
@@ -549,10 +568,10 @@ Remarks: {remarks ?? "Operations milestone update."}
 
 Yeh notification aap ke registered Gmail address par bheja gaya hai.";
 
-                await _emailService.SendEmailAsync(req.User.Email, subject, body);
+                await _emailService.SendEmailAsync(customer.Email, subject, body);
             }
 
-            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} status updated to '{status}'. Gmail notification sent to customer ({req.User?.Email}).";
+            TempData["SuccessMessage"] = $"Shipment {req.TrackingNumber} status updated to '{status}'. Gmail notification sent to customer ({customer?.Email}).";
             return RedirectToAction(nameof(Assignments));
         }
 

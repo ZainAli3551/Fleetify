@@ -114,7 +114,7 @@ namespace Fleetify.Services.Implementations
                 Email = model.Email.Trim().ToLower(),
                 PasswordHash = HashPassword(model.Password),
                 PhoneNumber = model.PhoneNumber,
-                Address = model.Address ?? "123 Main Street",
+                Address = !string.IsNullOrWhiteSpace(model.Address) ? model.Address : "Pakistan",
                 Role = "Customer",
                 AccountStatus = "Active",
                 CreatedAt = DateTime.UtcNow

@@ -234,13 +234,19 @@
             });
         });
 
-        // Escalate to Human Admin
+        // Escalate to Human Admin / Contact Admin
         async function escalateToAdmin() {
             if (isEscalating) return;
             isEscalating = true;
             if (escalateBtn) {
                 escalateBtn.disabled = true;
                 escalateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" style="width: 10px; height: 10px;"></span>Connecting...';
+            }
+
+            // Capture any typed message in input box
+            const typedText = inputField ? inputField.value.trim() : '';
+            if (inputField) {
+                inputField.value = '';
             }
 
             try {
@@ -253,7 +259,11 @@
                 const res = await fetch('/api/support/escalate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ conversationId: id, reason: 'User requested human admin assistance' })
+                    body: JSON.stringify({
+                        conversationId: id,
+                        reason: typedText || 'User selected Contact Admin in support desk',
+                        userMessage: typedText || null
+                    })
                 });
 
                 if (!res.ok) throw new Error('Escalate HTTP ' + res.status);
@@ -266,7 +276,7 @@
                         appendMessage({
                             senderType: 'Bot',
                             senderName: 'Fleetify AI Support',
-                            messageText: '🚨 **Escalated!** You have connected to the Admin Support Desk. An administrator has been notified and will reply here directly.'
+                            messageText: '🚨 **Escalated to Admin!** Your inquiry has been sent to our administrator via email notification. An admin will review and reply here shortly.'
                         });
                     }
                     updateStatus(data.status || 'NeedsAdmin');
@@ -280,7 +290,7 @@
                 isEscalating = false;
                 if (escalateBtn) {
                     escalateBtn.disabled = false;
-                    escalateBtn.innerHTML = '<i class="bi bi-person-fill me-1"></i>Talk to Admin';
+                    escalateBtn.innerHTML = '<i class="bi bi-person-fill me-1"></i>Contact Admin';
                 }
             }
         }

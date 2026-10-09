@@ -11,7 +11,7 @@ namespace Fleetify.Services.Interfaces
         Task<SupportMessage> AddAdminReplyAsync(int conversationId, int adminId, string adminName, string replyMessage, bool resolve = false);
         Task<List<SupportConversation>> GetConversationsAsync(string? statusFilter = null);
         Task<SupportConversation?> GetConversationDetailsAsync(int conversationId);
-        Task<bool> EscalateToAdminAsync(int conversationId, string? reason = null);
+        Task<bool> EscalateToAdminAsync(int conversationId, string? reason = null, string? userMessage = null);
         Task<bool> ResolveTicketAsync(int conversationId);
         Task<int> GetNeedsAdminCountAsync();
     }

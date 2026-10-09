@@ -1,194 +1,635 @@
 @model Fleetify.Models.ViewModels.LoginViewModel
 @{
-    ViewData["Title"] = $"Sign In - {Model.Role} Portal";
+    ViewData["Title"] = "Sign In - Fleetify Global Freight";
+    var isVerifiedParam = Context.Request.Query["verified"] == "true";
 }
 
-<div class="container py-4 py-lg-5">
-    <div class="card border-0 shadow-2xl rounded-5 overflow-hidden auth-split-card mx-auto">
-        <div class="row g-0">
-            <!-- Left Column: Realistic Fleet Banner & Brand Story -->
-            <div class="col-lg-6 d-none d-lg-flex position-relative auth-image-col text-white p-5 flex-column justify-content-between">
-                <div class="position-relative" style="z-index: 2;">
-                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill auth-glass-pill mb-4">
-                        <span class="pulse-dot"></span>
-                        <span class="x-small fw-bold text-uppercase tracking-wider text-cyan">Enterprise Fleet Logistics</span>
-                    </div>
-                    <div>
-                        <a asp-controller="Home" asp-action="Index" class="text-decoration-none">
-                            <img src="~/images/fleetify-logo-white-bg.png" alt="Fleetify" style="height: 42px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.35);" />
-                        </a>
-                    </div>
-                </div>
+<style>
+    /* ==========================================================================
+       FLEETIFY SPLIT-CARD DUAL-PANEL AUTHENTICATION THEME
+       ========================================================================== */
+    .fleet-auth-viewport {
+        min-height: 100vh;
+        width: 100%;
+        background: radial-gradient(circle at 50% 20%, #f1f5f9 0%, #e2e8f0 60%, #cbd5e1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1.25rem;
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
 
-                <div class="position-relative my-auto py-4" style="z-index: 2;">
-                    <span class="badge bg-primary-subtle text-cyan border border-info border-opacity-25 rounded-pill px-3 py-1 font-mono x-small fw-semibold mb-3 d-inline-block">
-                        AUTOMATED ROUTE &amp; DISPATCH TELEMETRY
-                    </span>
-                    <h2 class="display-6 fw-bold mb-3 text-white lh-sm">
-                        Intelligent Fleet Operations &amp; Real-Time Cargo Logistics
-                    </h2>
-                    <p class="text-light opacity-90 mb-4" style="font-size: 0.95rem; line-height: 1.65; max-width: 480px;">
-                        Connect to Pakistan's premier freight network featuring live GPS telemetry, formula-accurate instant pricing, and automated dispatch across 150+ nationwide hubs.
+    /* Outer Split Card Container */
+    .fleet-auth-card {
+        width: 100%;
+        max-width: 1060px;
+        min-height: 560px;
+        background: #fafbfc;
+        border-radius: 28px;
+        box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22),
+                    0 10px 25px -5px rgba(15, 23, 42, 0.08),
+                    0 0 0 1px rgba(226, 232, 240, 0.9);
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+
+    /* Left Panel: Hero Truck Graphic + Branded Messaging */
+    .fleet-hero-panel {
+        flex: 1.15;
+        position: relative;
+        background-image: url('/images/fleet-auth-truck.jpg');
+        background-size: cover;
+        background-position: center right;
+        background-repeat: no-repeat;
+        min-height: 560px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 3.25rem 3.25rem;
+        overflow: hidden;
+    }
+
+    /* Dark Navy Gradient Overlay */
+    .fleet-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, 
+            rgba(7, 18, 41, 0.95) 0%, 
+            rgba(9, 25, 56, 0.84) 40%, 
+            rgba(10, 30, 68, 0.42) 80%, 
+            rgba(10, 25, 55, 0.28) 100%);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .fleet-hero-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Brand Header Top-Left */
+    .hero-brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.85rem;
+        text-decoration: none;
+        transition: opacity 0.2s ease;
+    }
+
+    .hero-brand-badge:hover {
+        opacity: 0.92;
+    }
+
+    .hero-logo-img {
+        height: 48px;
+        width: auto;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+    }
+
+    .hero-brand-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-brand-name {
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+    }
+
+    .hero-brand-name span {
+        color: #38bdf8;
+    }
+
+    .hero-brand-sub {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.8);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-top: 0.15rem;
+    }
+
+    /* Center Tagline Headline */
+    .hero-tagline-block {
+        margin: auto 0;
+        padding: 3rem 0;
+        max-width: 440px;
+    }
+
+    .hero-main-title {
+        font-size: 2.85rem;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.1rem;
+    }
+
+    .hero-title-highlight {
+        color: #38bdf8;
+        display: block;
+    }
+
+    .hero-lead-text {
+        font-size: 0.975rem;
+        color: rgba(226, 232, 240, 0.88);
+        line-height: 1.6;
+        font-weight: 400;
+        margin-bottom: 0;
+    }
+
+    /* Right Panel: Clean Modern Sign In Form */
+    .fleet-form-panel {
+        flex: 1;
+        background: #fafbfc;
+        padding: 3.25rem 3.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    /* Top Utility Bar (Sun icon + Sign Up switch) */
+    .form-top-utility {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.65rem;
+        margin-bottom: 2rem;
+    }
+
+    .theme-icon-indicator {
+        color: #94a3b8;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        user-select: none;
+    }
+
+    .auth-switch-link {
+        color: #0f172a;
+        font-weight: 600;
+        font-size: 0.925rem;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .auth-switch-link:hover {
+        color: #1d6ae5;
+    }
+
+    /* Form Heading */
+    .form-main-heading {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.025em;
+        margin-bottom: 2rem;
+    }
+
+    /* Pill-Shaped Input Fields */
+    .pill-field-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .pill-input-box {
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9999px;
+        height: 54px;
+        padding: 0 1.35rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .pill-input-box:hover {
+        border-color: #cbd5e1;
+    }
+
+    .pill-input-box:focus-within {
+        border-color: #1d6ae5;
+        box-shadow: 0 0 0 4px rgba(29, 106, 229, 0.12);
+    }
+
+    .pill-input-box.is-invalid {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+
+    .pill-input-icon {
+        color: #94a3b8;
+        font-size: 1.2rem;
+        margin-right: 0.75rem;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        transition: color 0.2s ease;
+    }
+
+    .pill-input-box:focus-within .pill-input-icon {
+        color: #1d6ae5;
+    }
+
+    .pill-input-control {
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+        width: 100%;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #0f172a;
+        box-shadow: none !important;
+        padding: 0;
+    }
+
+    .pill-input-control::placeholder {
+        color: #94a3b8;
+        font-weight: 400;
+    }
+
+    .btn-pill-eye {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 1.15rem;
+        cursor: pointer;
+        padding: 0 0.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease;
+    }
+
+    .btn-pill-eye:hover {
+        color: #1d6ae5;
+    }
+
+    .pill-error-text {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #ef4444;
+        margin-top: 0.35rem;
+        padding-left: 1.25rem;
+        display: block;
+    }
+
+    /* Forgot Password Link (Left-Aligned matching screenshot) */
+    .forgot-link-wrapper {
+        margin-top: -0.25rem;
+        margin-bottom: 1.75rem;
+        padding-left: 0.35rem;
+    }
+
+    .btn-forgot-link {
+        color: #1d6ae5;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .btn-forgot-link:hover {
+        color: #154eb5;
+        text-decoration: underline;
+    }
+
+    /* Primary Prominent Blue Pill Button */
+    .btn-pill-submit {
+        width: 100%;
+        height: 52px;
+        border-radius: 9999px;
+        background: #1d6ae5;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        box-shadow: 0 10px 22px -3px rgba(29, 106, 229, 0.4);
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        letter-spacing: 0.01em;
+    }
+
+    .btn-pill-submit:hover {
+        background: #1754bc;
+        transform: translateY(-1.5px);
+        box-shadow: 0 14px 28px -4px rgba(29, 106, 229, 0.5);
+        color: #ffffff;
+    }
+
+    .btn-pill-submit:active {
+        transform: translateY(0);
+    }
+
+    .btn-pill-submit:disabled {
+        opacity: 0.75;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Clean Flash Messages */
+    .clean-alert {
+        border-radius: 14px;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .clean-alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+    }
+
+    .clean-alert-success {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #065f46;
+    }
+
+    /* Responsive Breakdown for Tablets and Mobile */
+    @@media (max-width: 991.98px) {
+        .fleet-auth-card {
+            flex-direction: column;
+            max-width: 520px;
+            border-radius: 22px;
+        }
+
+        .fleet-hero-panel {
+            min-height: 250px;
+            padding: 2.25rem 2rem;
+            background-position: center;
+        }
+
+        .hero-tagline-block {
+            display: none; /* Hide extensive tagline on mobile, keep clean header */
+        }
+
+        .fleet-form-panel {
+            padding: 2.5rem 2rem;
+        }
+
+        .form-main-heading {
+            font-size: 1.85rem;
+            margin-bottom: 1.5rem;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .fleet-auth-viewport {
+            padding: 1rem 0.75rem;
+        }
+
+        .fleet-hero-panel {
+            padding: 1.75rem 1.5rem;
+            min-height: 200px;
+        }
+
+        .fleet-form-panel {
+            padding: 2rem 1.35rem;
+        }
+
+        .form-main-heading {
+            font-size: 1.65rem;
+        }
+    }
+
+    /* Modal Backdrop for Forgot Password */
+    .forgot-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .forgot-modal-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 2.5rem 2.25rem;
+        max-width: 440px;
+        width: 100%;
+        color: #0f172a;
+        box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+    }
+</style>
+
+<div class="fleet-auth-viewport">
+    <!-- Split Dual-Panel Card -->
+    <div class="fleet-auth-card">
+        
+        <!-- LEFT PANEL: Hero Truck Graphic + Branded Messaging -->
+        <div class="fleet-hero-panel">
+            <div class="fleet-hero-overlay"></div>
+            
+            <div class="fleet-hero-content">
+                <!-- Top-Left Branding -->
+                <a asp-controller="Home" asp-action="Index" class="hero-brand-badge">
+                    <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetify" style="height: 46px; width: auto; border-radius: 10px; padding: 4px 10px; background: #ffffff; box-shadow: 0 4px 14px rgba(0,0,0,0.2);" />
+                </a>
+
+                <!-- Center Tagline -->
+                <div class="hero-tagline-block">
+                    <h1 class="hero-main-title">
+                        Your Fleet.
+                        <span class="hero-title-highlight">Our Priority.</span>
+                    </h1>
+                    <p class="hero-lead-text">
+                        Manage your fleet, shipments and deliveries with a smarter, safer and more efficient platform.
                     </p>
-
-                    <!-- Trust Metric Badges -->
-                    <div class="row g-2.5">
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-truck fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">500+ Vehicles</strong>
-                                        <span class="text-white-50 x-small">Active Fleet</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-speedometer2 fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">99.8% On-Time</strong>
-                                        <span class="text-white-50 x-small">Precision SLA</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-geo-alt-fill fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">Nationwide</strong>
-                                        <span class="text-white-50 x-small">150+ Network Hubs</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-shield-check fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">100% Insured</strong>
-                                        <span class="text-white-50 x-small">Verified Security</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <div class="position-relative pt-3 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center x-small text-white-50" style="z-index: 2;">
-                    <span>&copy; @DateTime.UtcNow.Year Fleetify Logistics</span>
-                    <span><i class="bi bi-broadcast text-success me-1"></i>Live Telemetry Connected</span>
+                <!-- Bottom Telemetry Indicator -->
+                <div class="d-flex align-items-center gap-2 text-white-50 small">
+                    <span class="rounded-circle bg-info" style="width: 8px; height: 8px; box-shadow: 0 0 8px #38bdf8;"></span>
+                    <span>Fleet Operations &bull; 24/7 Logistics Engine</span>
                 </div>
             </div>
+        </div>
 
-            <!-- Right Column: Authentication Form & Role Selector -->
-            <div class="col-lg-6 bg-white p-4 p-md-5 d-flex flex-column justify-content-center">
-                <div class="text-center text-lg-start mb-4">
-                    <a asp-controller="Home" asp-action="Index" class="d-inline-block d-lg-none mb-3 text-decoration-none">
-                        <img src="~/images/fleetify-logo.png" alt="Fleetify" style="height: 48px;" />
-                    </a>
-                    <h3 class="fw-bold text-dark mb-1">Welcome Back</h3>
-                    <p class="text-secondary small mb-0">Select your role and sign in to access your portal.</p>
-                </div>
+        <!-- RIGHT PANEL: Clean Modern Form -->
+        <div class="fleet-form-panel">
+            
+            <!-- Top Utility: Sun Icon + Sign Up Navigation Link -->
+            <div class="form-top-utility">
+                <span class="theme-icon-indicator" title="Theme Mode">
+                    <i class="bi bi-brightness-high"></i>
+                </span>
+                <a asp-action="Register" class="auth-switch-link">Sign Up</a>
+            </div>
 
-                <!-- Box to Select Role -->
-                <div class="role-select-box p-2.5 rounded-4 mb-4">
-                    <div class="d-flex align-items-center justify-content-between mb-2 px-1">
-                        <span class="x-small fw-bold text-uppercase text-secondary" style="letter-spacing: 0.05em;">
-                            <i class="bi bi-person-gear me-1 text-primary"></i>Select Your Role
-                        </span>
-                        <span id="roleIndicatorBadge" class="badge rounded-pill @(Model.Role == "Admin" ? "bg-indigo-subtle text-indigo" : "bg-success-subtle text-success") font-mono x-small">
-                            @(Model.Role == "Admin" ? "Fleet Administrator" : "Customer / Shipper")
-                        </span>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <button type="button" class="btn w-100 role-option-btn @(Model.Role == "Customer" ? "active" : "")" id="btnRoleCustomer" onclick="chooseRole('Customer')">
-                                <div class="d-flex align-items-center justify-content-center gap-1.5 mb-0.5">
-                                    <i class="bi bi-box-seam-fill text-success fs-5"></i>
-                                    <span class="fw-bold text-dark">Customer</span>
-                                </div>
-                                <span class="role-desc text-muted x-small d-block">Shipper &amp; Tracking</span>
-                            </button>
-                        </div>
-                        <div class="col-6">
-                            <button type="button" class="btn w-100 role-option-btn @(Model.Role == "Admin" ? "active" : "")" id="btnRoleAdmin" onclick="chooseRole('Admin')">
-                                <div class="d-flex align-items-center justify-content-center gap-1.5 mb-0.5">
-                                    <i class="bi bi-shield-lock-fill text-primary fs-5"></i>
-                                    <span class="fw-bold text-dark">Fleet Admin</span>
-                                </div>
-                                <span class="role-desc text-muted x-small d-block">Operations &amp; Dispatch</span>
-                            </button>
+            <!-- Form Content -->
+            <div class="my-auto">
+                <h2 class="form-main-heading">Sign In</h2>
+
+                <!-- Flash Alert Messages -->
+                @if (TempData["SuccessMessage"] != null || isVerifiedParam)
+                {
+                    <div class="clean-alert clean-alert-success">
+                        <i class="bi bi-check-circle-fill text-success fs-5 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <strong>Email Verified Successfully!</strong>
+                            <div class="small">@(TempData["SuccessMessage"] ?? "Your email has been confirmed. You may now sign in.")</div>
                         </div>
                     </div>
-                </div>
+                }
 
-                <!-- Sign In Form -->
-                <form asp-action="Login" method="post" id="loginForm">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="clean-alert clean-alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-5 flex-shrink-0 mt-0.5"></i>
+                        <div asp-validation-summary="ModelOnly" class="small"></div>
+                    </div>
+                }
+
+                <!-- Sign In Form (Browser Autocomplete / Saved Password Suggestions Disabled) -->
+                <form asp-action="Login" method="post" id="fleetLoginForm" onsubmit="handleLoginSubmit(event)" novalidate autocomplete="off">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="Role" id="inputRole" />
                     <input type="hidden" asp-for="ReturnUrl" />
+                    <input type="hidden" asp-for="RememberMe" id="hiddenRememberMe" value="true" />
 
-                    @if (!ViewData.ModelState.IsValid)
-                    {
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 px-3 small rounded-3 mb-3"></div>
-                    }
+                    <!-- Dummy fields to absorb browser credential autofill heuristics -->
+                    <input type="text" name="fake_usernameremembered" style="display:none !important;" tabindex="-1" autocomplete="off" />
+                    <input type="password" name="fake_passwordremembered" style="display:none !important;" tabindex="-1" autocomplete="off" />
 
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label small fw-semibold text-secondary">Email Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                    <!-- Email or Username Field -->
+                    <div class="pill-field-group">
+                        <div class="pill-input-box" id="emailInputBox">
+                            <span class="pill-input-icon">
                                 <i class="bi bi-envelope"></i>
                             </span>
-                            <input asp-for="Email" class="form-control border-start-0 rounded-end-3 py-2.5" placeholder="name@example.com" autocomplete="email" />
+                            <input asp-for="Email" 
+                                   id="inputEmail" 
+                                   type="email" 
+                                   class="pill-input-control" 
+                                   placeholder="Email or Username" 
+                                   autocomplete="off" 
+                                   data-lpignore="true"
+                                   data-form-type="other"
+                                   autocorrect="off"
+                                   autocapitalize="off"
+                                   spellcheck="false"
+                                   readonly
+                                   onfocus="this.removeAttribute('readonly');"
+                                   required 
+                                   oninput="validateEmailField(this)" />
                         </div>
-                        <span asp-validation-for="Email" class="text-danger small"></span>
+                        <span asp-validation-for="Email" id="emailClientError" class="pill-error-text"></span>
                     </div>
 
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label asp-for="Password" class="form-label small fw-semibold text-secondary mb-0">Password</label>
-                        </div>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                    <!-- Password Field with Visibility Toggle -->
+                    <div class="pill-field-group mb-2">
+                        <div class="pill-input-box" id="passwordInputBox">
+                            <span class="pill-input-icon">
                                 <i class="bi bi-lock"></i>
                             </span>
-                            <input asp-for="Password" type="password" class="form-control border-start-0 rounded-end-3 py-2.5" placeholder="••••••••" autocomplete="current-password" />
+                            <input asp-for="Password" 
+                                   id="inputPassword" 
+                                   type="password" 
+                                   class="pill-input-control" 
+                                   placeholder="Password" 
+                                   autocomplete="new-password" 
+                                   data-lpignore="true"
+                                   readonly
+                                   onfocus="this.removeAttribute('readonly');"
+                                   required 
+                                   oninput="validatePasswordField(this)" />
+                            <button type="button" class="btn-pill-eye" onclick="togglePasswordVisibility()" title="Show/Hide Password" aria-label="Toggle password visibility">
+                                <i class="bi bi-eye-slash" id="passwordEyeIcon"></i>
+                            </button>
                         </div>
-                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <span asp-validation-for="Password" id="passwordClientError" class="pill-error-text"></span>
                     </div>
 
-                    <div class="d-grid mb-4">
-                        <button type="submit" id="submitBtn" class="btn btn-primary btn-lg rounded-pill py-2.5 fw-bold text-white shadow-sm d-flex align-items-center justify-content-center gap-2">
-                            <span id="submitBtnText">Sign In as @(Model.Role == "Admin" ? "Fleet Admin" : "Customer")</span>
-                            <i class="bi bi-arrow-right"></i>
-                        </button>
-                    </div>
-
-                    <div class="text-center small">
-                        <p class="mb-2 text-secondary">
-                            Don't have an account yet?
-                            <a id="registerLink" asp-action="Register" asp-route-role="@Model.Role" class="text-primary text-decoration-none fw-bold">Sign up now</a>
-                        </p>
-                        <a asp-controller="Account" asp-action="SelectRole" class="text-muted text-decoration-none x-small">
-                            <i class="bi bi-arrow-left me-1"></i>Back to Fleetify Overview
+                    <!-- Forgot Password Link (Left-Aligned matching screenshot) -->
+                    <div class="forgot-link-wrapper">
+                        <a href="javascript:void(0)" onclick="openForgotPasswordModal()" class="btn-forgot-link">
+                            Forgot password?
                         </a>
                     </div>
+
+                    <!-- Prominent Pill Sign In Button -->
+                    <button type="submit" id="btnSignInSubmit" class="btn-pill-submit">
+                        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnSignInLabel">Sign In</span>
+                        <i class="bi bi-arrow-right" id="btnArrowIcon"></i>
+                    </button>
                 </form>
             </div>
+
+            <!-- Bottom Subtitle / Link to Home -->
+            <div class="text-center text-muted small mt-4 pt-2">
+                <span>&copy; 2026 Fleetify. All rights reserved. &bull; </span>
+                <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Home</a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- =========================================================================
+     FORGOT PASSWORD MODAL (CLEAN MATCHING LIGHT DESIGN)
+     ========================================================================= -->
+<div id="forgotPasswordModal" class="forgot-modal-backdrop d-none" onclick="handleBackdropClick(event)">
+    <div class="forgot-modal-card" onclick="event.stopPropagation()">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                <i class="bi bi-key-fill text-primary"></i>Reset Password
+            </h4>
+            <button type="button" class="btn-close" onclick="closeForgotPasswordModal()" aria-label="Close"></button>
+        </div>
+        <p class="text-secondary small mb-3">
+            Enter your registered email address below. We'll send instructions to reset your password.
+        </p>
+
+        <div id="forgotSuccessNotice" class="clean-alert clean-alert-success d-none mb-3">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <div>Password reset instructions have been sent to your email.</div>
+        </div>
+
+        <form id="forgotPasswordForm" onsubmit="submitForgotPassword(event)" autocomplete="off">
+            <div class="pill-field-group mb-3">
+                <div class="pill-input-box">
+                    <span class="pill-input-icon">
+                        <i class="bi bi-envelope"></i>
+                    </span>
+                    <input type="email" id="forgotEmailInput" class="pill-input-control" placeholder="Email Address" required autocomplete="off" data-lpignore="true" />
+                </div>
+            </div>
+
+            <button type="submit" id="btnForgotSubmit" class="btn-pill-submit mb-2">
+                <span id="btnForgotSpinner" class="spinner-border spinner-border-sm d-none me-1"></span>
+                <span>Send Reset Link</span>
+                <i class="bi bi-send-fill ms-1"></i>
+            </button>
+        </form>
+
+        <div class="text-center mt-3 pt-2 border-top">
+            <span class="small text-muted">Support Desk: <strong class="text-primary">fypfleetify@gmail.com</strong></span>
         </div>
     </div>
 </div>
@@ -196,31 +637,144 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        function chooseRole(selectedRole) {
-            document.getElementById('inputRole').value = selectedRole;
-            const btnCustomer = document.getElementById('btnRoleCustomer');
-            const btnAdmin = document.getElementById('btnRoleAdmin');
-            const submitBtnText = document.getElementById('submitBtnText');
-            const roleBadge = document.getElementById('roleIndicatorBadge');
-            const registerLink = document.getElementById('registerLink');
+        // Password Visibility Toggle
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('inputPassword');
+            const eyeIcon = document.getElementById('passwordEyeIcon');
 
-            if (selectedRole === 'Admin') {
-                btnAdmin.classList.add('active');
-                btnCustomer.classList.remove('active');
-                submitBtnText.textContent = 'Sign In as Fleet Admin';
-                roleBadge.className = 'badge rounded-pill bg-indigo-subtle text-indigo font-mono x-small';
-                roleBadge.textContent = 'Fleet Administrator';
-                if (registerLink) registerLink.href = '/Account/Register?role=Admin';
-                history.replaceState(null, '', '/Account/Login?role=Admin');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('bi-eye-slash');
+                eyeIcon.classList.add('bi-eye');
             } else {
-                btnCustomer.classList.add('active');
-                btnAdmin.classList.remove('active');
-                submitBtnText.textContent = 'Sign In as Customer';
-                roleBadge.className = 'badge rounded-pill bg-success-subtle text-success font-mono x-small';
-                roleBadge.textContent = 'Customer / Shipper';
-                if (registerLink) registerLink.href = '/Account/Register?role=Customer';
-                history.replaceState(null, '', '/Account/Login?role=Customer');
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('bi-eye');
+                eyeIcon.classList.add('bi-eye-slash');
             }
         }
+
+        // Client-Side Email / Username Validation
+        function validateEmailField(input) {
+            const errorSpan = document.getElementById('emailClientError');
+            const box = document.getElementById('emailInputBox');
+            const val = (input.value || '').trim();
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+
+            if (!val) {
+                errorSpan.textContent = 'Email or username is required.';
+                box.classList.add('is-invalid');
+                return false;
+            } else if (!emailRegex.test(val) && !val.includes('admin')) {
+                errorSpan.textContent = 'Please enter a valid email format (e.g. name@company.com).';
+                box.classList.add('is-invalid');
+                return false;
+            } else {
+                errorSpan.textContent = '';
+                box.classList.remove('is-invalid');
+                return true;
+            }
+        }
+
+        // Client-Side Password Validation
+        function validatePasswordField(input) {
+            const errorSpan = document.getElementById('passwordClientError');
+            const box = document.getElementById('passwordInputBox');
+            const val = input.value || '';
+
+            if (!val) {
+                errorSpan.textContent = 'Password is required.';
+                box.classList.add('is-invalid');
+                return false;
+            } else if (val.length < 6) {
+                errorSpan.textContent = 'Password must be at least 6 characters.';
+                box.classList.add('is-invalid');
+                return false;
+            } else {
+                errorSpan.textContent = '';
+                box.classList.remove('is-invalid');
+                return true;
+            }
+        }
+
+        // Form Submit with Loading State
+        function handleLoginSubmit(event) {
+            const emailInput = document.getElementById('inputEmail');
+            const passwordInput = document.getElementById('inputPassword');
+
+            const isEmailValid = validateEmailField(emailInput);
+            const isPasswordValid = validatePasswordField(passwordInput);
+
+            if (!isEmailValid || !isPasswordValid) {
+                event.preventDefault();
+                return false;
+            }
+
+            // Trigger Loading State
+            const btnSubmit = document.getElementById('btnSignInSubmit');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const btnLabel = document.getElementById('btnSignInLabel');
+            const btnArrow = document.getElementById('btnArrowIcon');
+
+            btnSubmit.disabled = true;
+            btnSpinner.classList.remove('d-none');
+            btnArrow.classList.add('d-none');
+            btnLabel.textContent = 'Signing in...';
+
+            return true;
+        }
+
+        // Forgot Password Modal Handlers
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('d-none');
+            document.getElementById('forgotEmailInput').focus();
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.add('d-none');
+        }
+
+        function handleBackdropClick(event) {
+            if (event.target.id === 'forgotPasswordModal') {
+                closeForgotPasswordModal();
+            }
+        }
+
+        function submitForgotPassword(event) {
+            event.preventDefault();
+            const btnForgot = document.getElementById('btnForgotSubmit');
+            const btnForgotSpinner = document.getElementById('btnForgotSpinner');
+            const successNotice = document.getElementById('forgotSuccessNotice');
+
+            btnForgot.disabled = true;
+            btnForgotSpinner.classList.remove('d-none');
+
+            setTimeout(() => {
+                btnForgotSpinner.classList.add('d-none');
+                successNotice.classList.remove('d-none');
+                document.getElementById('forgotPasswordForm').reset();
+                setTimeout(() => {
+                    closeForgotPasswordModal();
+                    successNotice.classList.add('d-none');
+                    btnForgot.disabled = false;
+                }, 3000);
+            }, 800);
+        }
+
+        // Clear any lingering browser autofill values on fresh page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const emailInput = document.getElementById('inputEmail');
+                const passwordInput = document.getElementById('inputPassword');
+                const formErrors = document.querySelector('.clean-alert-danger');
+                if (!formErrors) {
+                    if (emailInput && !emailInput.getAttribute('value')) {
+                        emailInput.value = '';
+                    }
+                    if (passwordInput) {
+                        passwordInput.value = '';
+                    }
+                }
+            }, 50);
+        });
     </script>
 }

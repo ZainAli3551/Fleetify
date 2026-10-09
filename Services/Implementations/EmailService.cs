@@ -40,33 +40,46 @@ namespace Fleetify.Services.Implementations
             // 1. Attempt real Gmail SMTP dispatch if password/app-password is configured
             if (!string.IsNullOrWhiteSpace(password))
             {
-                try
-                {
-                    using var client = new SmtpClient(smtpServer, smtpPort)
-                    {
-                        Credentials = new NetworkCredential(senderEmail, password),
-                        EnableSsl = enableSsl,
-                        DeliveryMethod = SmtpDeliveryMethod.Network,
-                        Timeout = 10000
-                    };
+                var cleanPassword = password.Trim();
+                var hostsToTry = new[] { smtpServer, "smtp.googlemail.com" };
 
-                    using var mailMessage = new MailMessage
-                    {
-                        From = new MailAddress(senderEmail, senderName),
-                        Subject = subject,
-                        Body = formattedBody,
-                        IsBodyHtml = isHtml
-                    };
-                    mailMessage.To.Add(toEmail);
-
-                    await client.SendMailAsync(mailMessage);
-                    _logger.LogInformation("Real Gmail SMTP notification successfully sent to {ToEmail}. Subject: {Subject}", toEmail, subject);
-                    LogToAuditFile(toEmail, subject, body, "SMTP_SENT");
-                    return true;
-                }
-                catch (Exception ex)
+                foreach (var host in hostsToTry)
                 {
-                    _logger.LogWarning(ex, "Could not send via SMTP to {ToEmail}. Falling back to local dispatch log.", toEmail);
+                    for (int attempt = 1; attempt <= 2; attempt++)
+                    {
+                        try
+                        {
+                            using var client = new SmtpClient(host, smtpPort)
+                            {
+                                Credentials = new NetworkCredential(senderEmail, cleanPassword),
+                                EnableSsl = enableSsl,
+                                DeliveryMethod = SmtpDeliveryMethod.Network,
+                                Timeout = 15000
+                            };
+
+                            using var mailMessage = new MailMessage
+                            {
+                                From = new MailAddress(senderEmail, senderName),
+                                Subject = subject,
+                                Body = formattedBody,
+                                IsBodyHtml = isHtml
+                            };
+                            mailMessage.To.Add(toEmail);
+
+                            await client.SendMailAsync(mailMessage);
+                            _logger.LogInformation("Real Gmail SMTP notification successfully sent to {ToEmail} via {Host}. Subject: {Subject}", toEmail, host, subject);
+                            LogToAuditFile(toEmail, subject, body, "SMTP_SENT");
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "SMTP attempt {Attempt} on {Host} failed for {ToEmail}: {Error}", attempt, host, ex.Message);
+                            if (attempt < 2)
+                            {
+                                await Task.Delay(1000);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -78,7 +91,7 @@ namespace Fleetify.Services.Implementations
             _logger.LogInformation("===================================================================");
 
             LogToAuditFile(toEmail, subject, body, "DISPATCHED_LOG");
-            return true;
+            return false;
         }
 
         private void LogToAuditFile(string toEmail, string subject, string body, string status)

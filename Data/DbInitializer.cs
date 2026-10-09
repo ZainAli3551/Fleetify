@@ -122,42 +122,7 @@ namespace Fleetify.Data
                     UPDATE DeliveryRequests SET VehicleType = 'Pickup' WHERE VehicleType = 'Car';
                 ");
 
-                // Seed initial backup drivers if none exist
-                var hasBackupDrivers = await context.Drivers.AnyAsync(d => d.DriverType == "Backup");
-                if (!hasBackupDrivers)
-                {
-                    context.Drivers.AddRange(
-                        new Models.Entities.Driver
-                        {
-                            FullName = "Babar Azam (Backup Partner)",
-                            Email = "babar.backup@fleetify.com",
-                            PasswordHash = authService.HashPassword("Password@123"),
-                            PhoneNumber = "+923017778899",
-                            LicenseNumber = "PK-LHR-88219",
-                            Role = "Driver",
-                            AvailabilityStatus = "Available",
-                            DriverType = "Backup",
-                            VehicleOwned = "Suzuki Ravi Pickup (LES-4912)",
-                            BackupContactNotes = "On-call freelance partner. Available evenings, weekends, Lahore & Kasur dedicated routes."
-                        },
-                        new Models.Entities.Driver
-                        {
-                            FullName = "Kamran Akmal (Backup Partner)",
-                            Email = "kamran.backup@fleetify.com",
-                            PasswordHash = authService.HashPassword("Password@123"),
-                            PhoneNumber = "+923218889900",
-                            LicenseNumber = "PK-KHI-44102",
-                            Role = "Driver",
-                            AvailabilityStatus = "Available",
-                            DriverType = "Backup",
-                            VehicleOwned = "Hyundai Shehzore Van (KHI-7123)",
-                            BackupContactNotes = "On-call 1.5 ton vehicle owner. Available for Karachi, Hub, and interior Sindh dispatches."
-                        }
-                    );
-                    await context.SaveChangesAsync();
-                }
-
-                // Ensure default Admin exists
+                // Ensure default Admin exists for administrative access
                 var adminUser = await context.Admins.FirstOrDefaultAsync(a => a.Email == "admin@fleetify.com");
                 if (adminUser == null)
                 {
@@ -173,20 +138,39 @@ namespace Fleetify.Data
                     await context.SaveChangesAsync();
                 }
 
-                // Ensure default Customer exists
-                var custUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "customer@fleetify.com");
-                if (custUser == null)
+                // Ensure default System Driver exists
+                var defaultDriver = await context.Drivers.FirstOrDefaultAsync(d => d.Email == "driver@fleetify.com");
+                if (defaultDriver == null)
                 {
-                    context.Users.Add(new Models.Entities.User
+                    context.Drivers.Add(new Models.Entities.Driver
                     {
-                        FullName = "Demo Customer",
-                        Email = "customer@fleetify.com",
-                        PasswordHash = authService.HashPassword("customer123"),
+                        FullName = "Fleet System Driver",
+                        Email = "driver@fleetify.com",
+                        PasswordHash = authService.HashPassword("driver123"),
                         PhoneNumber = "+923007654321",
-                        Role = "Customer",
-                        Address = "Main Boulevard, Gulberg III, Lahore",
-                        AccountStatus = "Active",
+                        Role = "Driver",
+                        LicenseNumber = "LIC-FLT-2026",
+                        AvailabilityStatus = "Available",
+                        DriverType = "Company",
                         CreatedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync();
+                }
+
+                // Ensure default Vehicle exists
+                var defaultVehicle = await context.Vehicles.FirstOrDefaultAsync(v => v.VehicleNumber == "GAM-3551");
+                if (defaultVehicle == null)
+                {
+                    context.Vehicles.Add(new Models.Entities.Vehicle
+                    {
+                        VehicleNumber = "GAM-3551",
+                        VehicleType = "Truck",
+                        Model = "Toyota Hiace 2024",
+                        CapacityKg = 1500,
+                        AvailabilityStatus = "Available",
+                        ConditionStatus = "Good",
+                        CurrentMileage = 3500,
+                        LastServiceMileage = 3000
                     });
                     await context.SaveChangesAsync();
                 }

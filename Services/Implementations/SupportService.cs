@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Fleetify.Data;
 using Fleetify.Models.Common;
 using Fleetify.Models.Entities;
@@ -17,17 +18,23 @@ namespace Fleetify.Services.Implementations
         private readonly INotificationService _notificationService;
         private readonly IGeminiService _geminiService;
         private readonly IMapRoutingService _mapRoutingService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
 
         public SupportService(
             FleetifyDbContext context,
             INotificationService notificationService,
             IGeminiService geminiService,
-            IMapRoutingService mapRoutingService)
+            IMapRoutingService mapRoutingService,
+            IEmailService emailService,
+            IConfiguration config)
         {
             _context = context;
             _notificationService = notificationService;
             _geminiService = geminiService;
             _mapRoutingService = mapRoutingService;
+            _emailService = emailService;
+            _config = config;
         }
 
         public async Task<SupportConversation> GetOrCreateConversationAsync(string sessionToken, string? email = null, string? name = null, int? userId = null)
@@ -59,8 +66,18 @@ namespace Fleetify.Services.Implementations
                     SentAt = DateTime.UtcNow
                 });
 
-                _context.SupportConversations.Add(conversation);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    _context.SupportConversations.Add(conversation);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+                {
+                    _context.Entry(conversation).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+                    conversation = await _context.SupportConversations
+                        .Include(c => c.Messages)
+                        .FirstOrDefaultAsync(c => c.SessionToken == sessionToken) ?? conversation;
+                }
             }
             else
             {
@@ -431,13 +448,28 @@ namespace Fleetify.Services.Implementations
                 .FirstOrDefaultAsync(c => c.ConversationID == conversationId);
         }
 
-        public async Task<bool> EscalateToAdminAsync(int conversationId, string? reason = null)
+        public async Task<bool> EscalateToAdminAsync(int conversationId, string? reason = null, string? userMessage = null)
         {
-            var conversation = await _context.SupportConversations.FindAsync(conversationId);
+            var conversation = await _context.SupportConversations
+                .Include(c => c.Messages)
+                .FirstOrDefaultAsync(c => c.ConversationID == conversationId);
+
             if (conversation == null) return false;
 
             conversation.Status = "NeedsAdmin";
             conversation.UpdatedAt = DateTime.UtcNow;
+
+            // Extract the user's message
+            string userMsgText = !string.IsNullOrWhiteSpace(userMessage)
+                ? userMessage.Trim()
+                : (!string.IsNullOrWhiteSpace(reason) &&
+                   !reason.StartsWith("Inquiry flagged", StringComparison.OrdinalIgnoreCase) &&
+                   !reason.StartsWith("User requested human", StringComparison.OrdinalIgnoreCase) &&
+                   !reason.StartsWith("User requested admin", StringComparison.OrdinalIgnoreCase)
+                    ? reason.Trim()
+                    : conversation.Messages.Where(m => m.SenderType == "User").OrderByDescending(m => m.SentAt).Select(m => m.MessageText).FirstOrDefault()
+                      ?? "User selected 'Contact Admin' option in the support desk.");
+
             if (!string.IsNullOrWhiteSpace(reason))
             {
                 conversation.Subject = $"Escalated: {Truncate(reason, 40)}";
@@ -448,7 +480,7 @@ namespace Fleetify.Services.Implementations
                 ConversationID = conversationId,
                 SenderType = "Bot",
                 SenderName = "Fleetify AI Support",
-                MessageText = "🚨 **Ticket Escalated!** You have requested human intervention. A Fleetify Administrator has been assigned and will reply here shortly.",
+                MessageText = "🚨 **Ticket Escalated to Admin!** Your inquiry has been forwarded to our fleet operations administrator via email notification. An administrator will review your message and assist you shortly.",
                 SentAt = DateTime.UtcNow
             };
             _context.SupportMessages.Add(botMsg);
@@ -460,8 +492,8 @@ namespace Fleetify.Services.Implementations
                 {
                     RecipientType = "Admin",
                     RecipientID = adminUserId,
-                    Title = "Support Ticket Escalated",
-                    Message = $"Customer {conversation.UserName} requested admin help.",
+                    Title = "Support: Contact Admin Request",
+                    Message = $"Customer {conversation.UserName} sent: '{Truncate(userMsgText, 60)}'",
                     SentAt = DateTime.UtcNow,
                     ReadStatus = "Unread",
                     RelatedEntityId = conversation.ConversationID
@@ -469,6 +501,75 @@ namespace Fleetify.Services.Implementations
             }
 
             await _context.SaveChangesAsync();
+
+            // Automatically send email notification to admin containing the user's message
+            try
+            {
+                var adminEmails = await _context.Admins
+                    .Where(a => !string.IsNullOrWhiteSpace(a.Email))
+                    .Select(a => a.Email.Trim())
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!adminEmails.Any())
+                {
+                    adminEmails.Add("admin@fleetify.com");
+                }
+
+                var senderEmail = _config["EmailSettings:SenderEmail"] ?? "fypfleetify@gmail.com";
+                if (!string.IsNullOrWhiteSpace(senderEmail) && !adminEmails.Contains(senderEmail, StringComparer.OrdinalIgnoreCase))
+                {
+                    adminEmails.Add(senderEmail);
+                }
+
+                string emailSubject = $"[Fleetify Support] Contact Admin: Message from {conversation.UserName} (Ticket #{conversation.ConversationID})";
+
+                var recentHistory = conversation.Messages
+                    .OrderByDescending(m => m.SentAt)
+                    .Take(5)
+                    .OrderBy(m => m.SentAt)
+                    .Select(m => $"• [{m.SenderName} - {m.SentAt:hh:mm tt}]: {m.MessageText}")
+                    .ToList();
+
+                string historyBlock = recentHistory.Any() ? string.Join("\n", recentHistory) : "No previous message history recorded.";
+
+                string emailBody = $@"A user has selected the 'Contact Admin' option in the Fleetify Support Desk.
+
+TICKET DETAILS:
+• Ticket ID: #{conversation.ConversationID}
+• Customer Name: {conversation.UserName}
+• Customer Email: {conversation.UserEmail}
+• Date & Time: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC
+
+USER'S MESSAGE:
+------------------------------------------------------------
+""{userMsgText}""
+------------------------------------------------------------
+
+RECENT SUPPORT CONTEXT:
+{historyBlock}
+
+ACTION REQUIRED:
+Please log in to the Fleetify Admin Portal to reply to this customer ticket:
+http://localhost:5000/Admin/Support?conversationId={conversation.ConversationID}";
+
+                foreach (var email in adminEmails)
+                {
+                    try
+                    {
+                        await _emailService.SendEmailAsync(email, emailSubject, emailBody);
+                    }
+                    catch
+                    {
+                        // Logging handled by EmailService
+                    }
+                }
+            }
+            catch
+            {
+                // Ensure email dispatch failures do not block the support session
+            }
+
             return true;
         }
 

@@ -82,7 +82,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// 4. Add MVC Controllers and Views
+// 4. Memory Cache & Session Support (For OTP & Email Verification)
+builder.Services.AddMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// 5. Add MVC Controllers and Views
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
@@ -121,6 +130,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

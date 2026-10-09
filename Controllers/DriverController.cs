@@ -17,11 +17,16 @@ namespace Fleetify.Controllers
     {
         private readonly FleetifyDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IMaintenancePredictionService _maintenanceService;
 
-        public DriverController(FleetifyDbContext context, INotificationService notificationService)
+        public DriverController(
+            FleetifyDbContext context,
+            INotificationService notificationService,
+            IMaintenancePredictionService maintenanceService)
         {
             _context = context;
             _notificationService = notificationService;
+            _maintenanceService = maintenanceService;
         }
 
         // GET: /Driver (Figure 22: Driver Portal)
@@ -192,7 +197,6 @@ namespace Fleetify.Controllers
                     if (assignment.Vehicle != null)
                     {
                         assignment.Vehicle.AvailabilityStatus = "Available";
-                        assignment.Vehicle.CurrentMileage += assignment.DeliveryRequest?.DistanceKm ?? 10;
                     }
                 }
                 else
@@ -205,6 +209,15 @@ namespace Fleetify.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Process vehicle mileage monitoring and 3,000 / 5,000 km maintenance milestones
+                if (status == "Delivered" && assignment.VehicleID > 0)
+                {
+                    await _maintenanceService.ProcessCompletedDeliveryMileageAsync(
+                        assignment.VehicleID,
+                        assignment.DeliveryRequest?.DistanceKm ?? 10
+                    );
+                }
 
                 if (assignment.DeliveryRequest != null)
                 {

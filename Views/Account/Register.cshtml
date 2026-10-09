@@ -1,270 +1,894 @@
 @model Fleetify.Models.ViewModels.RegisterViewModel
 @{
-    ViewData["Title"] = $"Create Account - {Model.Role} Portal";
+    ViewData["Title"] = "Sign Up - Fleetify Global Freight";
+    var activeRole = Model.Role == "Admin" ? "Admin" : "Customer";
 }
 
-<div class="container py-4 py-lg-5">
-    <div class="card border-0 shadow-2xl rounded-5 overflow-hidden auth-split-card mx-auto">
-        <div class="row g-0">
-            <!-- Left Column: Realistic Fleet Banner & Brand Story -->
-            <div class="col-lg-6 d-none d-lg-flex position-relative auth-image-col text-white p-5 flex-column justify-content-between">
-                <div class="position-relative" style="z-index: 2;">
-                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill auth-glass-pill mb-4">
-                        <span class="pulse-dot"></span>
-                        <span class="x-small fw-bold text-uppercase tracking-wider text-cyan">Enterprise Fleet Logistics</span>
-                    </div>
-                    <div>
-                        <a asp-controller="Home" asp-action="Index" class="text-decoration-none">
-                            <img src="~/images/fleetify-logo-white-bg.png" alt="Fleetify" style="height: 42px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.35);" />
-                        </a>
-                    </div>
-                </div>
+<style>
+    /* ==========================================================================
+       FLEETIFY SPLIT-CARD DUAL-PANEL SIGNUP THEME
+       ========================================================================== */
+    .fleet-auth-viewport {
+        min-height: 100vh;
+        width: 100%;
+        background: radial-gradient(circle at 50% 20%, #f1f5f9 0%, #e2e8f0 60%, #cbd5e1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1.25rem;
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
 
-                <div class="position-relative my-auto py-4" style="z-index: 2;">
-                    <span class="badge bg-primary-subtle text-cyan border border-info border-opacity-25 rounded-pill px-3 py-1 font-mono x-small fw-semibold mb-3 d-inline-block">
-                        INSTANT FLEET ONBOARDING
-                    </span>
-                    <h2 class="display-6 fw-bold mb-3 text-white lh-sm">
-                        Join Pakistan's Most Advanced Logistics Platform
-                    </h2>
-                    <p class="text-light opacity-90 mb-4" style="font-size: 0.95rem; line-height: 1.65; max-width: 480px;">
-                        Start booking parcel deliveries with verified doorstep pickup, or step into enterprise fleet management with automated AI routing and live vehicle telemetry.
+    /* Outer Split Card Container */
+    .fleet-auth-card {
+        width: 100%;
+        max-width: 1060px;
+        min-height: 580px;
+        background: #fafbfc;
+        border-radius: 28px;
+        box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22),
+                    0 10px 25px -5px rgba(15, 23, 42, 0.08),
+                    0 0 0 1px rgba(226, 232, 240, 0.9);
+        overflow: hidden;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+
+    /* Left Panel: Hero Truck Graphic + Branded Messaging */
+    .fleet-hero-panel {
+        flex: 1.15;
+        position: relative;
+        background-image: url('/images/fleet-auth-truck.jpg');
+        background-size: cover;
+        background-position: center right;
+        background-repeat: no-repeat;
+        min-height: 580px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 3.25rem 3.25rem;
+        overflow: hidden;
+    }
+
+    /* Dark Navy Gradient Overlay */
+    .fleet-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, 
+            rgba(7, 18, 41, 0.95) 0%, 
+            rgba(9, 25, 56, 0.84) 40%, 
+            rgba(10, 30, 68, 0.42) 80%, 
+            rgba(10, 25, 55, 0.28) 100%);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .fleet-hero-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Brand Header Top-Left */
+    .hero-brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.85rem;
+        text-decoration: none;
+        transition: opacity 0.2s ease;
+    }
+
+    .hero-brand-badge:hover {
+        opacity: 0.92;
+    }
+
+    .hero-logo-img {
+        height: 48px;
+        width: auto;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+    }
+
+    .hero-brand-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-brand-name {
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+    }
+
+    .hero-brand-name span {
+        color: #38bdf8;
+    }
+
+    .hero-brand-sub {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.8);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-top: 0.15rem;
+    }
+
+    /* Center Tagline Headline */
+    .hero-tagline-block {
+        margin: auto 0;
+        padding: 3rem 0;
+        max-width: 440px;
+    }
+
+    .hero-main-title {
+        font-size: 2.85rem;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.1rem;
+    }
+
+    .hero-title-highlight {
+        color: #38bdf8;
+        display: block;
+    }
+
+    .hero-lead-text {
+        font-size: 0.975rem;
+        color: rgba(226, 232, 240, 0.88);
+        line-height: 1.6;
+        font-weight: 400;
+        margin-bottom: 0;
+    }
+
+    /* Right Panel: Clean Modern Sign Up Form */
+    .fleet-form-panel {
+        flex: 1;
+        background: #fafbfc;
+        padding: 3rem 3.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    /* Top Utility Bar (Sun icon + Sign In switch) */
+    .form-top-utility {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.65rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .theme-icon-indicator {
+        color: #94a3b8;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        user-select: none;
+    }
+
+    .auth-switch-link {
+        color: #0f172a;
+        font-weight: 600;
+        font-size: 0.925rem;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .auth-switch-link:hover {
+        color: #1d6ae5;
+    }
+
+    /* Form Heading */
+    .form-main-heading {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.025em;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Pill-Shaped Input Fields */
+    .pill-field-group {
+        margin-bottom: 1.15rem;
+    }
+
+    .pill-input-box {
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9999px;
+        height: 52px;
+        padding: 0 1.35rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .pill-input-box:hover {
+        border-color: #cbd5e1;
+    }
+
+    .pill-input-box:focus-within {
+        border-color: #1d6ae5;
+        box-shadow: 0 0 0 4px rgba(29, 106, 229, 0.12);
+    }
+
+    .pill-input-box.is-invalid {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+
+    .pill-input-icon {
+        color: #94a3b8;
+        font-size: 1.15rem;
+        margin-right: 0.75rem;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        transition: color 0.2s ease;
+    }
+
+    .pill-input-box:focus-within .pill-input-icon {
+        color: #1d6ae5;
+    }
+
+    .pill-input-control {
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+        width: 100%;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #0f172a;
+        box-shadow: none !important;
+        padding: 0;
+    }
+
+    .pill-input-control::placeholder {
+        color: #94a3b8;
+        font-weight: 400;
+    }
+
+    .btn-pill-verify {
+        border-radius: 9999px;
+        background: #1d6ae5;
+        color: #ffffff;
+        border: none;
+        padding: 0.5rem 1.15rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-pill-verify:hover {
+        background: #1653be;
+    }
+
+    .btn-pill-eye {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 1.15rem;
+        cursor: pointer;
+        padding: 0 0.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease;
+    }
+
+    .btn-pill-eye:hover {
+        color: #1d6ae5;
+    }
+
+    .pill-error-text {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #ef4444;
+        margin-top: 0.3rem;
+        padding-left: 1.25rem;
+        display: block;
+    }
+
+    /* 6-Box OTP Container */
+    .otp-card-block {
+        background: #ffffff;
+        border: 1.5px solid #bfdbfe;
+        border-radius: 20px;
+        padding: 1.25rem 1.35rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 12px rgba(29, 106, 229, 0.06);
+    }
+
+    .otp-boxes-grid {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin: 0.85rem 0;
+    }
+
+    .otp-box {
+        width: 44px;
+        height: 50px;
+        text-align: center;
+        font-size: 1.35rem;
+        font-weight: 700;
+        border-radius: 12px;
+        border: 1.5px solid #cbd5e1;
+        background: #f8fafc;
+        color: #0f172a;
+        transition: all 0.2s ease;
+    }
+
+    .otp-box:focus {
+        border-color: #1d6ae5;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(29, 106, 229, 0.15);
+        outline: none;
+    }
+
+    /* Primary Prominent Blue Pill Button */
+    .btn-pill-submit {
+        width: 100%;
+        height: 52px;
+        border-radius: 9999px;
+        background: #1d6ae5;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        box-shadow: 0 10px 22px -3px rgba(29, 106, 229, 0.4);
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        letter-spacing: 0.01em;
+    }
+
+    .btn-pill-submit:hover {
+        background: #1754bc;
+        transform: translateY(-1.5px);
+        box-shadow: 0 14px 28px -4px rgba(29, 106, 229, 0.5);
+        color: #ffffff;
+    }
+
+    .btn-pill-submit:active {
+        transform: translateY(0);
+    }
+
+    .btn-pill-submit:disabled {
+        opacity: 0.75;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Verification Status Banner */
+    .verify-banner {
+        border-radius: 16px;
+        padding: 0.85rem 1rem;
+        font-size: 0.85rem;
+        margin-bottom: 1.15rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .verify-banner-info {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+    }
+
+    .verify-banner-locked {
+        background: #f8fafc;
+        border: 1.5px dashed #cbd5e1;
+        color: #64748b;
+    }
+
+    /* Responsive Breakdown */
+    @@media (max-width: 991.98px) {
+        .fleet-auth-card {
+            flex-direction: column;
+            max-width: 520px;
+            border-radius: 22px;
+        }
+
+        .fleet-hero-panel {
+            min-height: 250px;
+            padding: 2.25rem 2rem;
+            background-position: center;
+        }
+
+        .hero-tagline-block {
+            display: none;
+        }
+
+        .fleet-form-panel {
+            padding: 2.5rem 2rem;
+        }
+
+        .form-main-heading {
+            font-size: 1.85rem;
+            margin-bottom: 1.25rem;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .fleet-auth-viewport {
+            padding: 1rem 0.75rem;
+        }
+
+        .fleet-hero-panel {
+            padding: 1.75rem 1.5rem;
+            min-height: 200px;
+        }
+
+        .fleet-form-panel {
+            padding: 2rem 1.35rem;
+        }
+
+        .form-main-heading {
+            font-size: 1.65rem;
+        }
+    }
+</style>
+
+<div class="fleet-auth-viewport">
+    <!-- Split Dual-Panel Card -->
+    <div class="fleet-auth-card">
+        
+        <!-- LEFT PANEL: Hero Truck Graphic + Branded Messaging -->
+        <div class="fleet-hero-panel">
+            <div class="fleet-hero-overlay"></div>
+            
+            <div class="fleet-hero-content">
+                <!-- Top-Left Branding -->
+                <a asp-controller="Home" asp-action="Index" class="hero-brand-badge">
+                    <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetify Logo" class="hero-logo-img" style="height: 46px; width: auto; border-radius: 10px; padding: 4px 10px; background: #ffffff; box-shadow: 0 4px 14px rgba(0,0,0,0.2);" />
+                </a>
+
+                <!-- Center Tagline -->
+                <div class="hero-tagline-block">
+                    <h1 class="hero-main-title">
+                        Your Fleet.
+                        <span class="hero-title-highlight">Our Priority.</span>
+                    </h1>
+                    <p class="hero-lead-text">
+                        Manage your fleet, shipments and deliveries with a smarter, safer and more efficient platform.
                     </p>
-
-                    <!-- Trust Metric Badges -->
-                    <div class="row g-2.5">
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-shield-check fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">Verified Safety</strong>
-                                        <span class="text-white-50 x-small">100% Insured Freight</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-clock-history fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">Instant Booking</strong>
-                                        <span class="text-white-50 x-small">2-Minute Setup</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-calculator fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">Transparent Rates</strong>
-                                        <span class="text-white-50 x-small">Formula Accurate</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="auth-stat-card p-3 rounded-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <div class="p-2 rounded-2 bg-primary bg-opacity-25 text-cyan">
-                                        <i class="bi bi-headset fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="d-block text-white font-mono small">24/7 Support</strong>
-                                        <span class="text-white-50 x-small">AI &amp; Human Helpdesk</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <div class="position-relative pt-3 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center x-small text-white-50" style="z-index: 2;">
-                    <span>&copy; @DateTime.UtcNow.Year Fleetify Logistics</span>
-                    <span><i class="bi bi-lock-fill text-success me-1"></i>SSL Encrypted Registration</span>
+                <!-- Bottom Telemetry Indicator -->
+                <div class="d-flex align-items-center gap-2 text-white-50 small">
+                    <span class="rounded-circle bg-info" style="width: 8px; height: 8px; box-shadow: 0 0 8px #38bdf8;"></span>
+                    <span>Fleet Operations &bull; 24/7 Logistics Engine</span>
                 </div>
             </div>
+        </div>
 
-            <!-- Right Column: Registration Details & Role Selection Box -->
-            <div class="col-lg-6 bg-white p-4 p-md-5 d-flex flex-column justify-content-center">
-                <div class="text-center text-lg-start mb-4">
-                    <a asp-controller="Home" asp-action="Index" class="d-inline-block d-lg-none mb-3 text-decoration-none">
-                        <img src="~/images/fleetify-logo.png" alt="Fleetify" style="height: 48px;" />
-                    </a>
-                    <h3 class="fw-bold text-dark mb-1">Create Account</h3>
-                    <p class="text-secondary small mb-0">Select your account role to get started with Fleetify.</p>
-                </div>
+        <!-- RIGHT PANEL: Clean Modern Sign Up Form -->
+        <div class="fleet-form-panel">
+            
+            <!-- Top Utility: Sun Icon + Sign In Navigation Link -->
+            <div class="form-top-utility">
+                <span class="theme-icon-indicator" title="Theme Mode">
+                    <i class="bi bi-brightness-high"></i>
+                </span>
+                <a asp-action="Login" class="auth-switch-link">Sign In</a>
+            </div>
 
-                <!-- Box to Select Role -->
-                <div class="role-select-box p-2.5 rounded-4 mb-4">
-                    <div class="d-flex align-items-center justify-content-between mb-2 px-1">
-                        <span class="x-small fw-bold text-uppercase text-secondary" style="letter-spacing: 0.05em;">
-                            <i class="bi bi-person-badge me-1 text-primary"></i>Select Your Role
-                        </span>
-                        <span id="roleIndicatorBadge" class="badge rounded-pill @(Model.Role == "Admin" ? "bg-indigo-subtle text-indigo" : "bg-success-subtle text-success") font-mono x-small">
-                            @(Model.Role == "Admin" ? "Fleet Administrator" : "Customer / Shipper")
-                        </span>
+            <!-- Form Content -->
+            <div class="my-auto">
+                <h2 class="form-main-heading">Sign Up</h2>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3 border-0" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">
+                        <i class="bi bi-exclamation-triangle-fill me-1.5 text-danger"></i>
+                        <div asp-validation-summary="ModelOnly" class="d-inline"></div>
                     </div>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <button type="button" class="btn w-100 role-option-btn @(Model.Role == "Customer" ? "active" : "")" id="btnRoleCustomer" onclick="chooseRole('Customer')">
-                                <div class="d-flex align-items-center justify-content-center gap-1.5 mb-0.5">
-                                    <i class="bi bi-box-seam-fill text-success fs-5"></i>
-                                    <span class="fw-bold text-dark">Customer</span>
-                                </div>
-                                <span class="role-desc text-muted x-small d-block">Shipper &amp; Tracking</span>
-                            </button>
-                        </div>
-                        <div class="col-6">
-                            <button type="button" class="btn w-100 role-option-btn @(Model.Role == "Admin" ? "active" : "")" id="btnRoleAdmin" onclick="chooseRole('Admin')">
-                                <div class="d-flex align-items-center justify-content-center gap-1.5 mb-0.5">
-                                    <i class="bi bi-shield-lock-fill text-primary fs-5"></i>
-                                    <span class="fw-bold text-dark">Fleet Admin</span>
-                                </div>
-                                <span class="role-desc text-muted x-small d-block">Operations &amp; Dispatch</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                }
 
-                <!-- Registration Form -->
-                <form asp-action="Register" method="post" id="registerForm">
+                <!-- Sign Up Form (Email Verification -> Unlocked Profile Fields) -->
+                <form asp-action="Register" method="post" id="fleetRegisterForm" onsubmit="handleSignupSubmit(event)" novalidate autocomplete="off">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="Role" id="inputRole" />
+                    <input type="hidden" asp-for="Role" id="signupRoleInput" value="@activeRole" />
 
-                    @if (!ViewData.ModelState.IsValid)
-                    {
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 px-3 small rounded-3 mb-3"></div>
-                    }
+                    <!-- Dummy fields to absorb browser credential autofill heuristics -->
+                    <input type="text" name="fake_usernameremembered" style="display:none !important;" tabindex="-1" autocomplete="off" />
+                    <input type="password" name="fake_passwordremembered" style="display:none !important;" tabindex="-1" autocomplete="off" />
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="FullName" class="form-label small fw-semibold text-secondary">Full Name</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                <input asp-for="FullName" class="form-control border-start-0 rounded-end-3 py-2" placeholder="e.g. Ibrahim Sian" />
-                            </div>
-                            <span asp-validation-for="FullName" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label asp-for="PhoneNumber" class="form-label small fw-semibold text-secondary">Phone Number</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
-                                    <i class="bi bi-telephone"></i>
-                                </span>
-                                <input asp-for="PhoneNumber" class="form-control border-start-0 rounded-end-3 py-2" placeholder="+92 300 1234567" />
-                            </div>
-                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label small fw-semibold text-secondary">Email Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
+                    <!-- Step 1: Email Address with Inline Verify Action -->
+                    <div class="pill-field-group">
+                        <div class="pill-input-box" id="emailInputBox">
+                            <span class="pill-input-icon">
                                 <i class="bi bi-envelope"></i>
                             </span>
-                            <input asp-for="Email" class="form-control border-start-0 rounded-end-3 py-2" placeholder="name@example.com" autocomplete="email" />
-                        </div>
-                        <span asp-validation-for="Email" class="text-danger small"></span>
-                    </div>
-
-                    <!-- Customer Specific Field: Address -->
-                    <div class="mb-3 @(Model.Role == "Customer" ? "" : "d-none")" id="customerAddressGroup">
-                        <label asp-for="Address" class="form-label small fw-semibold text-secondary">Default Pickup/Dropoff Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
-                                <i class="bi bi-geo-alt"></i>
+                            <input asp-for="Email" 
+                                   id="signupEmailInput" 
+                                   type="email" 
+                                   class="pill-input-control" 
+                                   placeholder="Email Address" 
+                                   required 
+                                   autocomplete="off" 
+                                   data-lpignore="true"
+                                   data-form-type="other"
+                                   autocorrect="off"
+                                   autocapitalize="off"
+                                   spellcheck="false"
+                                   readonly
+                                   onfocus="this.removeAttribute('readonly');" />
+                            <span id="badgeEmailVerified" class="badge rounded-pill bg-success-subtle text-success px-2 py-1 me-2 d-none">
+                                <i class="bi bi-patch-check-fill me-1"></i>Verified
                             </span>
-                            <input asp-for="Address" class="form-control border-start-0 rounded-end-3 py-2" placeholder="123 Main St, Gujranwala" />
+                            <button type="button" id="btnVerifyEmailTrigger" class="btn-pill-verify" onclick="sendSignupVerificationOtp()">
+                                <span id="btnVerifySpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                <span id="btnVerifyText">Verify</span>
+                            </button>
                         </div>
-                        <span asp-validation-for="Address" class="text-danger small"></span>
+                        <div id="emailFeedbackMessage" class="pill-error-text d-none"></div>
+                        <span asp-validation-for="Email" class="pill-error-text"></span>
                     </div>
 
-                    <!-- Admin Specific Note -->
-                    <div class="alert alert-info py-2 px-3 rounded-3 small mb-3 @(Model.Role == "Admin" ? "" : "d-none")" id="adminNoticeGroup">
-                        <i class="bi bi-shield-lock-fill me-1.5 text-primary"></i>
-                        <span>Fleet Administrator accounts grant full operational control over drivers, vehicle telemetry, and route assignments.</span>
-                    </div>
-
-                    <div class="mb-4">
-                        <label asp-for="Password" class="form-label small fw-semibold text-secondary">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted">
-                                <i class="bi bi-lock"></i>
+                    <!-- Step 2: 6-Box OTP Verification Container (Revealed upon clicking Verify) -->
+                    <div id="signupOtpBlock" class="otp-card-block d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="text-dark small d-flex align-items-center gap-1.5">
+                                <i class="bi bi-shield-lock-fill text-primary"></i>Enter 6-Digit Code
+                            </strong>
+                            <span id="otpCountdownDisplay" class="badge rounded-pill bg-primary-subtle text-primary font-mono small">
+                                10:00
                             </span>
-                            <input asp-for="Password" type="password" class="form-control border-start-0 rounded-end-3 py-2" placeholder="Min. 6 characters" autocomplete="new-password" />
                         </div>
-                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <div class="small text-secondary mb-2" style="font-size: 0.8rem;">
+                            A code was dispatched to <strong id="otpTargetEmail" class="text-dark"></strong>.
+                        </div>
+
+                        <!-- 6 Box Inputs -->
+                        <div class="otp-boxes-grid">
+                            <input type="text" maxlength="1" class="otp-box" id="otpBox0" data-idx="0" inputmode="numeric" />
+                            <input type="text" maxlength="1" class="otp-box" id="otpBox1" data-idx="1" inputmode="numeric" />
+                            <input type="text" maxlength="1" class="otp-box" id="otpBox2" data-idx="2" inputmode="numeric" />
+                            <input type="text" maxlength="1" class="otp-box" id="otpBox3" data-idx="3" inputmode="numeric" />
+                            <input type="text" maxlength="1" class="otp-box" id="otpBox4" data-idx="4" inputmode="numeric" />
+                            <input type="text" maxlength="1" class="otp-box" id="otpBox5" data-idx="5" inputmode="numeric" />
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between gap-2 mt-2">
+                            <button type="button" id="btnVerifyCodeSubmit" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-semibold" onclick="verifySignupOtpCode()">
+                                <span id="btnVerifyCodeSpinner" class="spinner-border spinner-border-sm d-none me-1"></span>
+                                <span>Confirm Code</span>
+                            </button>
+                            <button type="button" id="btnResendCode" class="btn btn-link btn-sm text-secondary p-0 text-decoration-none" onclick="sendSignupVerificationOtp(true)" disabled>
+                                Resend in 30s
+                            </button>
+                        </div>
+                        <div id="otpFeedbackAlert" class="small mt-2 p-2 rounded-3 font-mono d-none"></div>
                     </div>
 
-                    <div class="d-grid mb-4">
-                        <button type="submit" id="submitBtn" class="btn btn-primary btn-lg rounded-pill py-2.5 fw-bold text-white shadow-sm d-flex align-items-center justify-content-center gap-2">
-                            <span id="submitBtnText">Create @(Model.Role == "Admin" ? "Fleet Admin" : "Customer") Account</span>
+                    <!-- Locked Notice before Verification -->
+                    <div id="signupLockedNotice" class="verify-banner verify-banner-locked">
+                        <i class="bi bi-shield-exclamation text-warning fs-5 flex-shrink-0"></i>
+                        <div>
+                            <strong class="d-block text-dark">Email Verification Required</strong>
+                            <span class="x-small">Click <strong>Verify</strong> to receive your 6-digit confirmation code.</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Profile Fields (Unlocked once email verified) -->
+                    <div id="signupRemainingFields" class="d-none">
+                        <!-- Full Name Field -->
+                        <div class="pill-field-group">
+                            <div class="pill-input-box">
+                                <span class="pill-input-icon">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input asp-for="FullName" id="signupFullName" type="text" class="pill-input-control" placeholder="Full Name" required />
+                            </div>
+                            <span asp-validation-for="FullName" class="pill-error-text"></span>
+                        </div>
+
+                        <!-- Phone Number Field -->
+                        <div class="pill-field-group">
+                            <div class="pill-input-box">
+                                <span class="pill-input-icon">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input asp-for="PhoneNumber" id="signupPhoneNumber" type="tel" maxlength="11" class="pill-input-control" placeholder="Phone Number (e.g. 03001234567)" required oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);" />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="pill-error-text"></span>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="pill-field-group mb-3">
+                            <div class="pill-input-box">
+                                <span class="pill-input-icon">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input asp-for="Password" id="signupPassword" type="password" class="pill-input-control" placeholder="Password (Min. 6 characters)" required autocomplete="new-password" />
+                                <button type="button" class="btn-pill-eye" onclick="togglePasswordVisibility('signupPassword', 'signupEyeIcon')" title="Show / Hide Password">
+                                    <i class="bi bi-eye-slash" id="signupEyeIcon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="pill-error-text"></span>
+                        </div>
+
+                        <!-- Submit Sign Up Button -->
+                        <button type="submit" id="btnSubmitSignup" class="btn-pill-submit">
+                            <span id="btnSubmitSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            <span id="btnSubmitLabel">Sign Up</span>
                             <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
 
-                    <div class="text-center small">
-                        <p class="mb-2 text-secondary">
-                            Already have an account?
-                            <a id="loginLink" asp-action="Login" asp-route-role="@Model.Role" class="text-primary text-decoration-none fw-bold">Sign in here</a>
-                        </p>
-                        <a asp-controller="Account" asp-action="SelectRole" class="text-muted text-decoration-none x-small">
-                            <i class="bi bi-arrow-left me-1"></i>Back to Fleetify Overview
-                        </a>
-                    </div>
                 </form>
             </div>
+
+            <!-- Bottom Subtitle / Link to Home -->
+            <div class="text-center text-muted small mt-4 pt-2">
+                <span>Already have an account? </span>
+                <a asp-action="Login" class="text-primary fw-semibold text-decoration-none">Sign In</a>
+            </div>
+
         </div>
+
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        function chooseRole(selectedRole) {
-            document.getElementById('inputRole').value = selectedRole;
-            const btnCustomer = document.getElementById('btnRoleCustomer');
-            const btnAdmin = document.getElementById('btnRoleAdmin');
-            const submitBtnText = document.getElementById('submitBtnText');
-            const roleBadge = document.getElementById('roleIndicatorBadge');
-            const customerAddressGroup = document.getElementById('customerAddressGroup');
-            const adminNoticeGroup = document.getElementById('adminNoticeGroup');
-            const loginLink = document.getElementById('loginLink');
+        let isEmailVerified = false;
+        let otpCountdownInterval = null;
+        let resendCountdownInterval = null;
 
-            if (selectedRole === 'Admin') {
-                btnAdmin.classList.add('active');
-                btnCustomer.classList.remove('active');
-                submitBtnText.textContent = 'Create Fleet Admin Account';
-                roleBadge.className = 'badge rounded-pill bg-indigo-subtle text-indigo font-mono x-small';
-                roleBadge.textContent = 'Fleet Administrator';
-                customerAddressGroup.classList.add('d-none');
-                adminNoticeGroup.classList.remove('d-none');
-                if (loginLink) loginLink.href = '/Account/Login?role=Admin';
-                history.replaceState(null, '', '/Account/Register?role=Admin');
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
             } else {
-                btnCustomer.classList.add('active');
-                btnAdmin.classList.remove('active');
-                submitBtnText.textContent = 'Create Customer Account';
-                roleBadge.className = 'badge rounded-pill bg-success-subtle text-success font-mono x-small';
-                roleBadge.textContent = 'Customer / Shipper';
-                customerAddressGroup.classList.remove('d-none');
-                adminNoticeGroup.classList.add('d-none');
-                if (loginLink) loginLink.href = '/Account/Login?role=Customer';
-                history.replaceState(null, '', '/Account/Register?role=Customer');
+                input.type = 'password';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
             }
         }
+
+        // Setup OTP 6-box input navigation
+        document.querySelectorAll('.otp-box').forEach((box, idx, boxes) => {
+            box.addEventListener('input', (e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                e.target.value = val ? val[0] : '';
+                if (val && idx < boxes.length - 1) {
+                    boxes[idx + 1].focus();
+                }
+            });
+
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+                    boxes[idx - 1].focus();
+                }
+            });
+
+            box.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                if (pasteData) {
+                    pasteData.split('').forEach((ch, i) => {
+                        if (boxes[i]) boxes[i].value = ch;
+                    });
+                    const nextIdx = Math.min(pasteData.length, boxes.length - 1);
+                    boxes[nextIdx].focus();
+                }
+            });
+        });
+
+        async function sendSignupVerificationOtp(isResend = false) {
+            const emailInput = document.getElementById('signupEmailInput');
+            const email = (emailInput.value || '').trim();
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            const feedback = document.getElementById('emailFeedbackMessage');
+
+            if (!email || !emailRegex.test(email)) {
+                feedback.textContent = 'Please enter a valid email address first.';
+                feedback.classList.remove('d-none');
+                emailInput.focus();
+                return;
+            }
+            feedback.classList.add('d-none');
+
+            const btnVerify = document.getElementById('btnVerifyEmailTrigger');
+            const btnSpinner = document.getElementById('btnVerifySpinner');
+            const btnText = document.getElementById('btnVerifyText');
+
+            btnVerify.disabled = true;
+            btnSpinner.classList.remove('d-none');
+            btnText.textContent = isResend ? 'Resending...' : 'Sending...';
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            try {
+                const resp = await fetch('/Account/SendVerificationOtp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await resp.json();
+
+                if (data.success) {
+                    document.getElementById('otpTargetEmail').textContent = email;
+                    document.getElementById('signupOtpBlock').classList.remove('d-none');
+                    document.getElementById('otpBox0').focus();
+
+                    // Start 10-min countdown
+                    startOtpTimer(600);
+                    startResendTimer(30);
+
+                    // Show temporary dev banner if SMTP is offline
+                    if (data.devOtp) {
+                        const alertBox = document.getElementById('otpFeedbackAlert');
+                        alertBox.className = 'small mt-2 p-2 rounded-3 bg-warning-subtle text-dark d-block';
+                        alertBox.innerHTML = `<strong>Demo Notice:</strong> Verification Code is <strong>${data.devOtp}</strong>`;
+                    }
+                } else {
+                    feedback.textContent = data.message || 'Failed to send OTP.';
+                    feedback.classList.remove('d-none');
+                }
+            } catch (err) {
+                feedback.textContent = 'Network error while dispatching code. Please try again.';
+                feedback.classList.remove('d-none');
+            } finally {
+                btnSpinner.classList.add('d-none');
+                btnText.textContent = 'Verify';
+                btnVerify.disabled = false;
+            }
+        }
+
+        function startOtpTimer(durationSec) {
+            clearInterval(otpCountdownInterval);
+            let rem = durationSec;
+            const display = document.getElementById('otpCountdownDisplay');
+
+            otpCountdownInterval = setInterval(() => {
+                const m = Math.floor(rem / 60);
+                const s = rem % 60;
+                display.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+                if (--rem < 0) {
+                    clearInterval(otpCountdownInterval);
+                    display.textContent = 'Expired';
+                }
+            }, 1000);
+        }
+
+        function startResendTimer(sec) {
+            clearInterval(resendCountdownInterval);
+            const btnResend = document.getElementById('btnResendCode');
+            btnResend.disabled = true;
+            let rem = sec;
+
+            resendCountdownInterval = setInterval(() => {
+                btnResend.textContent = `Resend in ${rem}s`;
+                if (--rem < 0) {
+                    clearInterval(resendCountdownInterval);
+                    btnResend.textContent = 'Resend Code';
+                    btnResend.disabled = false;
+                }
+            }, 1000);
+        }
+
+        async function verifySignupOtpCode() {
+            const email = (document.getElementById('signupEmailInput').value || '').trim();
+            const boxes = document.querySelectorAll('.otp-box');
+            let otp = '';
+            boxes.forEach(b => otp += b.value.trim());
+
+            const alertBox = document.getElementById('otpFeedbackAlert');
+
+            if (otp.length < 6) {
+                alertBox.className = 'small mt-2 p-2 rounded-3 bg-danger-subtle text-danger d-block';
+                alertBox.textContent = 'Please enter the complete 6-digit code.';
+                return;
+            }
+
+            const btnVerifyCode = document.getElementById('btnVerifyCodeSubmit');
+            const spinner = document.getElementById('btnVerifyCodeSpinner');
+            btnVerifyCode.disabled = true;
+            spinner.classList.remove('d-none');
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            try {
+                const resp = await fetch('/Account/VerifyOtp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ email: email, otp: otp })
+                });
+
+                const data = await resp.json();
+
+                if (data.success) {
+                    isEmailVerified = true;
+                    clearInterval(otpCountdownInterval);
+                    clearInterval(resendCountdownInterval);
+
+                    alertBox.className = 'small mt-2 p-2 rounded-3 bg-success-subtle text-success d-block';
+                    alertBox.textContent = 'Email verified successfully!';
+
+                    // Lock email and show verified badge
+                    document.getElementById('signupEmailInput').readOnly = true;
+                    document.getElementById('btnVerifyEmailTrigger').classList.add('d-none');
+                    document.getElementById('badgeEmailVerified').classList.remove('d-none');
+
+                    // Hide OTP Block & Locked Notice
+                    setTimeout(() => {
+                        document.getElementById('signupOtpBlock').classList.add('d-none');
+                        document.getElementById('signupLockedNotice').classList.add('d-none');
+                        document.getElementById('signupRemainingFields').classList.remove('d-none');
+                        document.getElementById('signupFullName').focus();
+                    }, 600);
+                } else {
+                    alertBox.className = 'small mt-2 p-2 rounded-3 bg-danger-subtle text-danger d-block';
+                    alertBox.textContent = data.message || 'Invalid verification code.';
+                }
+            } catch (err) {
+                alertBox.className = 'small mt-2 p-2 rounded-3 bg-danger-subtle text-danger d-block';
+                alertBox.textContent = 'Server connection error.';
+            } finally {
+                btnVerifyCode.disabled = false;
+                spinner.classList.add('d-none');
+            }
+        }
+
+        function handleSignupSubmit(event) {
+            if (!isEmailVerified) {
+                event.preventDefault();
+                alert('Please verify your email address using the 6-digit code before signing up.');
+                return false;
+            }
+
+            const btn = document.getElementById('btnSubmitSignup');
+            const spinner = document.getElementById('btnSubmitSpinner');
+            const label = document.getElementById('btnSubmitLabel');
+
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+            label.textContent = 'Creating Account...';
+            return true;
+        }
+
+        // Clear any lingering browser autofill values on fresh page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const emailInput = document.getElementById('signupEmailInput');
+                if (emailInput && !isEmailVerified) {
+                    emailInput.value = '';
+                }
+            }, 50);
+        });
     </script>
 }

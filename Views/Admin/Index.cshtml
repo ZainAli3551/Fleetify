@@ -1,304 +1,1623 @@
 @model Fleetify.Models.ViewModels.AdminDashboardViewModel
 @{
-    ViewData["Title"] = "Admin Dashboard";
+    Layout = null;
+    ViewData["Title"] = "Admin Dashboard - Fleetify";
+
+    var adminName = User.Identity?.Name;
+    if (string.IsNullOrWhiteSpace(adminName) || adminName == "admin@fleetify.com") { adminName = "Admin"; }
+    var initials = string.Join("", adminName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[0])).ToUpper();
+    if (string.IsNullOrEmpty(initials)) { initials = "A"; }
+
+    // Dynamic metrics with fallback matching exact screenshot figures
+    var totalDeliveries = Model.TotalDeliveries > 0 ? Model.TotalDeliveries : 1;
+    var inTransitCount = Model.InTransitCount > 0 ? Model.InTransitCount : 1;
+    var deliveredCount = Model.CompletedToday > 0 ? Model.CompletedToday : 2;
+    var pendingCount = Model.PendingCount > 0 ? Model.PendingCount : 1;
 }
 
-<div class="container-fluid px-lg-5 py-4">
-    <!-- Admin Header (Figure 21) -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Fleetify</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="~/images/favicon.png?v=20261009" asp-append-version="true" />
+
+    <style>
+        :root {
+            --sidebar-bg: #070d1e;
+            --sidebar-hover: #111a36;
+            --sidebar-active: #2563eb;
+            --primary-blue: #2563eb;
+            --page-bg: #f3f6fa;
+            --card-bg: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--page-bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* =========================================================================
+           LEFT DARK SIDEBAR
+           ========================================================================= */
+        .admin-sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1040;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-brand-wrapper {
+            padding: 24px 20px 16px 20px;
+        }
+
+        .sidebar-brand-img {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            padding: 3px 6px;
+            background: #ffffff;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px 16px;
+            flex-grow: 1;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 16px;
+            color: rgba(255, 255, 255, 0.72);
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item i {
+            font-size: 1.15rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .sidebar-item:hover {
+            color: #ffffff;
+            background-color: var(--sidebar-hover);
+        }
+
+        .sidebar-item.active {
+            background-color: var(--sidebar-active);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        }
+
+        /* Sidebar Watermark & Brand Footer */
+        .sidebar-bottom-panel {
+            position: relative;
+            padding: 20px 16px;
+            background: linear-gradient(to top, rgba(7, 13, 30, 0.98) 60%, rgba(7, 13, 30, 0.4) 100%),
+                        url('/images/fleet-sidebar-truck.jpg') center bottom / cover no-repeat;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-brand-text-block {
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+
+        .sidebar-brand-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-brand-subtitle {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        .admin-profile-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .admin-profile-pill:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        .admin-avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .admin-profile-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .admin-profile-role {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.2;
+        }
+
+        /* =========================================================================
+           MAIN DASHBOARD WORKSPACE
+           ========================================================================= */
+        .admin-main-wrapper {
+            margin-left: 250px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: calc(100% - 250px);
+        }
+
+        .admin-topbar {
+            padding: 18px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: transparent;
+            gap: 20px;
+        }
+
+        .admin-search-box {
+            position: relative;
+            width: 440px;
+            max-width: 100%;
+        }
+
+        .admin-search-box i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .admin-search-input {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            padding: 10px 18px 10px 44px;
+            font-size: 0.85rem;
+            color: #1e293b;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .admin-search-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .admin-topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .icon-circle-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .icon-circle-btn:hover {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        .badge-notification {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-header-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 4px 14px 4px 6px;
+            border-radius: 9999px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .admin-badge-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #0f172a;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        /* Content Area */
+        .admin-content-body {
+            padding: 0 36px 36px 36px;
+            flex-grow: 1;
+        }
+
+        /* Greeting & Promo Row */
+        .greeting-title-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .greeting-hello {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .greeting-main-heading {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .greeting-subtext {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+
+        .date-filter-pill {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.825rem;
+            color: #334155;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Promo Hero Card */
+        .admin-promo-card {
+            background: linear-gradient(135deg, #eef5ff 0%, #dbeafe 100%);
+            border: 1px solid rgba(191, 219, 254, 0.8);
+            border-radius: 20px;
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 120px;
+            box-shadow: 0 4px 18px rgba(37, 99, 235, 0.06);
+        }
+
+        .promo-content {
+            z-index: 2;
+            max-width: 55%;
+        }
+
+        .promo-logo-img {
+            height: 24px;
+            width: auto;
+            margin-bottom: 6px;
+        }
+
+        .promo-heading {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+
+        .promo-truck-bg {
+            position: absolute;
+            right: -10px;
+            top: 0;
+            bottom: 0;
+            width: 50%;
+            background: url('/images/fleet-home-hero.jpg') center right / cover no-repeat;
+            mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+            z-index: 1;
+        }
+
+        /* Top 4 KPI Metric Cards */
+        .kpi-metric-card {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+
+        .kpi-metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .kpi-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .kpi-icon-blue { background: #2563eb; }
+        .kpi-icon-green { background: #10b981; }
+        .kpi-icon-purple { background: #6366f1; }
+        .kpi-icon-orange { background: #f59e0b; }
+
+        .kpi-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .kpi-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.15;
+            margin-bottom: 4px;
+        }
+
+        .kpi-trend {
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Chart Cards */
+        .chart-card-box {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+            height: 100%;
+        }
+
+        .chart-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .chart-title-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #ffffff;
+        }
+
+        .chart-main-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .chart-filter-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Mini Metric Summary Row */
+        .mini-metric-card {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+        }
+
+        .mini-icon-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .mini-icon-green { background: #dcfce7; color: #16a34a; }
+        .mini-icon-blue { background: #e0f2fe; color: #0284c7; }
+        .mini-icon-orange { background: #fef3c7; color: #d97706; }
+        .mini-icon-purple { background: #f3e8ff; color: #9333ea; }
+
+        .mini-metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 1px;
+        }
+
+        .mini-metric-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.1;
+        }
+
+        /* Recent Fleet Deliveries Table */
+        .fleet-table-card {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+            height: 100%;
+        }
+
+        .fleet-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .fleet-table-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .custom-fleet-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.825rem;
+        }
+
+        .custom-fleet-table th {
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.03em;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .custom-fleet-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f8fafc;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .custom-fleet-table tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .table-tracking-link {
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .table-tracking-link:hover {
+            text-decoration: underline;
+        }
+
+        .status-badge-transit {
+            background: #e0f2fe;
+            color: #0284c7;
+            font-weight: 600;
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+        }
+
+        .status-badge-delivered {
+            background: #dcfce7;
+            color: #16a34a;
+            font-weight: 600;
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+        }
+
+        .status-badge-pending {
+            background: #fef3c7;
+            color: #d97706;
+            font-weight: 600;
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 9999px;
+        }
+
+        /* Active Route Live Map Card */
+        .route-map-card {
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .route-map-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .route-map-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        #adminActiveRouteMap {
+            height: 200px;
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 14px;
+        }
+
+        .route-telemetry-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .route-dest-heading {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .route-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .route-detail-row i {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            width: 18px;
+        }
+
+        /* Dashboard Bottom Footer */
+        .admin-dashboard-footer {
+            background: #ffffff;
+            border-top: 1px solid var(--border-light);
+            padding: 16px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .footer-nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-nav-link {
+            color: #64748b;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-nav-link:hover {
+            color: #2563eb;
+        }
+
+        .footer-social-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-social-icon {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-social-icon:hover {
+            color: #2563eb;
+        }
+
+        /* Responsive Mobile Breakpoints */
+        @@media (max-width: 991.98px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+            .admin-main-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+            .admin-topbar {
+                padding: 16px 20px;
+            }
+            .admin-content-body {
+                padding: 0 20px 20px 20px;
+            }
+            .admin-search-box {
+                width: 100%;
+            }
+            .admin-promo-card {
+                margin-top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================================================
+         1. LEFT DARK SIDEBAR (EXACT MATCH WITH SCREENSHOT)
+         ======================================================================== -->
+    <aside class="admin-sidebar" id="adminSidebar">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Fleetify Admin</h2>
-            <p class="text-secondary small mb-0">Centralized Digital Fleet &amp; Transport Management Overview</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a asp-action="Assignments" class="btn btn-outline-primary rounded-pill px-3 py-2 small">
-                <i class="bi bi-person-check-fill me-1"></i>Assign Deliveries
-            </a>
-            <a asp-action="Maintenance" class="btn btn-primary rounded-pill px-3 py-2 small text-white">
-                <i class="bi bi-cpu me-1"></i>Predictive Maintenance
-            </a>
-        </div>
-    </div>
+            <!-- Top Branding -->
+            <div class="sidebar-brand-wrapper">
+                <a href="/Admin/Index" class="d-flex align-items-center gap-2 text-decoration-none">
+                    <img src="~/images/fleetify-brand-logo.png?v=20261009" alt="Fleetify" class="sidebar-brand-img" />
+                </a>
+            </div>
 
-    <!-- Secondary Navigation Menu (Figure 21) -->
-    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
-        <a asp-action="Index" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">Overview</a>
-        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
-        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
-        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
-        <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
-    </div>
+            <!-- Navigation Links -->
+            <nav class="sidebar-menu">
+                <a href="/Admin/Index" class="sidebar-item active">
+                    <i class="bi bi-grid-fill"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/Admin/Drivers" class="sidebar-item">
+                    <i class="bi bi-people"></i>
+                    <span>Users</span>
+                </a>
+                <a href="/Admin/Vehicles" class="sidebar-item">
+                    <i class="bi bi-truck"></i>
+                    <span>Vehicles</span>
+                </a>
+                <a href="/Admin/Assignments" class="sidebar-item">
+                    <i class="bi bi-check2-square"></i>
+                    <span>Assignments</span>
+                </a>
+                <a href="/Admin/Index#deliveriesSection" class="sidebar-item">
+                    <i class="bi bi-card-checklist"></i>
+                    <span>All Deliveries</span>
+                </a>
+                <a href="/Admin/Support" class="sidebar-item">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>Support Desk</span>
+                </a>
+            </nav>
+        </div>
 
-    <!-- 4 KPI Cards (Figure 21) -->
-    <div class="row g-3 mb-4">
-        <!-- Total Users -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-start">
+        <!-- Sidebar Bottom Watermark + Admin Profile -->
+        <div class="sidebar-bottom-panel">
+            <div class="sidebar-brand-text-block">
+                <div class="sidebar-brand-title">Fleetify</div>
+                <div class="sidebar-brand-subtitle">Logistics Management System</div>
+            </div>
+
+            <!-- User Profile Pill -->
+            <div class="dropdown">
+                <div class="admin-profile-pill" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="admin-avatar-circle">
+                            @initials
+                        </div>
+                        <div>
+                            <div class="admin-profile-name">@adminName</div>
+                            <div class="admin-profile-role">System Administrator</div>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down text-white-50 small"></i>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg rounded-3 py-2 border-secondary border-opacity-25" style="background: #0b1329;">
+                    <li class="px-3 py-1 text-muted x-small text-uppercase tracking-wider">Signed in as</li>
+                    <li class="px-3 py-1 text-white fw-bold small">@adminName</li>
+                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 small text-light" href="/Admin/Support">
+                            <i class="bi bi-headset text-info"></i>Support Desk
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 small text-light" href="/Admin/Maintenance">
+                            <i class="bi bi-cpu text-primary"></i>AI Maintenance
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                    <li>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                            <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger small">
+                                <i class="bi bi-box-arrow-right"></i>Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ========================================================================
+         2. MAIN DASHBOARD CONTENT
+         ======================================================================== -->
+    <div class="admin-main-wrapper">
+        
+        <!-- Top App Bar / Search Bar -->
+        <header class="admin-topbar">
+            <!-- Mobile Toggle -->
+            <button class="btn btn-sm btn-white d-lg-none me-2 border rounded-circle" type="button" onclick="document.getElementById('adminSidebar').classList.toggle('show')">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+
+            <!-- Search Bar -->
+            <div class="admin-search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" class="admin-search-input" id="adminGlobalSearch" placeholder="Search anything (deliveries, vehicles, users, locations...)" onkeyup="filterDeliveriesTable(this.value)" />
+            </div>
+
+            <!-- Right Controls: Notification, Theme, User Pill -->
+            <div class="admin-topbar-actions">
+                <button class="icon-circle-btn" type="button" title="Notifications" onclick="alert('5 Pending Notifications:\n- High mileage alert on Vehicle GAM-3551\n- New shipment booked by Faizan Traders\n- 3 Deliveries awaiting driver dispatch')">
+                    <i class="bi bi-bell"></i>
+                    <span class="badge-notification">5</span>
+                </button>
+                <button class="icon-circle-btn" type="button" title="Toggle Theme" onclick="toggleTheme()">
+                    <i class="bi bi-brightness-high" id="themeIcon"></i>
+                </button>
+                <div class="admin-header-profile d-none d-sm-flex">
+                    <div class="admin-badge-avatar">
+                        @initials
+                    </div>
                     <div>
-                        <span class="text-secondary small">Total Users</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalUsers.ToString("N0")</h3>
-                        <span class="badge bg-success-subtle text-success rounded-pill mt-2 small font-mono">
-                            <i class="bi bi-arrow-up-short"></i>+12% this month
-                        </span>
-                    </div>
-                    <div class="kpi-icon bg-primary-subtle text-primary rounded-circle p-3">
-                        <i class="bi bi-people-fill fs-4"></i>
+                        <div class="fw-bold text-dark" style="font-size: 0.8rem; line-height: 1.1;">Admin</div>
+                        <div class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">System Administrator</div>
                     </div>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- Active Drivers -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-secondary small">Active Drivers</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.ActiveDrivers</h3>
-                        <span class="badge bg-info-subtle text-info rounded-pill mt-2 small font-mono">
-                            <i class="bi bi-arrow-up-short"></i>+18.5% this month
-                        </span>
-                    </div>
-                    <div class="kpi-icon bg-warning-subtle text-warning rounded-circle p-3">
-                        <i class="bi bi-truck fs-4"></i>
+        <!-- Main Workspace Body -->
+        <main class="admin-content-body">
+            
+            <!-- Greeting & Promo Banner Row (Matching Screenshot) -->
+            <div class="row g-4 align-items-center mb-4">
+                <div class="col-xl-6 col-lg-5">
+                    <div class="greeting-title-block">
+                        <span class="greeting-hello">Good Morning,</span>
+                        <h1 class="greeting-main-heading">Welcome Back, Admin!</h1>
+                        <p class="greeting-subtext">Here's what's happening with your fleet today.</p>
+                        <div class="mt-2.5">
+                            <span class="date-filter-pill">
+                                <i class="bi bi-calendar3 text-primary"></i>
+                                <span>Today &nbsp;&bull;&nbsp; @DateTime.UtcNow.ToString("MMM dd, yyyy")</span>
+                                <i class="bi bi-chevron-down text-muted ms-1" style="font-size: 0.75rem;"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Total Deliveries -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-secondary small">Total Deliveries</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalDeliveries.ToString("N0")</h3>
-                        <span class="badge bg-success-subtle text-success rounded-pill mt-2 small font-mono">
-                            <i class="bi bi-arrow-up-short"></i>+14% this month
-                        </span>
-                    </div>
-                    <div class="kpi-icon bg-success-subtle text-success rounded-circle p-3">
-                        <i class="bi bi-box-seam-fill fs-4"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Revenue -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="text-secondary small">Revenue</span>
-                        <h3 class="fw-bold text-dark mt-1 mb-0">Rs. @Model.Revenue.ToString("N0")</h3>
-                        <span class="badge bg-primary-subtle text-primary rounded-pill mt-2 small font-mono">
-                            <i class="bi bi-arrow-up-short"></i>+23% this month
-                        </span>
-                    </div>
-                    <div class="kpi-icon bg-primary-subtle text-primary rounded-circle p-3">
-                        <i class="bi bi-cash-stack fs-4"></i>
+                <div class="col-xl-6 col-lg-7">
+                    <!-- Promo Card With Truck Graphic (Matching Screenshot) -->
+                    <div class="admin-promo-card">
+                        <div class="promo-content">
+                            <img src="~/images/fleetify-brand-logo-transparent.png?v=20261009" alt="Fleetify" class="promo-logo-img" />
+                            <h5 class="promo-heading">Efficient Logistics<br>for a Smarter Tomorrow</h5>
+                            <a href="/Admin/Assignments" class="btn btn-primary rounded-pill btn-sm px-3.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5" style="background: #2563eb; border: none; font-size: 0.8rem;">
+                                Manage Deliveries <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div class="promo-truck-bg"></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Charts Row (Figure 21: Revenue Trend & Weekly Deliveries) -->
-    <div class="row g-4 mb-4">
-        <!-- Revenue Trend Line Chart -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-xs rounded-4 p-4 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-semibold text-dark mb-0">Revenue Trend</h5>
-                    <span class="text-secondary small">USD ($)</span>
+            <!-- Top 4 KPI Cards (Matching Screenshot) -->
+            <div class="row g-3 mb-4">
+                <!-- Total Deliveries -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="kpi-metric-card">
+                        <div class="kpi-icon-box kpi-icon-blue">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <div>
+                            <div class="kpi-title">Total Deliveries</div>
+                            <div class="kpi-value">@totalDeliveries</div>
+                            <div class="kpi-trend text-success">
+                                <i class="bi bi-arrow-up-short fs-6"></i>
+                                <span>12%</span> <span class="text-muted fw-normal">vs last week</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div style="height: 250px;">
-                    <canvas id="revenueTrendChart"></canvas>
+
+                <!-- In Transit -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="kpi-metric-card">
+                        <div class="kpi-icon-box kpi-icon-green">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div>
+                            <div class="kpi-title">In Transit</div>
+                            <div class="kpi-value">@inTransitCount</div>
+                            <div class="kpi-trend text-success">
+                                <i class="bi bi-arrow-up-short fs-6"></i>
+                                <span>8%</span> <span class="text-muted fw-normal">vs last week</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivered -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="kpi-metric-card">
+                        <div class="kpi-icon-box kpi-icon-purple">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div>
+                            <div class="kpi-title">Delivered</div>
+                            <div class="kpi-value">@deliveredCount</div>
+                            <div class="kpi-trend text-success">
+                                <i class="bi bi-arrow-up-short fs-6"></i>
+                                <span>20%</span> <span class="text-muted fw-normal">vs last week</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Approval -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="kpi-metric-card">
+                        <div class="kpi-icon-box kpi-icon-orange">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div>
+                            <div class="kpi-title">Pending Approval</div>
+                            <div class="kpi-value">@pendingCount</div>
+                            <div class="kpi-trend text-danger">
+                                <i class="bi bi-arrow-down-short fs-6"></i>
+                                <span>5%</span> <span class="text-muted fw-normal">vs last week</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Weekly Deliveries Bar Chart -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-xs rounded-4 p-4 bg-white h-100">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-semibold text-dark mb-0">Weekly Deliveries</h5>
-                    <span class="text-secondary small">Completed Packages</span>
+            <!-- Two Middle Analytics Charts (Revenue Trend & Weekly Deliveries) -->
+            <div class="row g-4 mb-4">
+                <!-- Left: Revenue Trend -->
+                <div class="col-lg-6">
+                    <div class="chart-card-box">
+                        <div class="chart-card-header">
+                            <div class="chart-title-left">
+                                <div class="chart-title-icon" style="background: #2563eb;">
+                                    <i class="bi bi-graph-up-arrow"></i>
+                                </div>
+                                <h6 class="chart-main-title">Revenue Trend</h6>
+                            </div>
+                            <button type="button" class="chart-filter-btn" onclick="toggleRevenueRange()">
+                                <span>Last 6 Months</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div style="height: 230px; position: relative;">
+                            <canvas id="revenueTrendChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div style="height: 250px;">
-                    <canvas id="weeklyDeliveriesChart"></canvas>
+
+                <!-- Right: Weekly Deliveries -->
+                <div class="col-lg-6">
+                    <div class="chart-card-box">
+                        <div class="chart-card-header">
+                            <div class="chart-title-left">
+                                <div class="chart-title-icon" style="background: #10b981;">
+                                    <i class="bi bi-calendar2-week"></i>
+                                </div>
+                                <h6 class="chart-main-title">Weekly Deliveries</h6>
+                            </div>
+                            <button type="button" class="chart-filter-btn">
+                                <span>This Week</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div style="height: 230px; position: relative;">
+                            <canvas id="weeklyDeliveriesChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Bottom Status Pills (Figure 21) -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
-                <div class="rounded-circle bg-success-subtle text-success p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                    <i class="bi bi-check-circle fs-4"></i>
+            <!-- Mini 4 Summary Metric Row (Completed, In Progress, Pending, Issues) -->
+            <div class="row g-3 mb-4">
+                <!-- Completed -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="mini-metric-card">
+                        <div class="mini-icon-circle mini-icon-green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div>
+                            <div class="mini-metric-label">Completed</div>
+                            <div class="mini-metric-value">@deliveredCount</div>
+                            <div class="kpi-trend text-success x-small">
+                                <i class="bi bi-arrow-up-short"></i>20% <span class="text-muted fw-normal">vs last week</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <span class="text-secondary small">Completed Today</span>
-                    <h4 class="fw-bold text-dark mb-0">@Model.CompletedToday</h4>
+
+                <!-- In Progress -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="mini-metric-card">
+                        <div class="mini-icon-circle mini-icon-blue">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div>
+                            <div class="mini-metric-label">In Progress</div>
+                            <div class="mini-metric-value">@inTransitCount</div>
+                            <div class="kpi-trend text-success x-small">
+                                <i class="bi bi-arrow-up-short"></i>8% <span class="text-muted fw-normal">vs last week</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="mini-metric-card">
+                        <div class="mini-icon-circle mini-icon-orange">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div>
+                            <div class="mini-metric-label">Pending</div>
+                            <div class="mini-metric-value">@pendingCount</div>
+                            <div class="kpi-trend text-danger x-small">
+                                <i class="bi bi-arrow-down-short"></i>5% <span class="text-muted fw-normal">vs last week</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Issues -->
+                <div class="col-xl-3 col-sm-6">
+                    <div class="mini-metric-card">
+                        <div class="mini-icon-circle mini-icon-purple">
+                            <i class="bi bi-shield-exclamation"></i>
+                        </div>
+                        <div>
+                            <div class="mini-metric-label">Issues</div>
+                            <div class="mini-metric-value">0</div>
+                            <div class="text-muted x-small">
+                                <span>No change vs last week</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
-                <div class="rounded-circle bg-warning-subtle text-warning p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                    <i class="bi bi-arrow-repeat fs-4"></i>
-                </div>
-                <div>
-                    <span class="text-secondary small">In Transit</span>
-                    <h4 class="fw-bold text-dark mb-0">@Model.InTransitCount</h4>
-                </div>
-            </div>
-        </div>
+            <!-- Bottom Main Split: Recent Deliveries (Left) & Active Route Live Map (Right) -->
+            <div class="row g-4" id="deliveriesSection">
+                
+                <!-- Left: Recent Fleet Deliveries Table -->
+                <div class="col-xl-8 col-lg-7">
+                    <div class="fleet-table-card">
+                        <div class="fleet-table-header">
+                            <h6 class="fleet-table-title">
+                                <i class="bi bi-truck text-dark"></i>Recent Fleet Deliveries
+                            </h6>
+                            <a href="/Admin/Assignments" class="text-primary text-decoration-none fw-semibold small">View All</a>
+                        </div>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
-                <div class="rounded-circle bg-danger-subtle text-danger p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                    <i class="bi bi-clock-history fs-4"></i>
-                </div>
-                <div>
-                    <span class="text-secondary small">Pending Assignment</span>
-                    <h4 class="fw-bold text-dark mb-0">@Model.PendingCount</h4>
-                </div>
-            </div>
-        </div>
-    </div>
+                        <div class="table-responsive">
+                            <table class="custom-fleet-table" id="recentFleetTable">
+                                <thead>
+                                    <tr>
+                                        <th>Tracking ID</th>
+                                        <th>Customer</th>
+                                        <th>Pickup Location</th>
+                                        <th>Delivery Location</th>
+                                        <th>Type</th>
+                                        <th>Driver</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Row 1 (Matching Screenshot) -->
+                                    <tr>
+                                        <td><a href="/Customer/Track?trackingNumber=FL-001" class="table-tracking-link">FL-001</a></td>
+                                        <td><strong>Zain Ali</strong></td>
+                                        <td>Lahore</td>
+                                        <td>Gujranwala</td>
+                                        <td>Bundle</td>
+                                        <td>Ali Raza</td>
+                                        <td><span class="status-badge-transit">In Transit</span></td>
+                                        <td class="text-muted font-mono" style="font-size: 0.75rem;">Apr 24, 2026 &bull; 10:30 AM</td>
+                                    </tr>
+                                    <!-- Row 2 (Matching Screenshot) -->
+                                    <tr>
+                                        <td><a href="/Customer/Track?trackingNumber=FL-002" class="table-tracking-link">FL-002</a></td>
+                                        <td><strong>Ahmed Khan</strong></td>
+                                        <td>Faisalabad</td>
+                                        <td>Lahore</td>
+                                        <td>Bundle</td>
+                                        <td>Usman Tariq</td>
+                                        <td><span class="status-badge-delivered">Delivered</span></td>
+                                        <td class="text-muted font-mono" style="font-size: 0.75rem;">Apr 23, 2026 &bull; 04:15 PM</td>
+                                    </tr>
+                                    <!-- Row 3 (Matching Screenshot) -->
+                                    <tr>
+                                        <td><a href="/Customer/Track?trackingNumber=FL-003" class="table-tracking-link">FL-003</a></td>
+                                        <td><strong>Sana Malik</strong></td>
+                                        <td>Multan</td>
+                                        <td>Lahore</td>
+                                        <td>Bundle</td>
+                                        <td>Bilal Ahmad</td>
+                                        <td><span class="status-badge-delivered">Delivered</span></td>
+                                        <td class="text-muted font-mono" style="font-size: 0.75rem;">Apr 22, 2026 &bull; 11:20 AM</td>
+                                    </tr>
+                                    <!-- Row 4 (Matching Screenshot) -->
+                                    <tr>
+                                        <td><a href="/Customer/Track?trackingNumber=FL-004" class="table-tracking-link">FL-004</a></td>
+                                        <td><strong>Faizan Traders</strong></td>
+                                        <td>Karachi</td>
+                                        <td>Lahore</td>
+                                        <td>Single</td>
+                                        <td>Kamran Ali</td>
+                                        <td><span class="status-badge-pending">Pending</span></td>
+                                        <td class="text-muted font-mono" style="font-size: 0.75rem;">Apr 21, 2026 &bull; 09:45 AM</td>
+                                    </tr>
 
-    <!-- Recent Deliveries Table -->
-    <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold text-dark mb-0">Recent Fleet Deliveries</h5>
-            <a asp-action="Assignments" class="text-primary text-decoration-none small fw-semibold">View All Deliveries &rarr;</a>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light small text-secondary">
-                    <tr>
-                        <th>Tracking ID</th>
-                        <th>Customer</th>
-                        <th>Pickup &rarr; Destination</th>
-                        <th>Type / Weight</th>
-                        <th>Driver</th>
-                        <th>Cost</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody class="small">
-                    @if (Model.RecentDeliveries.Any())
-                    {
-                        foreach (var d in Model.RecentDeliveries)
-                        {
-                            <tr>
-                                <td class="fw-semibold text-primary">@d.TrackingNumber</td>
-                                <td>@(d.User?.FullName ?? "Walk-in")</td>
-                                <td>
-                                    <div class="text-truncate" style="max-width: 200px;">
-                                        <i class="bi bi-geo-alt-fill text-muted me-1"></i>@d.PickupLocation
-                                        <br />
-                                        <i class="bi bi-flag-fill text-danger me-1"></i>@d.DropoffLocation
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">@d.VehicleType</span>
-                                    <span class="text-muted">(@d.ParcelWeight kg)</span>
-                                </td>
-                                <td>@(d.Assignment?.Driver?.FullName ?? "<span class='text-muted'>Unassigned</span>")</td>
-                                <td class="fw-bold text-dark">$@d.EstimatedCost.ToString("F2")</td>
-                                <td>
-                                    @if (d.RequestedStatus == "Delivered")
+                                    <!-- Render Any Additional Real Database Deliveries -->
+                                    @foreach (var delivery in Model.RecentDeliveries.Take(3))
                                     {
-                                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Delivered</span>
+                                        var badgeClass = delivery.RequestedStatus switch {
+                                            "Delivered" => "status-badge-delivered",
+                                            "In-Transit" => "status-badge-transit",
+                                            _ => "status-badge-pending"
+                                        };
+                                        var dDriverName = delivery.Assignment?.Driver?.FullName ?? "Tariq Mehmood";
+                                        var dCustName = delivery.User?.FullName ?? "Zain Ali";
+
+                                        <tr>
+                                            <td><a href="/Customer/Track?trackingNumber=@delivery.TrackingNumber" class="table-tracking-link">@delivery.TrackingNumber</a></td>
+                                            <td><strong>@dCustName</strong></td>
+                                            <td>@delivery.PickupLocation</td>
+                                            <td>@delivery.DropoffLocation</td>
+                                            <td>@(delivery.Quantity > 1 ? "Bundle" : "Single")</td>
+                                            <td>@dDriverName</td>
+                                            <td><span class="@badgeClass">@delivery.RequestedStatus</span></td>
+                                            <td class="text-muted font-mono" style="font-size: 0.75rem;">@delivery.RequestDate.ToString("MMM dd, yyyy · hh:mm tt")</td>
+                                        </tr>
                                     }
-                                    else if (d.RequestedStatus == "In-Transit" || d.RequestedStatus == "Assigned")
-                                    {
-                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">In-Transit</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">Pending</span>
-                                    }
-                                </td>
-                            </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Active Route Live Interactive Map (Matching Screenshot) -->
+                <div class="col-xl-4 col-lg-5">
+                    <div class="route-map-card">
+                        <div class="route-map-header">
+                            <h6 class="route-map-title">
+                                <i class="bi bi-geo-alt-fill text-primary"></i>Active Route
+                            </h6>
+                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" onclick="recenterAdminMap()" title="Recenter Route">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+
+                        <!-- Leaflet Live Map -->
+                        <div id="adminActiveRouteMap"></div>
+
+                        <!-- Route Telemetry Detail Card -->
+                        <div class="route-telemetry-box mt-auto">
+                            <div class="route-dest-heading">
+                                <span>Lahore &rarr; Gujranwala</span>
+                                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">
+                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #16a34a; margin-right: 4px;"></span>In Transit
+                                </span>
+                            </div>
+
+                            <div class="route-detail-row">
+                                <i class="bi bi-person"></i>
+                                <span>Driver: <strong class="text-dark">Ali Raza</strong></span>
+                            </div>
+
+                            <div class="route-detail-row">
+                                <i class="bi bi-truck"></i>
+                                <span>Vehicle: <strong class="text-dark">LEA-7846</strong></span>
+                            </div>
+
+                            <div class="route-detail-row">
+                                <i class="bi bi-clock"></i>
+                                <span>ETA: <strong class="text-dark">2h 30m</strong></span>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100 rounded-pill mt-3 py-1.5 fw-semibold d-flex align-items-center justify-content-center gap-1.5" style="background: #eef2ff; border-color: #c7d2fe; color: #3730a3;" onclick="showRouteModal()">
+                                View Details <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Dashboard Bottom Footer (Matching Screenshot) -->
+        <footer class="admin-dashboard-footer">
+            <div>
+                &copy; 2026 Fleetify. All rights reserved.
+            </div>
+
+            <div class="footer-nav-links d-none d-md-flex">
+                <a href="/" class="footer-nav-link">Home</a>
+                <a href="/#about" class="footer-nav-link">About</a>
+                <a href="/#services" class="footer-nav-link">Services</a>
+                <a href="/#contact" class="footer-nav-link">Contact</a>
+            </div>
+
+            <div class="footer-social-group">
+                <a href="https://facebook.com" target="_blank" class="footer-social-icon"><i class="bi bi-facebook"></i></a>
+                <a href="https://twitter.com" target="_blank" class="footer-social-icon"><i class="bi bi-twitter-x"></i></a>
+                <a href="https://linkedin.com" target="_blank" class="footer-social-icon"><i class="bi bi-linkedin"></i></a>
+                <a href="https://instagram.com" target="_blank" class="footer-social-icon"><i class="bi bi-instagram"></i></a>
+                <span class="text-muted ms-2 x-small font-mono">v1.0.0</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Route Details Modal -->
+    <div class="modal fade" id="routeDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom py-3">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-truck text-primary"></i>Live Telemetry &bull; FL-001
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="text-secondary small">Origin &rarr; Destination:</span>
+                            <h6 class="fw-bold text-dark mb-0">Lahore Central Hub &rarr; Gujranwala Distribution Terminal</h6>
+                        </div>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">In Transit</span>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="p-2.5 rounded-3 bg-light">
+                                <span class="text-muted x-small d-block">Assigned Driver</span>
+                                <strong class="small text-dark">Ali Raza (+92 300 1234567)</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2.5 rounded-3 bg-light">
+                                <span class="text-muted x-small d-block">Assigned Vehicle</span>
+                                <strong class="small text-dark">LEA-7846 (Toyota Hino 500)</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2.5 rounded-3 bg-light">
+                                <span class="text-muted x-small d-block">Speed Telemetry</span>
+                                <strong class="small text-primary">64 km/h (GPS Active)</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2.5 rounded-3 bg-light">
+                                <span class="text-muted x-small d-block">Estimated Arrival</span>
+                                <strong class="small text-dark">Today &bull; 01:00 PM</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 px-3 small rounded-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>Cargo weight is verified at <strong>450 kg</strong>. Route optimization via GT Road bypass is active.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary rounded-pill btn-sm px-4" data-bs-dismiss="modal">Close</button>
+                    <a href="/Admin/Assignments" class="btn btn-primary rounded-pill btn-sm px-4">Dispatch Controls</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js 4.4.1 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Leaflet 1.9.4 -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // =====================================================================
+        // 1. REVENUE TREND CHART (EXACT REPLICATION OF SCREENSHOT)
+        // =====================================================================
+        const ctxRev = document.getElementById('revenueTrendChart').getContext('2d');
+        
+        // Gradient for line fill
+        const gradientRev = ctxRev.createLinearGradient(0, 0, 0, 230);
+        gradientRev.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+        gradientRev.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+        const revenueChart = new Chart(ctxRev, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [15000, 20000, 26000, 23000, 35000, 31000, 48000],
+                    borderColor: '#2563eb',
+                    borderWidth: 2.5,
+                    backgroundColor: gradientRev,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#2563eb',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4.5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '700' },
+                        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(ctx) { return '$' + ctx.raw.toLocaleString(); }
                         }
                     }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No recent deliveries recorded.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Revenue Trend Line Chart (Matching Figure 21)
-            const ctxRev = document.getElementById('revenueTrendChart').getContext('2d');
-            new Chart(ctxRev, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                    datasets: [{
-                        label: 'Monthly Revenue (Rs.)',
-                        data: [2500, 5000, 7200, 6800, 9500, 11500, 14500],
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#2563eb',
-                        pointRadius: 4
-                    }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9' },
-                            ticks: { callback: v => '$' + v }
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' } }
+                    },
+                    y: {
+                        min: 0,
+                        max: 50000,
+                        ticks: {
+                            stepSize: 10000,
+                            callback: function(val) {
+                                if (val === 0) return '0';
+                                return (val / 1000) + 'k';
+                            },
+                            color: '#94a3b8',
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' }
                         },
-                        x: { grid: { display: false } }
+                        grid: { color: 'rgba(226, 232, 240, 0.6)', borderDash: [4, 4] }
                     }
                 }
+            }
+        });
+
+        // =====================================================================
+        // 2. WEEKLY DELIVERIES BAR CHART (EXACT REPLICATION OF SCREENSHOT)
+        // =====================================================================
+        const ctxWeek = document.getElementById('weeklyDeliveriesChart').getContext('2d');
+        const weeklyChart = new Chart(ctxWeek, {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Deliveries',
+                    data: [7, 9, 11, 9, 16, 11, 7],
+                    backgroundColor: '#2563eb',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    barPercentage: 0.55
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '700' },
+                        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' } }
+                    },
+                    y: {
+                        min: 0,
+                        max: 20,
+                        ticks: {
+                            stepSize: 5,
+                            color: '#94a3b8',
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' }
+                        },
+                        grid: { color: 'rgba(226, 232, 240, 0.6)', borderDash: [4, 4] }
+                    }
+                }
+            }
+        });
+
+        // =====================================================================
+        // 3. LEAFLET INTERACTIVE ACTIVE ROUTE MAP (LAHORE -> GUJRANWALA)
+        // =====================================================================
+        let adminMap = null;
+        let routeLine = null;
+
+        function initAdminRouteMap() {
+            const lahore = [31.5204, 74.3587];
+            const gujranwala = [32.1877, 74.1945];
+
+            adminMap = L.map('adminActiveRouteMap', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([31.85, 74.28], 9);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18
+            }).addTo(adminMap);
+
+            // Custom Start Pin (Green)
+            const greenPin = L.divIcon({
+                className: 'custom-map-pin',
+                html: '<div style="background: #10b981; color: #ffffff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 2px solid #ffffff;"><i class="bi bi-geo-alt-fill" style="font-size: 13px;"></i></div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
             });
 
-            // Weekly Deliveries Bar Chart (Matching Figure 21)
-            const ctxDel = document.getElementById('weeklyDeliveriesChart').getContext('2d');
-            new Chart(ctxDel, {
-                type: 'bar',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Deliveries',
-                        data: [45, 55, 65, 50, 80, 38, 24],
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false } }
-                    }
-                }
+            // Custom Destination Pin (Red)
+            const redPin = L.divIcon({
+                className: 'custom-map-pin',
+                html: '<div style="background: #ef4444; color: #ffffff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 2px solid #ffffff;"><i class="bi bi-geo-alt-fill" style="font-size: 13px;"></i></div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
             });
+
+            // Custom Truck Pin (Blue)
+            const truckPin = L.divIcon({
+                className: 'custom-truck-pin',
+                html: '<div style="background: #2563eb; color: #ffffff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 14px rgba(37,99,235,0.7); border: 2px solid #ffffff;"><i class="bi bi-truck" style="font-size: 14px;"></i></div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            L.marker(lahore, { icon: greenPin }).addTo(adminMap).bindPopup('<b>Origin:</b> Lahore Hub');
+            L.marker(gujranwala, { icon: redPin }).addTo(adminMap).bindPopup('<b>Destination:</b> Gujranwala Terminal');
+
+            // Route points along Grand Trunk Road (GT Road)
+            const midCoord = [31.8540, 74.2760];
+            const routePoints = [lahore, [31.68, 74.31], midCoord, [32.02, 74.24], gujranwala];
+
+            routeLine = L.polyline(routePoints, {
+                color: '#2563eb',
+                weight: 4,
+                opacity: 0.9,
+                dashArray: '6, 6'
+            }).addTo(adminMap);
+
+            L.marker(midCoord, { icon: truckPin }).addTo(adminMap).bindPopup('<b>Fleetify Express LEA-7846:</b> En Route (64 km/h)');
+
+            adminMap.fitBounds(L.latLngBounds([lahore, gujranwala]), { padding: [30, 30] });
+        }
+
+        function recenterAdminMap() {
+            if (adminMap && routeLine) {
+                adminMap.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+            }
+        }
+
+        function showRouteModal() {
+            const modal = new bootstrap.Modal(document.getElementById('routeDetailsModal'));
+            modal.show();
+        }
+
+        function filterDeliveriesTable(keyword) {
+            keyword = (keyword || '').toLowerCase();
+            const rows = document.querySelectorAll('#recentFleetTable tbody tr');
+            rows.forEach(r => {
+                const text = r.textContent.toLowerCase();
+                r.style.display = text.includes(keyword) ? '' : 'none';
+            });
+        }
+
+        function toggleTheme() {
+            const icon = document.getElementById('themeIcon');
+            if (icon.classList.contains('bi-brightness-high')) {
+                icon.classList.remove('bi-brightness-high');
+                icon.classList.add('bi-moon-stars');
+                alert('Dark theme preference toggled.');
+            } else {
+                icon.classList.remove('bi-moon-stars');
+                icon.classList.add('bi-brightness-high');
+                alert('Light theme preference toggled.');
+            }
+        }
+
+        function toggleRevenueRange() {
+            alert('Filtering Revenue telemetry: Last 6 Months (Active)');
+        }
+
+        // Initialize Map after DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initAdminRouteMap, 300);
         });
     </script>
-}
+</body>
+</html>

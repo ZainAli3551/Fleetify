@@ -34,6 +34,7 @@ namespace Fleetify.Controllers.Api
         {
             public int ConversationId { get; set; }
             public string? Reason { get; set; }
+            public string? UserMessage { get; set; }
         }
 
         // POST: /api/support/init
@@ -136,7 +137,7 @@ namespace Fleetify.Controllers.Api
                 return BadRequest(new { success = false, message = "Invalid conversation ID." });
             }
 
-            bool ok = await _supportService.EscalateToAdminAsync(req.ConversationId, req.Reason);
+            bool ok = await _supportService.EscalateToAdminAsync(req.ConversationId, req.Reason, req.UserMessage);
             var conv = await _supportService.GetConversationDetailsAsync(req.ConversationId);
             var lastMsg = conv?.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
 

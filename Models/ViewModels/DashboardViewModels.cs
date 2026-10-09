@@ -17,6 +17,7 @@ namespace Fleetify.Models.ViewModels
         public List<MaintenanceAlert> ActiveMaintenanceAlerts { get; set; } = new();
         public List<Driver> Drivers { get; set; } = new();
         public List<Vehicle> Vehicles { get; set; } = new();
+        public List<User> UsersList { get; set; } = new();
 
         // Chart data points
         public List<string> MonthlyLabels { get; set; } = new() { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul" };

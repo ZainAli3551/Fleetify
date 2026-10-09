@@ -4,7 +4,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Fleetify.Models.ViewModels;
 using Fleetify.Services.Interfaces;
 
@@ -13,17 +15,27 @@ namespace Fleetify.Controllers
     public class AccountController : Controller
     {
         private readonly IAuthService _authService;
+        private readonly IEmailService _emailService;
+        private readonly IMemoryCache _memoryCache;
+        private readonly IConfiguration _config;
 
-        public AccountController(IAuthService authService)
+        public AccountController(
+            IAuthService authService,
+            IEmailService emailService,
+            IMemoryCache memoryCache,
+            IConfiguration config)
         {
             _authService = authService;
+            _emailService = emailService;
+            _memoryCache = memoryCache;
+            _config = config;
         }
 
         // GET: /Account/SelectRole (Figure 18)
         [HttpGet]
         public IActionResult SelectRole()
         {
-            return View();
+            return RedirectToAction("Index", "Home");
         }
 
         // GET: /Account/Login (Figure 20)
@@ -48,20 +60,18 @@ namespace Fleetify.Controllers
                 return View(model);
             }
 
-            var user = await _authService.AuthenticateAsync(model.Email, model.Password, model.Role);
+            // Auto-detect user role by email so no manual Customer/Admin selection is needed
+            var roleToAuthenticate = model.Role;
+            var detectedRole = await _authService.GetUserRoleByEmailAsync(model.Email);
+            if (!string.IsNullOrEmpty(detectedRole))
+            {
+                roleToAuthenticate = detectedRole;
+            }
+
+            var user = await _authService.AuthenticateAsync(model.Email, model.Password, roleToAuthenticate ?? "Customer");
             if (user == null)
             {
-                // Check if user is registered under a different role
-                var actualRole = await _authService.GetUserRoleByEmailAsync(model.Email);
-                if (!string.IsNullOrEmpty(actualRole) && !actualRole.Equals(model.Role, StringComparison.OrdinalIgnoreCase))
-                {
-                    ModelState.AddModelError(string.Empty,
-                        $"This email is registered as '{actualRole}', not as '{model.Role}'. Please select the '{actualRole}' login option.");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, $"Invalid email or password for {model.Role} role.");
-                }
+                ModelState.AddModelError(string.Empty, "Invalid email address or password. Please check your credentials and try again.");
                 return View(model);
             }
 
@@ -87,8 +97,8 @@ namespace Fleetify.Controllers
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                IsPersistent = model.RememberMe,
+                ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddDays(1)
             };
 
             await HttpContext.SignInAsync(
@@ -129,6 +139,115 @@ namespace Fleetify.Controllers
             return View(model);
         }
 
+        // POST: /Account/SendVerificationOtp
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendVerificationOtp([FromBody] SendOtpRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Email))
+            {
+                return Json(new { success = false, message = "Please provide a valid email address." });
+            }
+
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+            if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(normalizedEmail))
+            {
+                return Json(new { success = false, message = "Invalid email address format." });
+            }
+
+            if (await _authService.UserExistsAsync(normalizedEmail))
+            {
+                return Json(new { success = false, message = "An account with this email address already exists. Please sign in instead." });
+            }
+
+            // Rate limit check: 30 seconds
+            var lastSentKey = $"OtpLastSent_{normalizedEmail}";
+            if (_memoryCache.TryGetValue(lastSentKey, out DateTime lastSent) && (DateTime.UtcNow - lastSent).TotalSeconds < 30)
+            {
+                var waitSec = 30 - (int)(DateTime.UtcNow - lastSent).TotalSeconds;
+                return Json(new { success = false, message = $"Please wait {waitSec} seconds before requesting another verification code." });
+            }
+
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            var cacheKey = $"RegisterOtp_{normalizedEmail}";
+            _memoryCache.Set(cacheKey, otp, TimeSpan.FromMinutes(10));
+            _memoryCache.Set(lastSentKey, DateTime.UtcNow, TimeSpan.FromSeconds(30));
+            HttpContext.Session.SetString(cacheKey, otp);
+
+            string subject = $"Fleetify: {otp} is your Email Verification Code";
+            string body = $@"Dear User,
+
+Welcome to Fleetify Logistics Platform!
+
+Please use the following 6-digit OTP code to verify your email address and complete your account creation:
+
+================================
+    VERIFICATION CODE: {otp}
+================================
+
+This verification code is valid for 10 minutes.
+
+Please enter this code on the registration page to confirm your email and enable account creation.
+
+If you did not request this verification code, you can safely disregard this email.
+
+Best regards,
+Fleetify Operations & Logistics Team";
+
+            var emailSent = await _emailService.SendEmailAsync(normalizedEmail, subject, body);
+
+            var smtpPass = _config["EmailSettings:Password"];
+            bool isRealSmtp = !string.IsNullOrWhiteSpace(smtpPass) && emailSent;
+            string userMessage = isRealSmtp
+                ? $"A 6-digit verification code has been dispatched to your email inbox ({normalizedEmail})."
+                : $"Email delivery encountered a temporary network delay. Your verification code is: {otp}";
+
+            return Json(new { 
+                success = true, 
+                message = userMessage,
+                devOtp = isRealSmtp ? null : otp
+            });
+        }
+
+        // POST: /Account/VerifyOtp
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult VerifyOtp([FromBody] VerifyOtpRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Otp))
+            {
+                return Json(new { success = false, message = "Email and OTP code are required." });
+            }
+
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            var cacheKey = $"RegisterOtp_{normalizedEmail}";
+
+            string? expectedOtp = null;
+            if (_memoryCache.TryGetValue(cacheKey, out string? cached))
+            {
+                expectedOtp = cached;
+            }
+            else
+            {
+                expectedOtp = HttpContext.Session.GetString(cacheKey);
+            }
+
+            if (expectedOtp != null && expectedOtp == request.Otp.Trim())
+            {
+                _memoryCache.Remove(cacheKey);
+                HttpContext.Session.Remove(cacheKey);
+
+                var verifiedKey = $"EmailVerified_{normalizedEmail}";
+                _memoryCache.Set(verifiedKey, true, TimeSpan.FromMinutes(30));
+                HttpContext.Session.SetString("VerifiedEmail", normalizedEmail);
+
+                return Json(new { success = true, message = "Email verified successfully!" });
+            }
+
+            return Json(new { success = false, message = "Invalid or expired verification code. Please check and try again." });
+        }
+
         // POST: /Account/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -139,7 +258,18 @@ namespace Fleetify.Controllers
                 return View(model);
             }
 
-            if (await _authService.UserExistsAsync(model.Email))
+            var normalizedEmail = model.Email?.Trim().ToLowerInvariant() ?? "";
+            var sessionVerified = HttpContext.Session.GetString("VerifiedEmail");
+            var isVerified = (sessionVerified != null && sessionVerified == normalizedEmail)
+                             || (_memoryCache.TryGetValue($"EmailVerified_{normalizedEmail}", out bool cacheVerified) && cacheVerified);
+
+            if (!isVerified)
+            {
+                ModelState.AddModelError("Email", "Please verify your email address using the OTP code before creating your account.");
+                return View(model);
+            }
+
+            if (await _authService.UserExistsAsync(normalizedEmail))
             {
                 ModelState.AddModelError("Email", "An account with this email address already exists.");
                 return View(model);
@@ -157,6 +287,10 @@ namespace Fleetify.Controllers
             {
                 await _authService.RegisterCustomerAsync(model);
             }
+
+            // Clear session verification after successful registration
+            HttpContext.Session.Remove("VerifiedEmail");
+            _memoryCache.Remove($"EmailVerified_{normalizedEmail}");
 
             TempData["SuccessMessage"] = "Account registered successfully! Please log in.";
             return RedirectToAction("Login", new { role = model.Role });

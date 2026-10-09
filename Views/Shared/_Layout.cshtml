@@ -5,26 +5,36 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Fleetify</title>
-    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <!-- Google Fonts: Inter, Manrope & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="~/images/favicon.png" />
+    <link rel="icon" type="image/png" href="~/images/favicon.png?v=20261009" asp-append-version="true" />
     <!-- Site CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="bg-light-blue font-sans">
+@{
+    var isAuthPage = ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && 
+                     (ViewContext.RouteData.Values["action"]?.ToString() == "Login" || 
+                      ViewContext.RouteData.Values["action"]?.ToString() == "Register");
+}
+<body class="font-sans @(isAuthPage ? "auth-body-page p-0 m-0" : "")">
+    @if (!isAuthPage)
+    {
     <header class="sticky-top">
         <nav class="navbar navbar-expand-lg navbar-glass py-2.5">
             <div class="container-fluid px-lg-5">
-                <a class="navbar-brand d-flex align-items-center py-1" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/fleetify-logo.png" alt="Fleetify" class="brand-logo" />
+                <a class="navbar-brand d-flex align-items-center gap-2 py-1" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/fleetify-brand-logo-transparent.png?v=20261009" asp-append-version="true" alt="Fleetify" class="brand-logo" style="height: 42px; width: auto; object-fit: contain;" />
+                    <span class="badge rounded-pill d-none d-sm-inline-block px-2.5 py-1 font-mono x-small" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
+                        Enterprise
+                    </span>
                 </a>
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -70,7 +80,7 @@
 
                         <div class="d-flex align-items-center gap-3 ms-auto">
                             <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
-                                <i class="bi bi-person-badge me-1 text-primary"></i>@role
+                                <i class="bi bi-person-badge me-1 text-teal"></i>@role
                             </span>
                             <span class="text-secondary small fw-medium">Welcome, <strong class="text-dark">@User.Identity.Name</strong></span>
                             <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
@@ -85,27 +95,29 @@
                     {
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 gap-1">
                             <li class="nav-item">
-                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#services">Services</a>
+                                <a class="nav-link px-3 py-2 text-dark fw-semibold" href="/#home">Home</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#rate-calculator">Rate Calculator</a>
+                                <a class="nav-link px-3 py-2 text-dark fw-semibold" href="/#about">About</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#hubs">Network Hubs</a>
+                                <a class="nav-link px-3 py-2 text-dark fw-semibold" href="/#services">Services</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link px-3 py-2 text-secondary fw-semibold" href="/Account/SelectRole#track">Track Shipment</a>
+                                <a class="nav-link px-3 py-2 text-dark fw-semibold" href="/#features">Features</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-3 py-2 text-dark fw-semibold" href="/#contact">Contact</a>
                             </li>
                         </ul>
 
                         <div class="d-flex align-items-center gap-2 ms-auto">
-                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-2 fw-bold d-flex align-items-center gap-1.5">
-                                <i class="bi bi-box-arrow-in-right"></i>
-                                <span>Sign In</span>
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-sm rounded-pill px-4 py-2 fw-semibold">
+                                <span>Login</span>
                             </a>
-                            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-sm rounded-pill px-4 py-2 text-white fw-bold shadow-sm d-flex align-items-center gap-1.5">
-                                <i class="bi bi-person-plus-fill"></i>
-                                <span>Sign Up</span>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-sm rounded-pill px-3.5 py-2 fw-bold text-white shadow-xs d-flex align-items-center gap-1.5">
+                                <span>Get Started</span>
+                                <i class="bi bi-arrow-right small"></i>
                             </a>
                         </div>
                     }
@@ -113,35 +125,156 @@
             </div>
         </nav>
     </header>
+    }
 
     <!-- Alerts / Flash Messages -->
-    <div class="container-fluid px-lg-5 pt-3">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-xs" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-xs" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-        @if (TempData["InfoMessage"] != null)
-        {
-            <div class="alert alert-info alert-dismissible fade show rounded-3 shadow-xs" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i>@TempData["InfoMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-    </div>
+    @if (!isAuthPage && (TempData["SuccessMessage"] != null || TempData["ErrorMessage"] != null || TempData["InfoMessage"] != null))
+    {
+        <div class="container-fluid px-lg-5 pt-3">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-xs" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-xs" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show rounded-3 shadow-xs" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>@TempData["InfoMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+        </div>
+    }
 
-    <main role="main" class="pb-5">
+    <main role="main" class="@(isAuthPage ? "p-0 flex-grow-1" : "pb-5")">
         @RenderBody()
     </main>
+
+    @if (!isAuthPage)
+    {
+    <!-- Professional Modern Logistics Footer -->
+    <footer class="site-footer bg-dark-slate text-light border-top border-secondary border-opacity-25 pt-5 pb-4 mt-auto">
+        <div class="container-fluid px-lg-5">
+            <div class="row g-4 mb-5">
+                <!-- Col 1: Fleetify Branding & Tagline -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetify" style="height: 44px; width: auto; border-radius: 8px; padding: 4px 10px; background: #ffffff;" />
+                    </div>
+                    <h6 class="text-white-50 fw-semibold mb-2">Fleet Management System</h6>
+                    <p class="text-info fw-bold mb-3 fs-6">
+                        Smarter Fleet. Safer Roads. Better Deliveries.
+                    </p>
+                    <p class="text-white-50 small mb-3 lh-base pe-lg-4">
+                        Pakistan’s premier intelligent logistics network. Powering intercity cargo transit, real-time GPS telemetry, and automated delivery dispatch.
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a href="https://linkedin.com" target="_blank" class="footer-social-btn" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                        <a href="https://twitter.com" target="_blank" class="footer-social-btn" title="Twitter / X"><i class="bi bi-twitter-x"></i></a>
+                        <a href="https://facebook.com" target="_blank" class="footer-social-btn" title="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="https://youtube.com" target="_blank" class="footer-social-btn" title="YouTube"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+
+                <!-- Col 2: Navigation Links -->
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="fw-bold text-white text-uppercase tracking-wider small mb-3">
+                        <i class="bi bi-compass text-primary me-1.5"></i>Quick Links
+                    </h6>
+                    <ul class="list-unstyled footer-links small mb-0">
+                        <li class="mb-2"><a href="/#home" class="text-white-50 text-decoration-none">Home</a></li>
+                        <li class="mb-2"><a href="/#about" class="text-white-50 text-decoration-none">About</a></li>
+                        <li class="mb-2"><a href="/#services" class="text-white-50 text-decoration-none">Services</a></li>
+                        <li class="mb-2"><a href="/#features" class="text-white-50 text-decoration-none">Features</a></li>
+                        <li class="mb-2"><a href="/#contact" class="text-white-50 text-decoration-none">Contact</a></li>
+                        <li class="mb-0"><a asp-controller="Account" asp-action="Login" class="text-white-50 text-decoration-none">Login</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Platform Portals -->
+                <div class="col-lg-3 col-md-6 col-6">
+                    <h6 class="fw-bold text-white text-uppercase tracking-wider small mb-3">
+                        <i class="bi bi-layers-fill text-info me-1.5"></i>Platform Portals
+                    </h6>
+                    <ul class="list-unstyled footer-links small mb-0">
+                        <li class="mb-2">
+                            <a asp-controller="Account" asp-action="Login" asp-route-role="Customer" class="text-white-50 text-decoration-none d-flex align-items-center gap-1.5">
+                                <i class="bi bi-box-seam text-success"></i>Customer Portal
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a asp-controller="Account" asp-action="Login" asp-route-role="Driver" class="text-white-50 text-decoration-none d-flex align-items-center gap-1.5">
+                                <i class="bi bi-truck text-warning"></i>Driver Route App
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a asp-controller="Account" asp-action="Login" asp-route-role="Admin" class="text-white-50 text-decoration-none d-flex align-items-center gap-1.5">
+                                <i class="bi bi-shield-lock text-primary"></i>Admin Console
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a asp-controller="Account" asp-action="Register" class="text-white-50 text-decoration-none d-flex align-items-center gap-1.5">
+                                <i class="bi bi-person-plus text-info"></i>Get Started (Register)
+                            </a>
+                        </li>
+                        <li class="mb-0">
+                            <a href="javascript:void(0)" onclick="document.getElementById('supportChatTrigger')?.click()" class="text-white-50 text-decoration-none d-flex align-items-center gap-1.5">
+                                <i class="bi bi-robot text-danger"></i>24/7 AI Helpdesk
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Contact & Operations -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="fw-bold text-white text-uppercase tracking-wider small mb-3">
+                        <i class="bi bi-telephone-inbound-fill text-warning me-1.5"></i>24/7 Support
+                    </h6>
+                    <div class="footer-contact-item mb-2.5 small">
+                        <span class="text-white-50 d-block x-small">Hotline:</span>
+                        <a href="tel:+924211135338" class="text-white fw-bold text-decoration-none font-mono">
+                            <i class="bi bi-telephone text-primary me-1"></i>+92 (42) 111-FLEET (35338)
+                        </a>
+                    </div>
+                    <div class="footer-contact-item mb-2.5 small">
+                        <span class="text-white-50 d-block x-small">Email:</span>
+                        <a href="mailto:fypfleetify@gmail.com" class="text-white-50 text-decoration-none font-mono">
+                            <i class="bi bi-envelope text-warning me-1"></i>fypfleetify@gmail.com
+                        </a>
+                    </div>
+                    <div class="footer-contact-item small">
+                        <span class="text-white-50 d-block x-small">Headquarters:</span>
+                        <span class="text-white-50">
+                            <i class="bi bi-geo-alt text-danger me-1"></i>Fleetify Logistics Towers, MM Alam Road, Gulberg III, Lahore
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Bar -->
+            <div class="pt-4 border-top border-secondary border-opacity-25 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-white-50 small">
+                <div>
+                    &copy; 2026 Fleetify. All Rights Reserved.
+                </div>
+                <div class="d-flex flex-wrap gap-3 x-small">
+                    <a href="/#about" class="text-white-50 text-decoration-none">Privacy Policy</a>
+                    <span>&bull;</span>
+                    <a href="/#services" class="text-white-50 text-decoration-none">Terms of Service</a>
+                    <span>&bull;</span>
+                    <a href="/#contact" class="text-white-50 text-decoration-none">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
 
     <!-- Floating AI & Live Support Chatbot Widget -->
@@ -154,7 +287,7 @@
         <!-- Header -->
         <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
-                <img src="~/images/fleetify-logo-white-bg.png" alt="Fleetify" style="height: 28px; border-radius: 4px;" />
+                <img src="~/images/fleetify-brand-logo.png?v=20261009" asp-append-version="true" alt="Fleetify" style="height: 32px; width: auto; border-radius: 6px; padding: 3px 8px; background: #ffffff;" />
                 <div>
                     <h6 class="mb-0 fw-bold">Fleetify Support</h6>
                     <small id="supportChatStatus" class="badge bg-info text-white rounded-pill px-2 py-0" style="font-size: 0.7rem;">
@@ -163,8 +296,8 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-1">
-                <button id="supportChatEscalate" type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-0" style="font-size: 0.75rem;" title="Talk to Human Admin">
-                    <i class="bi bi-person-fill me-1"></i>Talk to Admin
+                <button id="supportChatEscalate" type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-0" style="font-size: 0.75rem;" title="Contact Admin">
+                    <i class="bi bi-person-fill me-1"></i>Contact Admin
                 </button>
                 <button id="supportChatClose" type="button" class="btn btn-sm text-white" aria-label="Close">
                     <i class="bi bi-x-lg fs-6"></i>
@@ -177,7 +310,7 @@
             <span class="support-quick-chip" data-query="Track delivery"><i class="bi bi-box-seam me-1"></i>Track</span>
             <span class="support-quick-chip" data-query="How is cost calculated?"><i class="bi bi-calculator me-1"></i>Pricing</span>
             <span class="support-quick-chip" data-query="What are vehicle capacities?"><i class="bi bi-truck me-1"></i>Fleet</span>
-            <span class="support-quick-chip" data-query="Talk to Admin"><i class="bi bi-headset me-1"></i>Human Help</span>
+            <span class="support-quick-chip" data-query="Contact Admin"><i class="bi bi-headset me-1"></i>Contact Admin</span>
         </div>
 
         <!-- Messages Container -->
@@ -192,7 +325,7 @@
             </button>
         </div>
     </div>
-
+    }
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

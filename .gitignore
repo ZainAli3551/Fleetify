@@ -29,3 +29,5 @@ $RECYCLE.BIN/
 ## Local secret configs
 appsettings.local.json
 appsettings.*.local.json
+cookies.txt
+scratch/

@@ -21,12 +21,13 @@
     </div>
 
     <!-- Secondary Navigation Menu -->
-    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
-        <a asp-action="Index" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Overview</a>
-        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
-        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
-        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
-        <a asp-action="Maintenance" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">AI Maintenance</a>
+    <div class="admin-subnav d-flex gap-2 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="text-secondary text-decoration-none pb-2 px-3 hover-primary">Overview</a>
+        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-3 hover-primary">Drivers</a>
+        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-3 hover-primary">Vehicles</a>
+        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-3 hover-primary">Assignments</a>
+        <a asp-action="Maintenance" class="fw-semibold text-primary text-decoration-none border-primary pb-2 px-3">AI Maintenance</a>
+        <a asp-action="Support" class="text-secondary text-decoration-none pb-2 px-3 hover-primary">Support Desk</a>
     </div>
 
     <!-- Overview Stats -->
@@ -46,7 +47,7 @@
         <div class="col-sm-6 col-md-3">
             <div class="card border-0 shadow-xs rounded-4 p-3 bg-white">
                 <span class="text-secondary small">Critical Overhauls</span>
-                <h3 class="fw-bold text-danger mt-1 mb-0">@Model.Count(a => a.AlertType == "Critical Maintenance" && a.AlertStatus != "Resolved")</h3>
+                <h3 class="fw-bold text-danger mt-1 mb-0">@Model.Count(a => (a.AlertType == "Critical Maintenance" || a.AlertType == "Full Vehicle Service Due") && a.AlertStatus != "Resolved")</h3>
             </div>
         </div>
         <div class="col-sm-6 col-md-3">
@@ -85,10 +86,16 @@
                                     <div class="text-muted small">@alert.Vehicle?.Model (@alert.Vehicle?.VehicleType)</div>
                                 </td>
                                 <td>
-                                    @if (alert.AlertType == "Critical Maintenance")
+                                    @if (alert.AlertType == "Critical Maintenance" || alert.AlertType == "Full Vehicle Service Due")
                                     {
                                         <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 fw-bold">
-                                            <i class="bi bi-exclamation-octagon-fill me-1"></i>Critical
+                                            <i class="bi bi-exclamation-octagon-fill me-1"></i>Full Service Due
+                                        </span>
+                                    }
+                                    else if (alert.AlertType == "Upcoming Oil Change" || alert.AlertType == "Oil Change Due")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1 fw-bold">
+                                            <i class="bi bi-droplet-fill me-1"></i>Oil Change Due
                                         </span>
                                     }
                                     else if (alert.AlertType == "Service Due")

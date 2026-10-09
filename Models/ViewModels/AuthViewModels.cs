@@ -12,6 +12,8 @@ namespace Fleetify.Models.ViewModels
 
         public string Role { get; set; } = "Customer"; // Customer, Admin, Driver
 
+        public bool RememberMe { get; set; } = false;
+
         public string? ReturnUrl { get; set; }
     }
 
@@ -26,13 +28,15 @@ namespace Fleetify.Models.ViewModels
         [Required(ErrorMessage = "Password is required"), DataType(DataType.Password), MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Phone Number is required"), Phone]
+        [Required(ErrorMessage = "Phone Number is required")]
+        [RegularExpression(@"^[0-9]{10,11}$", ErrorMessage = "Phone number must be at most 11 digits (e.g., 03001234567)")]
+        [MaxLength(11, ErrorMessage = "Phone number cannot exceed 11 digits")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Required]
         public string Role { get; set; } = "Customer"; // Customer, Admin, Driver
 
-        // Optional address for Customer
+        // Optional address for Customer (defaults if not provided)
         public string? Address { get; set; }
 
         // Optional license for Driver
@@ -42,5 +46,20 @@ namespace Fleetify.Models.ViewModels
         public string DriverType { get; set; } = "Company"; // Company, Backup
         public string? BackupContactNotes { get; set; }
         public string? VehicleOwned { get; set; }
+    }
+
+    public class SendOtpRequest
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class VerifyOtpRequest
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, StringLength(6, MinimumLength = 6)]
+        public string Otp { get; set; } = string.Empty;
     }
 }
