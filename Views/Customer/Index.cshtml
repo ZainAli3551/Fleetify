@@ -390,7 +390,7 @@
                                         <i class="bi bi-person-badge"></i>
                                         <span>Sender Information</span>
                                     </div>
-                                    <div class="row g-2">
+                                    <div class="row g-3">
                                         <div class="col-lg-4 col-sm-6 col-12">
                                             <label class="fly-label">Full Name <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
@@ -421,7 +421,7 @@
                                         <i class="bi bi-person-plus"></i>
                                         <span>Receiver Information</span>
                                     </div>
-                                    <div class="row g-2">
+                                    <div class="row g-3">
                                         <div class="col-lg-4 col-sm-6 col-12">
                                             <label class="fly-label">Full Name <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
@@ -452,8 +452,8 @@
                                         <i class="bi bi-box-seam"></i>
                                         <span>Parcel Details &amp; Quantity Specification</span>
                                     </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-xl-3 col-sm-6 col-12">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6 col-12">
                                             <label class="fly-label">Package Category <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-box-seam fly-input-icon"></i>
@@ -467,35 +467,35 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-sm-6 col-12">
+                                        <div class="col-md-6 col-12">
+                                            <label class="fly-label">Description / Contents Name <span class="fly-req">*</span></label>
+                                            <div class="fly-input-box">
+                                                <i class="bi bi-file-text fly-input-icon"></i>
+                                                <input type="text" name="NewDelivery.PackageName" id="inputPackageDesc" class="fly-control" placeholder="Mobile / Electronics and accessories" value="Electronics and accessories" required />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-4 col-sm-6 col-12">
                                             <label class="fly-label">Single Item Weight (kg) <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-speedometer2 fly-input-icon"></i>
                                                 <input type="number" step="0.1" min="0" name="NewDelivery.SingleItemWeight" id="inputSingleWeight" class="fly-control" value="0" placeholder="0" oninput="onParcelParamsChanged()" required />
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-sm-6 col-12">
-                                            <label class="fly-label">Single Dimensions (L × W × H) <span class="fly-req">*</span></label>
+                                        <div class="col-md-4 col-sm-6 col-12">
+                                            <label class="fly-label">Dimensions (L × W × H) <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-box fly-input-icon"></i>
                                                 <input type="text" id="inputSingleDimensions" name="SingleDimensionsInput" class="fly-control" value="40 × 30 × 20" placeholder="e.g. 40 × 30 × 20 or 40*211*2" oninput="onParcelParamsChanged()" required />
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-sm-6 col-12">
+                                        <div class="col-md-4 col-sm-12 col-12">
                                             <label class="fly-label">Quantity (Items) <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-stack fly-input-icon"></i>
                                                 <input type="number" min="1" step="1" name="NewDelivery.Quantity" id="inputQuantity" class="fly-control" value="1" placeholder="1" oninput="onParcelParamsChanged()" required />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-md-12">
-                                            <label class="fly-label">Description / Contents Name <span class="fly-req">*</span></label>
-                                            <div class="fly-input-box">
-                                                <i class="bi bi-file-text fly-input-icon"></i>
-                                                <input type="text" name="NewDelivery.PackageName" id="inputPackageDesc" class="fly-control" placeholder="Mobile / Electronics and accessories" value="Electronics and accessories" required />
                                             </div>
                                         </div>
                                     </div>
@@ -560,9 +560,9 @@
                                         <i class="bi bi-lightning-charge"></i>
                                         <span>Delivery Type &amp; Priority Speed</span>
                                     </div>
-                                    <div class="row g-2">
+                                    <div class="row g-3">
                                         <div class="col-md-4 col-sm-6 col-12">
-                                            <div class="fly-speed-card active" id="cardSpeedNormal" onclick="selectDeliverySpeed('Normal')">
+                                            <div class="fly-speed-card active h-100" id="cardSpeedNormal" onclick="selectDeliverySpeed('Normal')">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <span class="fly-speed-title"><i class="bi bi-clock me-1 text-primary"></i>Normal</span>
                                                     <span class="fly-speed-badge badge-normal">1.0x Base</span>
@@ -573,7 +573,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4 col-sm-6 col-12">
-                                            <div class="fly-speed-card" id="cardSpeedFast" onclick="selectDeliverySpeed('Fast')">
+                                            <div class="fly-speed-card h-100" id="cardSpeedFast" onclick="selectDeliverySpeed('Fast')">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <span class="fly-speed-title"><i class="bi bi-lightning-fill me-1 text-warning"></i>Express</span>
                                                     <span class="fly-speed-badge badge-fast">1.75x Rate</span>
@@ -583,8 +583,8 @@
                                                 <div class="fly-speed-radio"><i class="bi bi-check2"></i></div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 col-sm-12 col-12">
-                                            <div class="fly-speed-card" id="cardSpeedExpress" onclick="selectDeliverySpeed('Express')">
+                                        <div class="col-md-4 col-12">
+                                            <div class="fly-speed-card h-100" id="cardSpeedExpress" onclick="selectDeliverySpeed('Express')">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <span class="fly-speed-title"><i class="bi bi-rocket-takeoff-fill me-1 text-danger"></i>Urgent</span>
                                                     <span class="fly-speed-badge badge-express">2.5x Rate</span>
@@ -606,8 +606,8 @@
 
                                     <div class="row g-3">
                                         <!-- LEFT: ORIGIN / PICKUP -->
-                                        <div class="col-xl-6 col-12">
-                                            <div class="p-3 rounded-4 fly-service-box-pickup border">
+                                        <div class="col-xl-6 col-12 d-flex flex-column">
+                                            <div class="p-3 rounded-4 fly-service-box-pickup border h-100 d-flex flex-column justify-content-between">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <span class="small fw-bold text-dark"><i class="bi bi-box-arrow-up text-success me-1"></i>Pickup Service</span>
                                                     <span class="badge bg-success-subtle text-success small" id="badgePickupMode">Home Pickup</span>
@@ -684,8 +684,8 @@
                                         </div>
 
                                         <!-- RIGHT: DESTINATION / DELIVERY -->
-                                        <div class="col-xl-6 col-12">
-                                            <div class="p-3 rounded-4 fly-service-box-delivery border">
+                                        <div class="col-xl-6 col-12 d-flex flex-column">
+                                            <div class="p-3 rounded-4 fly-service-box-delivery border h-100 d-flex flex-column justify-content-between">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <span class="small fw-bold text-dark"><i class="bi bi-box-arrow-in-down text-danger me-1"></i>Delivery Service</span>
                                                     <span class="badge bg-danger-subtle text-danger small" id="badgeDeliveryMode">Home Delivery</span>
@@ -747,7 +747,7 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- CONDITIONAL: Warehouse Pickup Hub Display (Only appears when Warehouse Pickup selected) -->
+                                                <!-- CONDITIONAL: Warehouse Drop-off Hub Display (Only appears when Warehouse Pickup selected) -->
                                                 <div id="dropoffWarehouseFieldGroup" class="fly-conditional-box d-none">
                                                     <label class="fly-label"><i class="bi bi-building text-danger me-1"></i>Destination Warehouse Pickup Hub <span class="fly-req">*</span></label>
                                                     <div class="fly-input-box">
@@ -782,7 +782,7 @@
                     </div>
 
                     <!-- RIGHT COLUMN: SUMMARY, LIVE MAP & SAFETY -->
-                    <div class="d-flex flex-column gap-3">
+                    <div class="d-flex flex-column gap-4">
 
                         <!-- CARD 1: DELIVERY SUMMARY -->
                         <div class="fly-card p-4">
