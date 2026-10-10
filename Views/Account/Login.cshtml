@@ -364,52 +364,63 @@
         color: #065f46;
     }
 
-    /* Segmented Role / Category Tabs */
-    .role-category-bar {
-        background: #f1f5f9;
-        border: 1px solid #e2e8f0;
-        border-radius: 9999px;
-        padding: 4px;
-        display: flex;
-        gap: 4px;
-        margin-bottom: 1.5rem;
+    /* Dedicated Admin Portal Switcher Link at Bottom */
+    .admin-link-card {
+        margin-top: 1.5rem;
+        padding-top: 1.15rem;
+        border-top: 1px dashed #e2e8f0;
+        text-align: center;
     }
 
-    .role-category-tab {
-        flex: 1;
-        border-radius: 9999px;
-        padding: 8px 10px;
+    .admin-portal-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
         font-size: 0.85rem;
         font-weight: 600;
-        color: #64748b;
-        border: none;
-        background: transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.45rem;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        color: #1e293b;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 9999px;
+        padding: 7px 16px;
         text-decoration: none;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
-    .role-category-tab:hover {
-        color: #0f172a;
-        background: rgba(255, 255, 255, 0.6);
+    .admin-portal-link:hover {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+        transform: translateY(-1.5px);
+        box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.22);
     }
 
-    .role-category-tab.active {
-        background: #ffffff;
+    .admin-portal-link:hover i {
+        color: #f59e0b !important;
+    }
+
+    .customer-portal-return-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.85rem;
+        font-weight: 600;
         color: #1d6ae5;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 9999px;
+        padding: 7px 16px;
+        text-decoration: none;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .role-category-tab.active[data-role="Admin"] {
-        color: #0f172a;
-    }
-
-    .role-category-tab.active[data-role="Driver"] {
-        color: #d97706;
+    .customer-portal-return-link:hover {
+        background: #1d6ae5;
+        color: #ffffff;
+        border-color: #1d6ae5;
+        transform: translateY(-1.5px);
+        box-shadow: 0 6px 16px -2px rgba(29, 106, 229, 0.28);
     }
 
     /* Responsive Breakdown for Tablets and Mobile */
@@ -526,42 +537,33 @@
                 <span class="theme-icon-indicator" title="Theme Mode">
                     <i class="bi bi-brightness-high"></i>
                 </span>
-                <a asp-action="Register" class="auth-switch-link">Sign Up</a>
+                @if (Model.Role != "Admin")
+                {
+                    <a asp-action="Register" class="auth-switch-link">Sign Up</a>
+                }
+                else
+                {
+                    <a asp-action="Login" asp-route-role="Customer" class="auth-switch-link">User Login</a>
+                }
             </div>
 
             <!-- Form Content -->
             <div class="my-auto">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h2 class="form-main-heading mb-0">Sign In</h2>
-                    <span id="rolePortalBadge" class="badge rounded-pill bg-primary-subtle text-primary px-3 py-1.5 fw-semibold small">
-                        @(Model.Role == "Admin" ? "Admin Console" : (Model.Role == "Driver" ? "Driver Portal" : "Customer Portal"))
-                    </span>
-                </div>
-
-                <!-- Category Switcher Segment -->
-                <div class="role-category-bar" role="tablist">
-                    <button type="button" 
-                            class="role-category-tab @(Model.Role != "Admin" && Model.Role != "Driver" ? "active" : "")" 
-                            data-role="Customer" 
-                            onclick="switchLoginRole('Customer', this)">
-                        <i class="bi bi-person-fill"></i>
-                        <span>Customer</span>
-                    </button>
-                    <button type="button" 
-                            class="role-category-tab @(Model.Role == "Driver" ? "active" : "")" 
-                            data-role="Driver" 
-                            onclick="switchLoginRole('Driver', this)">
-                        <i class="bi bi-truck"></i>
-                        <span>Driver</span>
-                    </button>
-                    <button type="button" 
-                            class="role-category-tab @(Model.Role == "Admin" ? "active" : "")" 
-                            data-role="Admin" 
-                            onclick="switchLoginRole('Admin', this)">
-                        <i class="bi bi-shield-lock-fill"></i>
-                        <span>Admin</span>
-                    </button>
-                </div>
+                @if (Model.Role == "Admin")
+                {
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h2 class="form-main-heading mb-0">Admin Sign In</h2>
+                        <span class="badge rounded-pill bg-dark text-white px-3 py-1.5 fw-semibold small shadow-sm">
+                            <i class="bi bi-shield-lock-fill text-warning me-1"></i>Operations Console
+                        </span>
+                    </div>
+                    <p class="text-secondary small mb-4">Authorized operations management & dispatcher access.</p>
+                }
+                else
+                {
+                    <h2 class="form-main-heading mb-1">Sign In</h2>
+                    <p class="text-secondary small mb-4">Welcome back! Please enter your account credentials to continue.</p>
+                }
 
                 <!-- Flash Alert Messages -->
                 @if (TempData["SuccessMessage"] != null || isVerifiedParam)
@@ -586,7 +588,7 @@
                 <!-- Sign In Form (Browser Autocomplete / Saved Password Suggestions Disabled) -->
                 <form asp-action="Login" method="post" id="fleetLoginForm" onsubmit="handleLoginSubmit(event)" novalidate autocomplete="off">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="Role" id="selectedLoginRole" value="@(string.IsNullOrEmpty(Model.Role) ? "Customer" : Model.Role)" />
+                    <input type="hidden" asp-for="Role" id="selectedLoginRole" value="@(Model.Role == "Admin" ? "Admin" : "Customer")" />
                     <input type="hidden" asp-for="ReturnUrl" />
                     <input type="hidden" asp-for="RememberMe" id="hiddenRememberMe" value="true" />
 
@@ -604,7 +606,7 @@
                                    id="inputEmail" 
                                    type="text" 
                                    class="pill-input-control" 
-                                   placeholder="Email or Username" 
+                                   placeholder="@(Model.Role == "Admin" ? "Admin Email or Username" : "Email or Username")" 
                                    autocomplete="username" 
                                    required 
                                    oninput="validateEmailField(this)" />
@@ -643,10 +645,32 @@
                     <!-- Prominent Pill Sign In Button -->
                     <button type="submit" id="btnSignInSubmit" class="btn-pill-submit">
                         <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        <span id="btnSignInLabel">Sign In</span>
+                        <span id="btnSignInLabel">@(Model.Role == "Admin" ? "Sign In to Admin Console" : "Sign In")</span>
                         <i class="bi bi-arrow-right" id="btnArrowIcon"></i>
                     </button>
                 </form>
+
+                <!-- Dedicated Sleek Link: Sign in as an admin / Return to customer -->
+                <div class="admin-link-card">
+                    @if (Model.Role == "Admin")
+                    {
+                        <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2">
+                            <span class="text-muted small">Standard customer or driver?</span>
+                            <a asp-action="Login" asp-route-role="Customer" class="customer-portal-return-link">
+                                <i class="bi bi-arrow-left"></i> Return to Customer Sign In
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2">
+                            <span class="text-muted small">Fleet Operations Management?</span>
+                            <a asp-action="Login" asp-route-role="Admin" class="admin-portal-link">
+                                <i class="bi bi-shield-lock-fill text-primary"></i> Sign in as an Admin &rarr;
+                            </a>
+                        </div>
+                    }
+                </div>
             </div>
 
             <!-- Bottom Subtitle / Link to Home -->
@@ -715,58 +739,6 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Category / Role Switcher
-        function switchLoginRole(role, btn) {
-            const hiddenRole = document.getElementById('selectedLoginRole');
-            if (hiddenRole) hiddenRole.value = role;
-
-            // Update tab styles
-            document.querySelectorAll('.role-category-tab').forEach(t => {
-                t.classList.remove('active');
-                if (t.getAttribute('data-role') === role) {
-                    t.classList.add('active');
-                }
-            });
-            if (btn) {
-                document.querySelectorAll('.role-category-tab').forEach(t => t.classList.remove('active'));
-                btn.classList.add('active');
-            }
-
-            // Update dynamic badge and labels
-            const badge = document.getElementById('rolePortalBadge');
-            const submitLabel = document.getElementById('btnSignInLabel');
-            const emailInput = document.getElementById('inputEmail');
-
-            if (role === 'Admin') {
-                if (badge) {
-                    badge.className = 'badge rounded-pill bg-dark-subtle text-dark px-3 py-1.5 fw-semibold small';
-                    badge.innerHTML = '<i class="bi bi-shield-lock-fill me-1"></i>Admin Console';
-                }
-                if (submitLabel) submitLabel.textContent = 'Sign In to Admin Console';
-                if (emailInput && !emailInput.value) emailInput.placeholder = 'Admin Email or Username';
-            } else if (role === 'Driver') {
-                if (badge) {
-                    badge.className = 'badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1.5 fw-semibold small';
-                    badge.innerHTML = '<i class="bi bi-truck me-1"></i>Driver Portal';
-                }
-                if (submitLabel) submitLabel.textContent = 'Sign In as Driver';
-                if (emailInput && !emailInput.value) emailInput.placeholder = 'Driver Email or Phone';
-            } else {
-                if (badge) {
-                    badge.className = 'badge rounded-pill bg-primary-subtle text-primary px-3 py-1.5 fw-semibold small';
-                    badge.innerHTML = '<i class="bi bi-person-fill me-1"></i>Customer Portal';
-                }
-                if (submitLabel) submitLabel.textContent = 'Sign In';
-                if (emailInput && !emailInput.value) emailInput.placeholder = 'Email or Username';
-            }
-        }
-
-        // Initialize role tab on page load
-        document.addEventListener('DOMContentLoaded', function () {
-            const initialRole = '@(string.IsNullOrEmpty(Model.Role) ? "Customer" : Model.Role)';
-            switchLoginRole(initialRole);
-        });
-
         // Password Visibility Toggle
         function togglePasswordVisibility(inputId = 'inputPassword', iconId = 'passwordEyeIcon') {
             const passwordInput = document.getElementById(inputId);

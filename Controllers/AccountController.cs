@@ -86,36 +86,24 @@ namespace Fleetify.Controllers
             }
 
             // 2. STRICT CATEGORY SEGREGATION ENFORCEMENT:
-            // Ensure Customer accounts CANNOT access Admin Console, and Admin accounts CANNOT sign in via Customer portal.
-            if (!actualRole.Equals(requestedRole, StringComparison.OrdinalIgnoreCase))
+            if (requestedRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
             {
-                if (actualRole.Equals("Customer", StringComparison.OrdinalIgnoreCase) && requestedRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                // User is on the Admin Sign In page
+                if (!actualRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
                 {
-                    ModelState.AddModelError(string.Empty, "Access Denied: Customer accounts are not permitted to log in through the Admin Console. Please select the 'Customer' tab above.");
-                    model.Role = "Customer"; // Guide UI to correct category
+                    ModelState.AddModelError(string.Empty, "Access Denied: Customer accounts are not permitted to log in through the Admin Console. Please use the Customer Sign In below.");
                     return View(model);
                 }
-
-                if (actualRole.Equals("Admin", StringComparison.OrdinalIgnoreCase) && !requestedRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            }
+            else
+            {
+                // User is on the standard Customer/Driver Sign In page
+                if (actualRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
                 {
-                    ModelState.AddModelError(string.Empty, "This account is registered as an Administrator. Please select the 'Admin' tab above to sign in to the Admin Console.");
-                    model.Role = "Admin"; // Guide UI to correct category
+                    ModelState.AddModelError(string.Empty, "This account is registered as an Administrator. Please click 'Sign in as an Admin' below to access the Admin Console.");
                     return View(model);
                 }
-
-                if (actualRole.Equals("Driver", StringComparison.OrdinalIgnoreCase) && !requestedRole.Equals("Driver", StringComparison.OrdinalIgnoreCase))
-                {
-                    ModelState.AddModelError(string.Empty, "This account is registered as a Fleet Driver. Please select the 'Driver' tab above to sign in.");
-                    model.Role = "Driver";
-                    return View(model);
-                }
-
-                if (requestedRole.Equals("Driver", StringComparison.OrdinalIgnoreCase) && !actualRole.Equals("Driver", StringComparison.OrdinalIgnoreCase))
-                {
-                    ModelState.AddModelError(string.Empty, $"Access Denied: This account is registered as a {actualRole}. Please select the '{actualRole}' tab above.");
-                    model.Role = actualRole;
-                    return View(model);
-                }
+                requestedRole = actualRole;
             }
 
             // 3. Authenticate strictly within the verified category
@@ -181,11 +169,11 @@ namespace Fleetify.Controllers
 
         // GET: /Account/Register (Figure 19)
         [HttpGet]
-        public IActionResult Register(string? role = "Customer")
+        public IActionResult Register()
         {
             var model = new RegisterViewModel
             {
-                Role = string.IsNullOrEmpty(role) ? "Customer" : role
+                Role = "Customer"
             };
             return View(model);
         }
@@ -328,9 +316,11 @@ Fleetify Operations & Logistics Team";
 
             if (model.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
             {
-                await _authService.RegisterAdminAsync(model);
+                ModelState.AddModelError(string.Empty, "Administrator account creation is restricted. Only authorized system personnel may access admin accounts.");
+                return View(model);
             }
-            else if (model.Role.Equals("Driver", StringComparison.OrdinalIgnoreCase))
+
+            if (model.Role.Equals("Driver", StringComparison.OrdinalIgnoreCase))
             {
                 await _authService.RegisterDriverAsync(model);
             }
