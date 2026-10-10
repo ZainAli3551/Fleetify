@@ -3,7 +3,7 @@
     ViewData["Title"] = "Vehicle Fleet Management";
 }
 
-<div class="admin-page-content">
+<div class="container-fluid px-lg-5 py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-1">Vehicle Fleet Management</h2>
@@ -14,6 +14,15 @@
         </button>
     </div>
 
+    <!-- Secondary Navigation Menu -->
+    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Overview</a>
+        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
+        <a asp-action="Vehicles" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">Vehicles</a>
+        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
+        <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
+    </div>
+
     <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -22,8 +31,8 @@
                         <th>Vehicle Plate #</th>
                         <th>Type &amp; Model</th>
                         <th>Capacity</th>
-                        <th>Total Odometer</th>
-                        <th>Route Mileage (Maint.)</th>
+                        <th>Current Mileage</th>
+                        <th>Since Service</th>
                         <th>Condition Status</th>
                         <th>Availability</th>
                     </tr>
@@ -41,12 +50,9 @@
                             <td>@v.CapacityKg.ToString("N0") kg</td>
                             <td class="fw-semibold">@v.CurrentMileage.ToString("N0") km</td>
                             <td>
-                                <div>
-                                    <span class="fw-bold @(v.CompletedRouteMileage >= 5000 ? "text-danger" : v.CompletedRouteMileage >= 3000 ? "text-warning" : "text-primary")">
-                                        @v.CompletedRouteMileage.ToString("N0") km
-                                    </span>
-                                </div>
-                                <span class="text-muted" style="font-size: 0.72rem;">Deliveries only</span>
+                                <span class="@(kmSinceService > 8000 ? "text-danger fw-bold" : "text-muted")">
+                                    @kmSinceService.ToString("N0") km
+                                </span>
                             </td>
                             <td>
                                 @if (v.ConditionStatus == "Good")
@@ -118,9 +124,8 @@
                             <input name="CapacityKg" type="number" step="10" required class="form-control rounded-3" value="1200" />
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold text-secondary mb-0">Initial Mileage (km)</label>
-                            <span class="text-muted d-block mb-1" style="font-size: 0.7rem;">(Registration odometer reading, excluded from maintenance)</span>
-                            <input name="CurrentMileage" type="number" step="10" required class="form-control rounded-3" value="0" />
+                            <label class="form-label small fw-semibold text-secondary">Current Mileage (km)</label>
+                            <input name="CurrentMileage" type="number" step="10" required class="form-control rounded-3" value="5000" />
                         </div>
                     </div>
                     <div class="mb-3">

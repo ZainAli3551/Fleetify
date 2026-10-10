@@ -1,651 +1,304 @@
 @model Fleetify.Models.ViewModels.AdminDashboardViewModel
 @{
-    ViewData["Title"] = "Dashboard";
-
-    // Bind database metrics with target screenshot volumes
-    var totalVehicles = Model.Vehicles != null && Model.Vehicles.Count > 10 ? Model.Vehicles.Count : 248;
-    var activeFleet = Model.InTransitCount > 10 ? Model.InTransitCount : 192;
-    var inMaintenance = Model.ActiveMaintenanceAlerts != null && Model.ActiveMaintenanceAlerts.Count > 10 ? Model.ActiveMaintenanceAlerts.Count : 15;
-    var alertsCount = Model.ActiveMaintenanceAlerts != null && Model.ActiveMaintenanceAlerts.Count > 5 ? Model.ActiveMaintenanceAlerts.Count : 7;
-    var currentDateFormatted = "April 23, 2024";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin-dashboard.css?v=20261009" asp-append-version="true" />
-}
-
-<div class="fleet-admin-page">
-
-    <!-- ========================================================================
-         1. DASHBOARD OVERVIEW HEADER ROW
-         ======================================================================== -->
-    <div class="fleet-header-row">
-        <h1 class="fleet-page-title">Dashboard Overview</h1>
-        <div class="fleet-date-badge">Date: @currentDateFormatted</div>
-    </div>
-
-    <!-- ========================================================================
-         2. TOP 4 SUMMARY KPI METRIC CARDS
-         ======================================================================== -->
-    <div class="fleet-kpi-grid">
-        <!-- Card 1: Total Vehicles -->
-        <div class="fleet-kpi-card">
-            <div class="fleet-kpi-icon-box icon-box-blue">
-                <i class="bi bi-car-front-fill"></i>
-            </div>
-            <div class="fleet-kpi-info">
-                <span class="fleet-kpi-label">Total Vehicles</span>
-                <span class="fleet-kpi-value">@totalVehicles</span>
-            </div>
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Admin Header (Figure 21) -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Fleetify Admin</h2>
+            <p class="text-secondary small mb-0">Centralized Digital Fleet &amp; Transport Management Overview</p>
         </div>
-
-        <!-- Card 2: Active Fleet -->
-        <div class="fleet-kpi-card">
-            <div class="fleet-kpi-icon-box icon-box-blue">
-                <i class="bi bi-truck"></i>
-            </div>
-            <div class="fleet-kpi-info">
-                <span class="fleet-kpi-label">Active Fleet</span>
-                <span class="fleet-kpi-value">@activeFleet</span>
-            </div>
-        </div>
-
-        <!-- Card 3: In Maintenance -->
-        <div class="fleet-kpi-card">
-            <div class="fleet-kpi-icon-box icon-box-amber">
-                <i class="bi bi-tools"></i>
-            </div>
-            <div class="fleet-kpi-info">
-                <span class="fleet-kpi-label">In Maintenance</span>
-                <span class="fleet-kpi-value">@inMaintenance</span>
-            </div>
-        </div>
-
-        <!-- Card 4: Alerts -->
-        <div class="fleet-kpi-card">
-            <div class="fleet-kpi-icon-box icon-box-red">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <div class="fleet-kpi-info">
-                <span class="fleet-kpi-label">Alerts</span>
-                <span class="fleet-kpi-value">@alertsCount</span>
-            </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Assignments" class="btn btn-outline-primary rounded-pill px-3 py-2 small">
+                <i class="bi bi-person-check-fill me-1"></i>Assign Deliveries
+            </a>
+            <a asp-action="Maintenance" class="btn btn-primary rounded-pill px-3 py-2 small text-white">
+                <i class="bi bi-cpu me-1"></i>Predictive Maintenance
+            </a>
         </div>
     </div>
 
-    <!-- ========================================================================
-         3. ROW 2: REAL-TIME FLEET MAP (LEFT 70%) & ACTIVE STATUS + RECENT TRIPS (RIGHT 30%)
-         ======================================================================== -->
-    <div class="fleet-row-two">
-        
-        <!-- Left: Real-Time Fleet Map Card -->
-        <div class="fleet-card fleet-map-card" id="realTimeFleetMapSection">
-            <div class="fleet-card-header">
-                <h2 class="fleet-card-title">Real-Time Fleet Map</h2>
-                <div class="fleet-map-header-tools">
-                    <span class="btn-active-mode">Active Mode</span>
-                    <button class="btn-more-options" type="button" title="More options" onclick="recenterFleetMap()">
-                        <i class="bi bi-three-dots"></i>
-                    </button>
-                </div>
-            </div>
+    <!-- Secondary Navigation Menu (Figure 21) -->
+    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">Overview</a>
+        <a asp-action="Drivers" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Drivers</a>
+        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
+        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
+        <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
+    </div>
 
-            <div class="fleet-map-wrapper">
-                <!-- Floating Overlay Top-Left Inside Map -->
-                <div class="fleet-map-floating-overlay">
-                    <div class="floating-overlay-title">Active Vehicles</div>
-                    <div class="floating-overlay-value">@activeFleet</div>
-                    <div class="floating-overlay-icons">
-                        <div class="floating-icon-pill floating-pill-car" title="Passenger Vehicles">
-                            <i class="bi bi-car-front-fill"></i>
-                        </div>
-                        <div class="floating-icon-pill floating-pill-bus" title="Buses &amp; Vans">
-                            <i class="bi bi-bus-front-fill"></i>
-                        </div>
-                        <div class="floating-icon-pill floating-pill-truck" title="Heavy Trucks">
-                            <i class="bi bi-truck"></i>
-                        </div>
-                        <div class="floating-icon-pill floating-pill-gauge" title="Fast Express Units">
-                            <i class="bi bi-speedometer"></i>
-                        </div>
+    <!-- 4 KPI Cards (Figure 21) -->
+    <div class="row g-3 mb-4">
+        <!-- Total Users -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Total Users</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalUsers.ToString("N0")</h3>
+                        <span class="badge bg-success-subtle text-success rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+12% this month
+                        </span>
+                    </div>
+                    <div class="kpi-icon bg-primary-subtle text-primary rounded-circle p-3">
+                        <i class="bi bi-people-fill fs-4"></i>
                     </div>
                 </div>
-
-                <!-- Leaflet Canvas Centered on Pakistan -->
-                <div id="realTimeFleetMap"></div>
             </div>
         </div>
 
-        <!-- Right: Stacked Active Fleet Status Donut & Recent Trips Table -->
-        <div class="fleet-row-two-right">
-            
-            <!-- Top Right: Active Fleet Status -->
-            <div class="fleet-card">
-                <div class="fleet-card-header">
-                    <h2 class="fleet-card-title">Active Fleet Status</h2>
-                </div>
-                <div class="fleet-status-donut-box">
-                    <div class="donut-chart-container">
-                        <canvas id="activeFleetDonutChart"></canvas>
-                        <div class="donut-center-metric">77%</div>
+        <!-- Active Drivers -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Active Drivers</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.ActiveDrivers</h3>
+                        <span class="badge bg-info-subtle text-info rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+18.5% this month
+                        </span>
                     </div>
-                    <div class="donut-legend">
-                        <div class="donut-legend-item">
-                            <div class="donut-legend-label">
-                                <span class="legend-dot dot-blue"></span>
-                                <span>Active</span>
-                            </div>
-                            <span class="donut-legend-val">192</span>
-                        </div>
-                        <div class="donut-legend-item">
-                            <div class="donut-legend-label">
-                                <span class="legend-dot dot-amber"></span>
-                                <span>Maintenance</span>
-                            </div>
-                            <span class="donut-legend-val">15</span>
-                        </div>
-                        <div class="donut-legend-item">
-                            <div class="donut-legend-label">
-                                <span class="legend-dot dot-red"></span>
-                                <span>Inactive</span>
-                            </div>
-                            <span class="donut-legend-val">41</span>
-                        </div>
+                    <div class="kpi-icon bg-warning-subtle text-warning rounded-circle p-3">
+                        <i class="bi bi-truck fs-4"></i>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Bottom Right: Recent Trips -->
-            <div class="fleet-card">
-                <div class="fleet-card-header">
-                    <h2 class="fleet-card-title">Recent Trips</h2>
-                    <a href="/Admin/Deliveries" class="fleet-link-action">List</a>
+        <!-- Total Deliveries -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Total Deliveries</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">@Model.TotalDeliveries.ToString("N0")</h3>
+                        <span class="badge bg-success-subtle text-success rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+14% this month
+                        </span>
+                    </div>
+                    <div class="kpi-icon bg-success-subtle text-success rounded-circle p-3">
+                        <i class="bi bi-box-seam-fill fs-4"></i>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="recent-trips-table">
-                        <thead>
+            </div>
+        </div>
+
+        <!-- Revenue -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary small">Revenue</span>
+                        <h3 class="fw-bold text-dark mt-1 mb-0">Rs. @Model.Revenue.ToString("N0")</h3>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill mt-2 small font-mono">
+                            <i class="bi bi-arrow-up-short"></i>+23% this month
+                        </span>
+                    </div>
+                    <div class="kpi-icon bg-primary-subtle text-primary rounded-circle p-3">
+                        <i class="bi bi-cash-stack fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row (Figure 21: Revenue Trend & Weekly Deliveries) -->
+    <div class="row g-4 mb-4">
+        <!-- Revenue Trend Line Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xs rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-semibold text-dark mb-0">Revenue Trend</h5>
+                    <span class="text-secondary small">USD ($)</span>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Deliveries Bar Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xs rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-semibold text-dark mb-0">Weekly Deliveries</h5>
+                    <span class="text-secondary small">Completed Packages</span>
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="weeklyDeliveriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Status Pills (Figure 21) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="rounded-circle bg-success-subtle text-success p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-check-circle fs-4"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small">Completed Today</span>
+                    <h4 class="fw-bold text-dark mb-0">@Model.CompletedToday</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="rounded-circle bg-warning-subtle text-warning p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-arrow-repeat fs-4"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small">In Transit</span>
+                    <h4 class="fw-bold text-dark mb-0">@Model.InTransitCount</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white d-flex flex-row align-items-center gap-3">
+                <div class="rounded-circle bg-danger-subtle text-danger p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-clock-history fs-4"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small">Pending Assignment</span>
+                    <h4 class="fw-bold text-dark mb-0">@Model.PendingCount</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Deliveries Table -->
+    <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-semibold text-dark mb-0">Recent Fleet Deliveries</h5>
+            <a asp-action="Assignments" class="text-primary text-decoration-none small fw-semibold">View All Deliveries &rarr;</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-secondary">
+                    <tr>
+                        <th>Tracking ID</th>
+                        <th>Customer</th>
+                        <th>Pickup &rarr; Destination</th>
+                        <th>Type / Weight</th>
+                        <th>Driver</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    @if (Model.RecentDeliveries.Any())
+                    {
+                        foreach (var d in Model.RecentDeliveries)
+                        {
                             <tr>
-                                <th>ID</th>
-                                <th>Vehicle</th>
-                                <th>Driver</th>
-                                <th>Origin/Dest</th>
-                                <th>Status</th>
-                                <th>Time</th>
+                                <td class="fw-semibold text-primary">@d.TrackingNumber</td>
+                                <td>@(d.User?.FullName ?? "Walk-in")</td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 200px;">
+                                        <i class="bi bi-geo-alt-fill text-muted me-1"></i>@d.PickupLocation
+                                        <br />
+                                        <i class="bi bi-flag-fill text-danger me-1"></i>@d.DropoffLocation
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@d.VehicleType</span>
+                                    <span class="text-muted">(@d.ParcelWeight kg)</span>
+                                </td>
+                                <td>@(d.Assignment?.Driver?.FullName ?? "<span class='text-muted'>Unassigned</span>")</td>
+                                <td class="fw-bold text-dark">$@d.EstimatedCost.ToString("F2")</td>
+                                <td>
+                                    @if (d.RequestedStatus == "Delivered")
+                                    {
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Delivered</span>
+                                    }
+                                    else if (d.RequestedStatus == "In-Transit" || d.RequestedStatus == "Assigned")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">In-Transit</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">Pending</span>
+                                    }
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.RecentDeliveries != null && Model.RecentDeliveries.Any())
-                            {
-                                foreach (var d in Model.RecentDeliveries.Take(3))
-                                {
-                                    var origCity = !string.IsNullOrEmpty(d.OriginCity) ? d.OriginCity : "Karachi";
-                                    var destCity = !string.IsNullOrEmpty(d.DestinationCity) ? d.DestinationCity : "Lahore";
-                                    var driverName = d.Assignment?.Driver?.FullName ?? "Sarah J.";
-                                    var statusClass = d.RequestedStatus == "Delivered" ? "trip-status-completed" : "trip-status-active";
-                                    var displayStatus = d.RequestedStatus == "Delivered" ? "completed" : "active";
-
-                                    <tr>
-                                        <td><a href="/Customer/Track?trackingNumber=@d.TrackingNumber" class="trip-id-link">@d.TrackingNumber</a></td>
-                                        <td>@(d.Assignment?.Vehicle?.Model ?? origCity)</td>
-                                        <td>@driverName</td>
-                                        <td>@destCity</td>
-                                        <td class="@statusClass">@displayStatus</td>
-                                        <td class="trip-time">@d.RequestDate.ToString("h:mm tt")</td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td><a href="/Admin/Deliveries" class="trip-id-link">PL241</a></td>
-                                    <td>Karachi</td>
-                                    <td>Sarah J.</td>
-                                    <td>Lahore</td>
-                                    <td class="trip-status-active">active</td>
-                                    <td class="trip-time">3:35 PM</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="/Admin/Deliveries" class="trip-id-link">PL112</a></td>
-                                    <td>Islamab</td>
-                                    <td>Mike R.</td>
-                                    <td>Rawalpindi</td>
-                                    <td class="trip-status-completed">completed</td>
-                                    <td class="trip-time">3:30 PM</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="/Admin/Deliveries" class="trip-id-link">PL305</a></td>
-                                    <td>Lahore</td>
-                                    <td>Alex</td>
-                                    <td>Multan</td>
-                                    <td class="trip-status-completed">completed</td>
-                                    <td class="trip-time">5:35 PM</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ========================================================================
-         4. ROW 3: THREE BOTTOM WIDGETS
-         (Vehicle Maintenance Schedule 33% | Delivery Performance 37% | Driver Status 30%)
-         ======================================================================== -->
-    <div class="fleet-row-three">
-        
-        <!-- Column 1 (~33%): Vehicle Maintenance Schedule -->
-        <div class="fleet-card">
-            <div class="fleet-card-header">
-                <h2 class="fleet-card-title">Vehicle Maintenance Schedule</h2>
-                <a href="/Admin/Maintenance" class="fleet-link-action">List</a>
-            </div>
-            <div class="table-responsive">
-                <table class="maintenance-table">
-                    <thead>
+                        }
+                    }
+                    else
+                    {
                         <tr>
-                            <th>Vehicle ID</th>
-                            <th>Service Type</th>
-                            <th>Due Date</th>
+                            <td colspan="7" class="text-center text-muted py-4">No recent deliveries recorded.</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.ActiveMaintenanceAlerts != null && Model.ActiveMaintenanceAlerts.Any())
-                        {
-                            foreach (var a in Model.ActiveMaintenanceAlerts.Take(4))
-                            {
-                                var vNum = a.Vehicle?.VehicleNumber ?? "PL241";
-                                <tr>
-                                    <td><a href="/Admin/Maintenance" class="maint-veh-link">@vNum - @(a.Vehicle?.Model ?? "Karachi")</a></td>
-                                    <td>@(string.IsNullOrEmpty(a.Recommendation) ? a.AlertType : a.Recommendation)</td>
-                                    <td class="maint-date">@a.AlertDate.AddDays(14).ToString("yyyy-MM-dd")</td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td><a href="/Admin/Maintenance" class="maint-veh-link">PL241 - Karachi</a></td>
-                                <td>Engine Oil Change</td>
-                                <td class="maint-date">2024-05-15</td>
-                            </tr>
-                            <tr>
-                                <td><a href="/Admin/Maintenance" class="maint-veh-link">PL112 - Islamabad</a></td>
-                                <td>Tire Rotation</td>
-                                <td class="maint-date">2024-05-20</td>
-                            </tr>
-                            <tr>
-                                <td><a href="/Admin/Maintenance" class="maint-veh-link">PL305 - Lahore</a></td>
-                                <td>Brake Pad Check</td>
-                                <td class="maint-date">2024-06-05</td>
-                            </tr>
-                            <tr>
-                                <td><a href="/Admin/Maintenance" class="maint-veh-link">FL145 - Multan</a></td>
-                                <td>Annual Inspection</td>
-                                <td class="maint-date">2024-06-12</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+            </table>
         </div>
-
-        <!-- Column 2 (~37%): Delivery Performance -->
-        <div class="fleet-card">
-            <div class="fleet-card-header">
-                <div class="perf-header-left">
-                    <h2 class="fleet-card-title">Delivery Performance</h2>
-                    <span class="perf-sub-title">On-Time Delivery vs Dates</span>
-                </div>
-                <div class="perf-header-right">
-                    <div class="perf-metric-group">
-                        <span class="perf-metric-val">94.2%</span>
-                        <span class="perf-metric-label">On-Time</span>
-                    </div>
-                    <div class="perf-metric-group">
-                        <span class="perf-metric-val">890</span>
-                        <span class="perf-metric-label">successful</span>
-                    </div>
-                </div>
-            </div>
-            <div class="perf-chart-box">
-                <canvas id="deliveryPerfBarChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Column 3 (~30%): Driver Status -->
-        <div class="fleet-card">
-            <div class="fleet-card-header">
-                <h2 class="fleet-card-title">Driver Status</h2>
-                <a href="/Admin/Drivers" class="fleet-link-action">List</a>
-            </div>
-            <div class="driver-status-list">
-                <!-- Driver 1: Sarah J. -->
-                <div class="driver-status-item">
-                    <div class="driver-profile-info">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces" alt="Sarah J." class="driver-avatar-circle" />
-                        <span class="driver-name">Sarah J.</span>
-                    </div>
-                    <div class="driver-state-badge">
-                        <span class="driver-state-dot state-dot-active"></span>
-                        <span>Active</span>
-                    </div>
-                    <div class="driver-hours-metric">35 logged</div>
-                </div>
-
-                <!-- Driver 2: Ahmed K. -->
-                <div class="driver-status-item">
-                    <div class="driver-profile-info">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces" alt="Ahmed K." class="driver-avatar-circle" />
-                        <span class="driver-name">Ahmed K.</span>
-                    </div>
-                    <div class="driver-state-badge">
-                        <span class="driver-state-dot state-dot-active"></span>
-                        <span>Active</span>
-                    </div>
-                    <div class="driver-hours-metric">25 logged</div>
-                </div>
-
-                <!-- Driver 3: David L. -->
-                <div class="driver-status-item">
-                    <div class="driver-profile-info">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces" alt="David L." class="driver-avatar-circle" />
-                        <span class="driver-name">David L.</span>
-                    </div>
-                    <div class="driver-state-badge">
-                        <span class="driver-state-dot state-dot-offline"></span>
-                        <span>Offline</span>
-                    </div>
-                    <div class="driver-hours-metric">73 hoursd</div>
-                </div>
-
-                <!-- Driver 4: James K. -->
-                <div class="driver-status-item">
-                    <div class="driver-profile-info">
-                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces" alt="James K." class="driver-avatar-circle" />
-                        <span class="driver-name">James K.</span>
-                    </div>
-                    <div class="driver-state-badge">
-                        <span class="driver-state-dot state-dot-break"></span>
-                        <span>Break</span>
-                    </div>
-                    <div class="driver-hours-metric">73 hours</div>
-                </div>
-
-                <!-- Driver 5: Fatima S. -->
-                <div class="driver-status-item">
-                    <div class="driver-profile-info">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces" alt="Fatima S." class="driver-avatar-circle" />
-                        <span class="driver-name">Fatima S.</span>
-                    </div>
-                    <div class="driver-state-badge">
-                        <span class="driver-state-dot state-dot-active"></span>
-                        <span>Active</span>
-                    </div>
-                    <div class="driver-hours-metric">123 hours</div>
-                </div>
-            </div>
-        </div>
-
     </div>
-
 </div>
 
 @section Scripts {
     <script>
-        // =====================================================================
-        // 1. LEAFLET REAL-TIME FLEET MAP (PAKISTAN WITH LIVE VEHICLES & ROUTES)
-        // =====================================================================
-        let mapInstance = null;
-        let routeLayerGroup = null;
-
-        function initPakistanFleetMap() {
-            const mapContainer = document.getElementById('realTimeFleetMap');
-            if (!mapContainer) return;
-
-            // Centered on Pakistan coordinates
-            const pakistanCenter = [31.1704, 72.7097];
-
-            mapInstance = L.map('realTimeFleetMap', {
-                center: pakistanCenter,
-                zoom: 6.8,
-                zoomControl: true,
-                attributionControl: false
-            });
-
-            // CartoDB Dark Matter tile layer for the dark vector aesthetic
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                subdomains: 'abcd',
-                maxZoom: 19
-            }).addTo(mapInstance);
-
-            routeLayerGroup = L.layerGroup().addTo(mapInstance);
-
-            // Major Highway Waypoints
-            const isb = [33.7294, 73.0931];
-            const pindiBhattian = [31.8950, 73.2750];
-            const kallarKahar = [32.7820, 72.7120];
-            const lhe = [31.5204, 74.3587];
-            const fsd = [31.4504, 73.1350];
-            const mul = [30.1575, 71.5249];
-            const suk = [27.7052, 68.8574];
-            const khi = [24.8607, 67.0011];
-
-            // Route 1: M-2 Motorway (Islamabad -> Lahore) Orange Route
-            const routeISBtoLHE = [isb, [33.30, 72.95], kallarKahar, [32.18, 73.15], pindiBhattian, [31.75, 73.80], lhe];
-            L.polyline(routeISBtoLHE, {
-                color: '#f59e0b',
-                weight: 4,
-                opacity: 0.9,
-                lineCap: 'round',
-                lineJoin: 'round'
-            }).addTo(routeLayerGroup);
-
-            // Route 2: M-3 / M-4 Motorway (Lahore -> Multan) Blue Route
-            const routeLHEtoMUL = [lhe, [31.35, 73.90], fsd, [30.90, 72.40], [30.45, 71.95], mul];
-            L.polyline(routeLHEtoMUL, {
-                color: '#2563eb',
-                weight: 4,
-                opacity: 0.9,
-                lineCap: 'round',
-                lineJoin: 'round'
-            }).addTo(routeLayerGroup);
-
-            // Route 3: Highway towards Karachi (Multan -> Sukkur -> Karachi) Cyan dashed
-            const routeMULtoKHI = [mul, [29.35, 70.90], suk, [25.80, 68.50], khi];
-            L.polyline(routeMULtoKHI, {
-                color: '#06b6d4',
-                weight: 2.5,
-                opacity: 0.7,
-                dashArray: '5, 6'
-            }).addTo(routeLayerGroup);
-
-            // Custom Vehicle Badge Leaflet Icons matching screenshot
-            function createVehicleIcon(label, bgClass, extraIconHtml) {
-                return L.divIcon({
-                    className: 'custom-vehicle-div-icon',
-                    html: `<div class="vehicle-marker-badge ${bgClass}">
-                                <i class="bi bi-truck"></i>
-                                <span>${label}</span>
-                                ${extraIconHtml || ''}
-                           </div>`,
-                    iconSize: [110, 24],
-                    iconAnchor: [55, 12]
-                });
-            }
-
-            // 1. PK-ISB-ISB-202 (Orange Badge at Islamabad)
-            L.marker([33.72, 73.09], {
-                icon: createVehicleIcon('PK-ISB-ISB-202', 'badge-orange', '')
-            }).addTo(routeLayerGroup).bindPopup('<b>PK-ISB-ISB-202</b><br/>Driver: Tariq Mehmood<br/>Status: In-Transit (Islamabad Central)');
-
-            // 2. PK-ISB-LHE-303 (Orange Badge on M-2 Highway near Lahore)
-            L.marker([32.05, 73.55], {
-                icon: createVehicleIcon('PK-ISB-LHE-303', 'badge-orange', '')
-            }).addTo(routeLayerGroup).bindPopup('<b>PK-ISB-LHE-303</b><br/>Speed: 72 km/h<br/>ETA Lahore: 45 min');
-
-            // 3. PK-LHE-ISB-201 (Green Badge with 🇵🇰 Pakistan Flag Icon near Gujranwala/Lahore)
-            const flagSvg = `<span style="font-size: 10px; line-height: 1;">🇵🇰</span>`;
-            L.marker([31.75, 74.15], {
-                icon: createVehicleIcon('PK-LHE-ISB-201', 'badge-green', flagSvg)
-            }).addTo(routeLayerGroup).bindPopup('<b>PK-LHE-ISB-201</b><br/>National Express Carrier<br/>Status: Active Delivery');
-
-            // 4. FL001 (Blue Badge near Faisalabad)
-            L.marker([31.42, 73.08], {
-                icon: createVehicleIcon('FL001', 'badge-blue', '')
-            }).addTo(routeLayerGroup).bindPopup('<b>FL001</b><br/>Local Transit Unit<br/>Status: 58 km/h');
-
-            // 5. FL145 (Orange Badge with Wrench near Multan)
-            const wrenchSvg = `<i class="bi bi-wrench" style="font-size: 9px; margin-left: 2px;"></i>`;
-            L.marker([30.18, 71.50], {
-                icon: createVehicleIcon('FL145', 'badge-orange', wrenchSvg)
-            }).addTo(routeLayerGroup).bindPopup('<b>FL145</b><br/>Multan Depot Service<br/>Scheduled Maintenance Due');
-
-            // Subdued Pakistan country watermark label
-            const labelIcon = L.divIcon({
-                className: 'pakistan-watermark-label',
-                html: `<div style="color: rgba(255,255,255,0.22); font-size: 20px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;">Pakistan</div>`,
-                iconSize: [140, 30],
-                iconAnchor: [70, 15]
-            });
-            L.marker([30.00, 70.80], { icon: labelIcon, interactive: false }).addTo(routeLayerGroup);
-        }
-
-        function recenterFleetMap() {
-            if (mapInstance) {
-                mapInstance.setView([31.1704, 72.7097], 6.8);
-            }
-        }
-
-        // =====================================================================
-        // 2. ACTIVE FLEET STATUS DONUT CHART
-        // =====================================================================
-        function initFleetStatusDonut() {
-            const canvas = document.getElementById('activeFleetDonutChart');
-            if (!canvas) return;
-
-            new Chart(canvas.getContext('2d'), {
-                type: 'doughnut',
+        document.addEventListener("DOMContentLoaded", function () {
+            // Revenue Trend Line Chart (Matching Figure 21)
+            const ctxRev = document.getElementById('revenueTrendChart').getContext('2d');
+            new Chart(ctxRev, {
+                type: 'line',
                 data: {
-                    labels: ['Active', 'Maintenance', 'Inactive'],
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
                     datasets: [{
-                        data: [192, 15, 41],
-                        backgroundColor: ['#2563eb', '#f59e0b', '#ef4444'],
-                        borderWidth: 0,
-                        hoverOffset: 3
+                        label: 'Monthly Revenue (Rs.)',
+                        data: [2500, 5000, 7200, 6800, 9500, 11500, 14500],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#2563eb',
+                        pointRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '74%',
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#0f172a',
-                            titleColor: '#ffffff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1,
-                            padding: 8,
-                            cornerRadius: 6,
-                            callbacks: {
-                                label: function(context) {
-                                    return ` ${context.label}: ${context.raw}`;
-                                }
-                            }
-                        }
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: v => '$' + v }
+                        },
+                        x: { grid: { display: false } }
                     }
                 }
             });
-        }
 
-        // =====================================================================
-        // 3. DELIVERY PERFORMANCE DUAL BAR CHART (ON-TIME DELIVERY VS DATES)
-        // =====================================================================
-        function initDeliveryPerfBarChart() {
-            const canvas = document.getElementById('deliveryPerfBarChart');
-            if (!canvas) return;
-
-            const dates = ['13.11', '03.12', '09.18', '05.20', '10.14', '10.12', '12.13'];
-            const greenData = [760, 680, 830, 920, 840, 720, 890];
-            const blueData  = [600, 530, 710, 790, 710, 660, 800];
-
-            new Chart(canvas.getContext('2d'), {
+            // Weekly Deliveries Bar Chart (Matching Figure 21)
+            const ctxDel = document.getElementById('weeklyDeliveriesChart').getContext('2d');
+            new Chart(ctxDel, {
                 type: 'bar',
                 data: {
-                    labels: dates,
-                    datasets: [
-                        {
-                            label: 'On-Time Volume',
-                            data: greenData,
-                            backgroundColor: '#10b981',
-                            borderRadius: 4,
-                            borderSkipped: false,
-                            barPercentage: 0.65,
-                            categoryPercentage: 0.75
-                        },
-                        {
-                            label: 'Total Dispatches',
-                            data: blueData,
-                            backgroundColor: '#2563eb',
-                            borderRadius: 4,
-                            borderSkipped: false,
-                            barPercentage: 0.65,
-                            categoryPercentage: 0.75
-                        }
-                    ]
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Deliveries',
+                        data: [45, 55, 65, 50, 80, 38, 24],
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#0f172a',
-                            titleColor: '#ffffff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                            borderWidth: 1,
-                            padding: 8,
-                            cornerRadius: 6
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                color: '#64748b',
-                                font: { family: 'Plus Jakarta Sans', size: 10, weight: '500' }
-                            }
-                        },
-                        y: {
-                            min: 0,
-                            max: 1000,
-                            ticks: {
-                                stepSize: 200,
-                                color: '#64748b',
-                                font: { family: 'Plus Jakarta Sans', size: 10, weight: '500' },
-                                callback: function(val) { return val; }
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)',
-                                drawBorder: false
-                            }
-                        }
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
                     }
                 }
             });
-        }
-
-        // =====================================================================
-        // INITIALIZE ALL WIDGETS ON LOAD
-        // =====================================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            initPakistanFleetMap();
-            initFleetStatusDonut();
-            initDeliveryPerfBarChart();
         });
     </script>
 }

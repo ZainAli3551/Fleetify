@@ -5,9 +5,9 @@
     var backupDrivers = (ViewBag.BackupDrivers as List<Fleetify.Models.Entities.Driver>) ?? Model.Where(d => d.DriverType == "Backup").ToList();
 }
 
-<div class="admin-page-content">
+<div class="container-fluid px-lg-5 py-4">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="fw-bold text-dark mb-1">Driver &amp; Partner Management</h2>
             <p class="text-secondary small mb-0">Manage internal company fleet drivers and on-call freelance backup vehicle owners</p>
@@ -16,6 +16,56 @@
             <i class="bi bi-person-plus-fill me-1"></i>Register Driver / Backup Partner
         </button>
     </div>
+
+    <!-- Secondary Navigation Menu -->
+    <div class="admin-subnav d-flex gap-3 border-bottom pb-3 mb-4 overflow-auto">
+        <a asp-action="Index" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Overview</a>
+        <a asp-action="Drivers" class="fw-semibold text-primary text-decoration-none border-bottom border-2 border-primary pb-2 px-2">Drivers</a>
+        <a asp-action="Vehicles" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Vehicles</a>
+        <a asp-action="Assignments" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">Assignments</a>
+        <a asp-action="Maintenance" class="text-secondary text-decoration-none pb-2 px-2 hover-primary">AI Maintenance</a>
+    </div>
+
+    <!-- Driver Partner App Announcement / Roadmap Banner -->
+    <div class="card border-0 rounded-4 mb-4 text-white shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+        <div class="card-body p-4 position-relative">
+            <div class="row align-items-center">
+                <div class="col-md-9">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1 text-uppercase x-small">
+                            <i class="bi bi-stars me-1"></i>Product Roadmap
+                        </span>
+                        <span class="badge bg-white bg-opacity-25 rounded-pill px-2 py-1 x-small">Driver Partner App</span>
+                    </div>
+                    <h5 class="fw-bold mb-1">Freelance Driver Partner Mobile App — In Development</h5>
+                    <p class="text-white-50 small mb-0">
+                        We are currently contacting on-call backup drivers manually via phone and WhatsApp when company fleets are at peak capacity. 
+                        Soon, external vehicle owners will be able to register through our dedicated Driver Partner mobile app and claim on-demand loads automatically!
+                    </p>
+                </div>
+                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                    <button class="btn btn-light rounded-pill px-4 text-primary fw-semibold btn-sm shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#backupDriversTab">
+                        <i class="bi bi-telephone-outbound me-1"></i>View On-Call Directory
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 small" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 small" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <!-- Tabs: Company Drivers vs On-Call Backup Drivers -->
     <ul class="nav nav-pills mb-3" id="driverTabs" role="tablist">

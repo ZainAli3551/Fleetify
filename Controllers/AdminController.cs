@@ -249,52 +249,9 @@ namespace Fleetify.Controllers
         }
 
         // GET: /Admin/Deliveries
-        public async Task<IActionResult> Deliveries(string statusFilter = "All", string search = "")
+        public IActionResult Deliveries()
         {
-            var query = _context.DeliveryRequests
-                .Include(r => r.User)
-                .Include(r => r.Assignment)
-                    .ThenInclude(a => a!.Driver)
-                .Include(r => r.Assignment)
-                    .ThenInclude(a => a!.Vehicle)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                search = search.Trim();
-                query = query.Where(r => 
-                    r.TrackingNumber.Contains(search) || 
-                    (r.User != null && r.User.FullName.Contains(search)) ||
-                    r.PickupLocation.Contains(search) ||
-                    r.DropoffLocation.Contains(search) ||
-                    (r.PackageName != null && r.PackageName.Contains(search))
-                );
-            }
-
-            if (!string.IsNullOrWhiteSpace(statusFilter) && statusFilter != "All")
-            {
-                query = query.Where(r => r.RequestedStatus == statusFilter);
-            }
-
-            var allDeliveries = await query.OrderByDescending(r => r.RequestDate).ToListAsync();
-
-            var allCount = await _context.DeliveryRequests.CountAsync();
-            var pendingCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Pending");
-            var assignedCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Assigned");
-            var inTransitCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "In-Transit");
-            var deliveredCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Delivered");
-            var cancelledCount = await _context.DeliveryRequests.CountAsync(r => r.RequestedStatus == "Cancelled");
-
-            ViewBag.CurrentFilter = statusFilter;
-            ViewBag.SearchTerm = search;
-            ViewBag.TotalCount = allCount;
-            ViewBag.PendingCount = pendingCount;
-            ViewBag.AssignedCount = assignedCount;
-            ViewBag.InTransitCount = inTransitCount;
-            ViewBag.DeliveredCount = deliveredCount;
-            ViewBag.CancelledCount = cancelledCount;
-
-            return View(allDeliveries);
+            return RedirectToAction(nameof(Assignments));
         }
 
         // POST: /Admin/AssignDelivery
