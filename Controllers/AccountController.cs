@@ -55,9 +55,17 @@ namespace Fleetify.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (model != null)
+            model ??= new LoginViewModel { Role = "Customer" };
+
+            var cleanEmail = (model.Email ?? string.Empty).Trim();
+            if (cleanEmail.EndsWith(",com", StringComparison.OrdinalIgnoreCase)) cleanEmail = cleanEmail[..^4] + ".com";
+            if (cleanEmail.EndsWith(",net", StringComparison.OrdinalIgnoreCase)) cleanEmail = cleanEmail[..^4] + ".net";
+            if (cleanEmail.EndsWith(",org", StringComparison.OrdinalIgnoreCase)) cleanEmail = cleanEmail[..^4] + ".org";
+            model.Email = cleanEmail;
+
+            if (string.IsNullOrWhiteSpace(model.Role))
             {
-                model.Email = (model.Email ?? string.Empty).Trim();
+                model.Role = "Customer";
             }
 
             if (!ModelState.IsValid)
@@ -65,19 +73,56 @@ namespace Fleetify.Controllers
                 return View(model);
             }
 
-            // Auto-detect user role by email/username so no manual Customer/Admin selection is needed
-            var roleToAuthenticate = model?.Role ?? "Customer";
-            var emailInput = model?.Email ?? string.Empty;
-            var detectedRole = await _authService.GetUserRoleByEmailAsync(emailInput);
-            if (!string.IsNullOrEmpty(detectedRole))
+            var emailInput = model.Email ?? string.Empty;
+            var requestedRole = model.Role ?? "Customer";
+
+            // 1. Verify existence across all tables to identify the account's registered role category
+            var actualRole = await _authService.GetUserRoleByEmailAsync(emailInput);
+
+            if (string.IsNullOrEmpty(actualRole))
             {
-                roleToAuthenticate = detectedRole;
+                ModelState.AddModelError(string.Empty, "No account was found with this email or username. Please check your credentials or click Sign Up to create an account.");
+                return View(model);
             }
 
-            var user = await _authService.AuthenticateAsync(emailInput, model?.Password ?? string.Empty, roleToAuthenticate ?? "Customer");
+            // 2. STRICT CATEGORY SEGREGATION ENFORCEMENT:
+            // Ensure Customer accounts CANNOT access Admin Console, and Admin accounts CANNOT sign in via Customer portal.
+            if (!actualRole.Equals(requestedRole, StringComparison.OrdinalIgnoreCase))
+            {
+                if (actualRole.Equals("Customer", StringComparison.OrdinalIgnoreCase) && requestedRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(string.Empty, "Access Denied: Customer accounts are not permitted to log in through the Admin Console. Please select the 'Customer' tab above.");
+                    model.Role = "Customer"; // Guide UI to correct category
+                    return View(model);
+                }
+
+                if (actualRole.Equals("Admin", StringComparison.OrdinalIgnoreCase) && !requestedRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(string.Empty, "This account is registered as an Administrator. Please select the 'Admin' tab above to sign in to the Admin Console.");
+                    model.Role = "Admin"; // Guide UI to correct category
+                    return View(model);
+                }
+
+                if (actualRole.Equals("Driver", StringComparison.OrdinalIgnoreCase) && !requestedRole.Equals("Driver", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(string.Empty, "This account is registered as a Fleet Driver. Please select the 'Driver' tab above to sign in.");
+                    model.Role = "Driver";
+                    return View(model);
+                }
+
+                if (requestedRole.Equals("Driver", StringComparison.OrdinalIgnoreCase) && !actualRole.Equals("Driver", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(string.Empty, $"Access Denied: This account is registered as a {actualRole}. Please select the '{actualRole}' tab above.");
+                    model.Role = actualRole;
+                    return View(model);
+                }
+            }
+
+            // 3. Authenticate strictly within the verified category
+            var user = await _authService.AuthenticateAsync(emailInput, model.Password ?? string.Empty, requestedRole);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Invalid email address or password. Please check your credentials and try again.");
+                ModelState.AddModelError(string.Empty, "Incorrect password. Please verify your password and try again, or click 'Forgot password?' to reset it.");
                 return View(model);
             }
 

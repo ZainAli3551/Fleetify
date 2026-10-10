@@ -185,6 +185,7 @@ namespace Fleetify.Data
                 else
                 {
                     zainAdmin.Role = "Admin";
+                    zainAdmin.PasswordHash = authService.HashPassword("admin123");
                 }
                 await context.SaveChangesAsync();
 
@@ -237,6 +238,17 @@ namespace Fleetify.Data
                 else
                 {
                     defaultCustomer.PasswordHash = authService.HashPassword("customer123");
+                }
+
+                // Ensure all users in Users table have Role set to Customer and AccountStatus Active
+                var existingUsers = await context.Users.ToListAsync();
+                foreach (var u in existingUsers)
+                {
+                    u.Role = "Customer";
+                    if (string.IsNullOrWhiteSpace(u.AccountStatus))
+                    {
+                        u.AccountStatus = "Active";
+                    }
                 }
                 await context.SaveChangesAsync();
 

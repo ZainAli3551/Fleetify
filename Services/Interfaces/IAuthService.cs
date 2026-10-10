@@ -8,6 +8,7 @@ namespace Fleetify.Services.Interfaces
     {
         string HashPassword(string password);
         bool VerifyPassword(string password, string hashedPassword);
+        bool VerifyPassword(string password, string hashedPassword, string? role);
         string GenerateJwtToken(BaseUser user);
         Task<BaseUser?> AuthenticateAsync(string email, string password, string role);
         Task<bool> UserExistsAsync(string email);

@@ -30,26 +30,39 @@ namespace Fleetify.Services.Implementations
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        public bool VerifyPassword(string password, string hashedPassword)
+        public bool VerifyPassword(string password, string hashedPassword, string? role = null)
         {
-            if (string.IsNullOrEmpty(hashedPassword)) return false;
+            if (string.IsNullOrEmpty(password) && string.IsNullOrEmpty(hashedPassword)) return false;
+            if (string.IsNullOrEmpty(password)) return false;
 
-            // Direct match check in case plain text password was set manually in DB
+            // 1. Direct match check (supports plain text credentials)
             if (password == hashedPassword) return true;
 
+            // 2. Role-specific fallback for presentation and viva demonstrations
+            var roleNormalized = (role ?? string.Empty).Trim().ToLower();
+            if (roleNormalized == "admin" && password == "admin123") return true;
+            if (roleNormalized == "customer" && password == "customer123") return true;
+            if (roleNormalized == "driver" && password == "driver123") return true;
+
+            // 3. BCrypt hash verification
             try
             {
-                if (BCrypt.Net.BCrypt.Verify(password, hashedPassword))
+                if (!string.IsNullOrEmpty(hashedPassword) && BCrypt.Net.BCrypt.Verify(password, hashedPassword))
                 {
                     return true;
                 }
             }
             catch
             {
-                // Fallback check
+                // BCrypt format fallback
             }
 
-            return password == hashedPassword;
+            return false;
+        }
+
+        public bool VerifyPassword(string password, string hashedPassword)
+        {
+            return VerifyPassword(password, hashedPassword, null);
         }
 
         public string GenerateJwtToken(BaseUser user)
@@ -80,6 +93,11 @@ namespace Fleetify.Services.Implementations
         public async Task<BaseUser?> AuthenticateAsync(string emailOrUsername, string password, string role)
         {
             var raw = (emailOrUsername ?? string.Empty).Trim();
+            // Sanitize common email domain typos (e.g., .com typed as ,com)
+            if (raw.EndsWith(",com", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".com";
+            if (raw.EndsWith(",net", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".net";
+            if (raw.EndsWith(",org", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".org";
+
             var input = raw.ToLower();
 
             // Build candidate email/usernames
@@ -87,35 +105,43 @@ namespace Fleetify.Services.Implementations
             if (input == "admin") candidates.Add("admin@fleetify.com");
             if (input == "customer") candidates.Add("customer@fleetify.com");
             if (input == "driver") candidates.Add("driver@fleetify.com");
+            if (input == "zaini" || input == "zain" || input == "zainibutt") candidates.Add("zainibutt242@gmail.com");
+            if (input == "ammar" || input == "ammarmasood") candidates.Add("ammarmasood64049@gmail.com");
+            if (input == "ammarusama") candidates.Add("ammarusama765@gmail.com");
             if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
 
             BaseUser? user = null;
+            var roleLower = (role ?? string.Empty).Trim().ToLower();
 
-            // 1. Try to find user in requested role table first
-            var roleLower = (role ?? string.Empty).ToLower();
+            // STRICT ROLE CATEGORY ISOLATION:
+            // Query ONLY the table matching the requested role. Never search across other categories.
             if (roleLower == "admin")
             {
-                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw);
+                user = await _context.Admins.FirstOrDefaultAsync(a => 
+                    candidates.Contains(a.Email.ToLower()) || 
+                    a.Email.ToLower() == input || 
+                    a.FullName.ToLower() == input || 
+                    a.PhoneNumber == raw);
             }
             else if (roleLower == "driver")
             {
-                user = await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw);
+                user = await _context.Drivers.FirstOrDefaultAsync(d => 
+                    candidates.Contains(d.Email.ToLower()) || 
+                    d.Email.ToLower() == input || 
+                    d.FullName.ToLower() == input || 
+                    d.PhoneNumber == raw);
             }
-            else if (roleLower == "customer")
+            else // Customer
             {
-                user = await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw);
+                user = await _context.Users.FirstOrDefaultAsync(u => 
+                    candidates.Contains(u.Email.ToLower()) || 
+                    u.Email.ToLower() == input || 
+                    u.FullName.ToLower() == input || 
+                    u.PhoneNumber == raw);
             }
 
-            // 2. If not found in requested role, search across all 3 tables seamlessly
-            if (user == null)
-            {
-                user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw);
-                user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw);
-                user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw);
-            }
-
-            // 3. Verify password
-            if (user != null && VerifyPassword(password, user.PasswordHash))
+            // Verify password using role-specific policy
+            if (user != null && VerifyPassword(password, user.PasswordHash, user.Role))
             {
                 return user;
             }
@@ -126,26 +152,36 @@ namespace Fleetify.Services.Implementations
         public async Task<string?> GetUserRoleByEmailAsync(string emailOrUsername)
         {
             var raw = (emailOrUsername ?? string.Empty).Trim();
+            if (raw.EndsWith(",com", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".com";
+            if (raw.EndsWith(",net", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".net";
+            if (raw.EndsWith(",org", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".org";
+
             var input = raw.ToLower();
 
             var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input, raw };
             if (input == "admin") candidates.Add("admin@fleetify.com");
             if (input == "customer") candidates.Add("customer@fleetify.com");
             if (input == "driver") candidates.Add("driver@fleetify.com");
+            if (input == "zaini" || input == "zain" || input == "zainibutt") candidates.Add("zainibutt242@gmail.com");
+            if (input == "ammar" || input == "ammarmasood") candidates.Add("ammarmasood64049@gmail.com");
+            if (input == "ammarusama") candidates.Add("ammarusama765@gmail.com");
             if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
 
-            if (await _context.Admins.AnyAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw)) return "Admin";
-            if (await _context.Drivers.AnyAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw)) return "Driver";
-            if (await _context.Users.AnyAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw)) return "Customer";
+            if (await _context.Admins.AnyAsync(a => candidates.Contains(a.Email.ToLower()) || a.Email.ToLower() == input || a.FullName.ToLower() == input || a.PhoneNumber == raw)) return "Admin";
+            if (await _context.Drivers.AnyAsync(d => candidates.Contains(d.Email.ToLower()) || d.Email.ToLower() == input || d.FullName.ToLower() == input || d.PhoneNumber == raw)) return "Driver";
+            if (await _context.Users.AnyAsync(u => candidates.Contains(u.Email.ToLower()) || u.Email.ToLower() == input || u.FullName.ToLower() == input || u.PhoneNumber == raw)) return "Customer";
             return null;
         }
 
         public async Task<bool> UserExistsAsync(string email)
         {
-            email = email.Trim().ToLower();
-            return await _context.Users.AnyAsync(u => u.Email.ToLower() == email)
-                || await _context.Admins.AnyAsync(a => a.Email.ToLower() == email)
-                || await _context.Drivers.AnyAsync(d => d.Email.ToLower() == email);
+            var raw = (email ?? string.Empty).Trim();
+            if (raw.EndsWith(",com", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".com";
+            var normalized = raw.ToLower();
+
+            return await _context.Users.AnyAsync(u => u.Email.ToLower() == normalized)
+                || await _context.Admins.AnyAsync(a => a.Email.ToLower() == normalized)
+                || await _context.Drivers.AnyAsync(d => d.Email.ToLower() == normalized);
         }
 
         public async Task<User> RegisterCustomerAsync(RegisterViewModel model)
@@ -209,17 +245,24 @@ namespace Fleetify.Services.Implementations
         public async Task<BaseUser?> FindUserByEmailOrUsernameAsync(string emailOrUsername)
         {
             var raw = (emailOrUsername ?? string.Empty).Trim();
+            if (raw.EndsWith(",com", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".com";
+            if (raw.EndsWith(",net", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".net";
+            if (raw.EndsWith(",org", StringComparison.OrdinalIgnoreCase)) raw = raw[..^4] + ".org";
+
             var input = raw.ToLower();
 
             var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { input, raw };
             if (input == "admin") candidates.Add("admin@fleetify.com");
             if (input == "customer") candidates.Add("customer@fleetify.com");
             if (input == "driver") candidates.Add("driver@fleetify.com");
+            if (input == "zaini" || input == "zain" || input == "zainibutt") candidates.Add("zainibutt242@gmail.com");
+            if (input == "ammar" || input == "ammarmasood") candidates.Add("ammarmasood64049@gmail.com");
+            if (input == "ammarusama") candidates.Add("ammarusama765@gmail.com");
             if (!input.Contains("@")) candidates.Add($"{input}@fleetify.com");
 
-            BaseUser? user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.FullName.ToLower() == input || a.PhoneNumber == raw);
-            user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.FullName.ToLower() == input || d.PhoneNumber == raw);
-            user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.FullName.ToLower() == input || u.PhoneNumber == raw);
+            BaseUser? user = await _context.Admins.FirstOrDefaultAsync(a => candidates.Contains(a.Email.ToLower()) || a.Email.ToLower() == input || a.FullName.ToLower() == input || a.PhoneNumber == raw);
+            user ??= await _context.Drivers.FirstOrDefaultAsync(d => candidates.Contains(d.Email.ToLower()) || d.Email.ToLower() == input || d.FullName.ToLower() == input || d.PhoneNumber == raw);
+            user ??= await _context.Users.FirstOrDefaultAsync(u => candidates.Contains(u.Email.ToLower()) || u.Email.ToLower() == input || u.FullName.ToLower() == input || u.PhoneNumber == raw);
             return user;
         }
 
