@@ -1,87 +1,143 @@
 /* ==========================================================================
-   FLEETFLY CUSTOMER DASHBOARD - PREMIUM DESIGN SYSTEM & UI COMPONENTS
-   Theme: Modern Logistics Hub (Deep Space Navy + Silk Slate Gray + Vibrant Accents)
+   FLEETFLY CUSTOMER DASHBOARD - MODERN ULTRA-PREMIUM & RESPONSIVE DESIGN SYSTEM
+   Theme: Next-Gen Logistics OS (Deep Space Navy + Silk Slate + Vibrant Accents)
+   Aesthetics: Frosted Glass, Ambient Mesh Gradients, Sleek Micro-Animations
+   Full Responsive Engine: Zero Widget Overflow on 4K, Desktop, Laptop, Tablet, Mobile
    ========================================================================== */
 
 :root {
-    --fly-navy-deep: #070d1e;
-    --fly-navy-sidebar: #0b1329;
-    --fly-navy-card: #111a36;
-    --fly-navy-hover: #162244;
-    
+    /* Deep Space Navy Brand Palette */
+    --fly-navy-deep: #060c1d;
+    --fly-navy-sidebar: #091126;
+    --fly-navy-card: #0f1b3b;
+    --fly-navy-hover: #15244d;
+    --fly-navy-border: rgba(255, 255, 255, 0.08);
+
+    /* Vibrant Accent Tones */
     --fly-blue: #2563eb;
-    --fly-blue-dark: #1d4ed8;
-    --fly-blue-subtle: #dbeafe;
+    --fly-blue-hover: #1d4ed8;
+    --fly-blue-dark: #1e40af;
+    --fly-blue-light: #60a5fa;
+    --fly-blue-subtle: #eff6ff;
     --fly-blue-glow: rgba(37, 99, 235, 0.28);
 
     --fly-green: #10b981;
     --fly-green-dark: #059669;
-    --fly-green-subtle: #dcfce7;
+    --fly-green-subtle: #ecfdf5;
+    --fly-green-glow: rgba(16, 185, 129, 0.25);
 
     --fly-purple: #8b5cf6;
-    --fly-purple-subtle: #ede9fe;
+    --fly-purple-dark: #7c3aed;
+    --fly-purple-subtle: #f5f3ff;
+    --fly-purple-glow: rgba(139, 92, 246, 0.25);
 
     --fly-orange: #f59e0b;
-    --fly-orange-subtle: #fef3c7;
+    --fly-orange-dark: #d97706;
+    --fly-orange-subtle: #fffbeb;
+    --fly-orange-glow: rgba(245, 158, 11, 0.25);
 
     --fly-red: #ef4444;
-    --fly-red-subtle: #fee2e2;
+    --fly-red-dark: #dc2626;
+    --fly-red-subtle: #fef2f2;
+    --fly-red-glow: rgba(239, 68, 68, 0.25);
 
-    --fly-bg: #f6f8fc;
+    /* Backgrounds & Neutral Surfaces */
+    --fly-bg: #f8fafc;
     --fly-card-bg: #ffffff;
     --fly-card-subtle: #f8fafc;
     --fly-border: #e2e8f0;
     --fly-border-subtle: #f1f5f9;
+    --fly-border-hover: #cbd5e1;
 
+    /* High-Contrast Typography */
     --fly-text-main: #0f172a;
+    --fly-text-secondary: #334155;
     --fly-text-muted: #64748b;
     --fly-text-subtle: #94a3b8;
 
-    --fly-radius-xl: 20px;
-    --fly-radius-lg: 16px;
-    --fly-radius-md: 12px;
+    /* Curves & Radii */
+    --fly-radius-2xl: 24px;
+    --fly-radius-xl: 18px;
+    --fly-radius-lg: 14px;
+    --fly-radius-md: 10px;
     --fly-radius-sm: 8px;
     --fly-radius-pill: 9999px;
 
-    --fly-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.03);
-    --fly-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
-    --fly-shadow-md: 0 6px 18px rgba(15, 23, 42, 0.05);
-    --fly-shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.08);
-    --fly-shadow-hover: 0 14px 34px rgba(15, 23, 42, 0.09);
-    --fly-shadow-glow: 0 0 24px rgba(37, 99, 235, 0.35);
+    /* Layered Ambient Shadows */
+    --fly-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+    --fly-shadow-sm: 0 2px 6px 0 rgba(15, 23, 42, 0.04), 0 1px 2px 0 rgba(15, 23, 42, 0.02);
+    --fly-shadow-md: 0 6px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+    --fly-shadow-lg: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+    --fly-shadow-hover: 0 18px 36px -4px rgba(15, 23, 42, 0.1), 0 8px 12px -3px rgba(15, 23, 42, 0.04);
+    --fly-shadow-blue: 0 10px 25px -4px rgba(37, 99, 235, 0.35);
+    --fly-shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
 
+    /* Fonts */
     --fly-font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --fly-font-mono: 'JetBrains Mono', monospace;
 }
 
-/* Base Reset & Setup */
+/* ==========================================================================
+   BASE RESETS & ANTI-OVERFLOW CANVAS
+   ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
 body.fly-dashboard-body {
     font-family: var(--fly-font);
     background-color: var(--fly-bg);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.035) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.03) 0px, transparent 50%);
+    background-attachment: fixed;
     color: var(--fly-text-main);
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .fly-layout-wrap {
     display: flex;
     min-height: 100vh;
     width: 100%;
-    max-width: 100%;
-    background-color: var(--fly-bg);
+    max-width: 100vw;
+    background-color: transparent;
     overflow-x: hidden;
-    box-sizing: border-box;
+    position: relative;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 /* ==========================================================================
-   1. LEFT SIDE NAVIGATION (DARK NAVY)
+   1. LEFT SIDEBAR NAVIGATION (DEEP SPACE NAVY & GLASS)
    ========================================================================== */
 .fly-sidebar {
     width: 250px;
-    background: linear-gradient(180deg, #070d1e 0%, #0b1329 100%);
+    background: linear-gradient(180deg, #070d1e 0%, #0a1329 55%, #070d1e 100%);
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -91,75 +147,107 @@ body.fly-dashboard-body {
     bottom: 0;
     left: 0;
     z-index: 1040;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    border-right: 1px solid var(--fly-navy-border);
+    box-shadow: 4px 0 28px rgba(0, 0, 0, 0.25);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 .fly-sidebar-brand {
-    padding: 1.25rem 1rem;
+    padding: 1.25rem 1.15rem;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.75rem;
     text-decoration: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--fly-navy-border);
+    background: rgba(255, 255, 255, 0.015);
+    transition: background 0.2s ease;
+}
+
+.fly-sidebar-brand:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .fly-brand-badge {
     background: #ffffff;
     border-radius: var(--fly-radius-md);
-    padding: 6px;
-    width: 48px;
-    height: 48px;
+    padding: 5px;
+    width: 42px;
+    height: 42px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    flex-shrink: 0;
 }
 
-.fly-brand-badge:hover {
-    transform: scale(1.06);
-    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+.fly-sidebar-brand:hover .fly-brand-badge {
+    transform: scale(1.05) rotate(-2deg);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
 }
 
 .fly-brand-logo-img {
-    height: 36px;
-    width: 36px;
+    height: 30px;
+    width: 30px;
     object-fit: contain;
     display: block;
 }
 
-.fly-sidebar-menu {
-    padding: 1.25rem 0.95rem;
+.fly-brand-info {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.fly-brand-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.06em;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.fly-brand-tagline {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.fly-sidebar-menu {
+    padding: 1rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
     flex-grow: 1;
 }
 
 .fly-menu-heading {
-    font-size: 0.68rem;
+    font-size: 0.675rem;
     text-transform: uppercase;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.38);
     letter-spacing: 0.08em;
-    padding: 0.65rem 0.85rem 0.25rem 0.85rem;
+    padding: 0.65rem 0.75rem 0.3rem 0.75rem;
 }
 
 .fly-nav-link {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
+    padding: 0.7rem 0.85rem;
     color: rgba(255, 255, 255, 0.72);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     border-radius: var(--fly-radius-md);
     text-decoration: none;
-    transition: all 0.22s ease;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
     position: relative;
 }
@@ -167,26 +255,36 @@ body.fly-dashboard-body {
 .fly-nav-link-left {
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.75rem;
 }
 
 .fly-nav-link i {
-    font-size: 1.15rem;
-    width: 22px;
+    font-size: 1.1rem;
+    width: 20px;
     text-align: center;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, color 0.2s ease;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .fly-nav-link:hover {
     color: #ffffff;
     background-color: var(--fly-navy-hover);
-    transform: translateX(2px);
+    transform: translateX(3px);
+}
+
+.fly-nav-link:hover i {
+    color: #60a5fa;
+    transform: scale(1.1);
 }
 
 .fly-nav-link.active {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.38);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.42);
+}
+
+.fly-nav-link.active i {
+    color: #ffffff;
 }
 
 .fly-nav-badge {
@@ -196,41 +294,45 @@ body.fly-dashboard-body {
     font-weight: 700;
     padding: 2px 7px;
     border-radius: var(--fly-radius-pill);
+    letter-spacing: 0.02em;
 }
 
 .fly-nav-badge-green {
-    background: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #ffffff;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
 }
 
 /* Sidebar VIP Card */
 .fly-sidebar-vip-card {
-    margin: 0.85rem 0.95rem 1.25rem 0.95rem;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.16) 0%, rgba(14, 165, 233, 0.08) 100%);
-    border: 1px solid rgba(56, 189, 248, 0.22);
+    margin: 0.75rem 0.85rem 1.15rem 0.85rem;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.18) 0%, rgba(14, 165, 233, 0.1) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.28);
     border-radius: var(--fly-radius-lg);
-    padding: 1rem;
+    padding: 0.9rem;
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(8px);
 }
 
 .fly-vip-header {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.4rem;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
 }
 
 .fly-vip-icon {
     width: 28px;
     height: 28px;
-    border-radius: 8px;
-    background: #2563eb;
+    border-radius: 7px;
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 
 .fly-vip-title {
@@ -240,15 +342,15 @@ body.fly-dashboard-body {
 }
 
 .fly-vip-desc {
-    font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.68);
     line-height: 1.35;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.65rem;
 }
 
 .fly-vip-btn {
     background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     color: #ffffff;
     font-size: 0.725rem;
     font-weight: 600;
@@ -264,10 +366,12 @@ body.fly-dashboard-body {
 .fly-vip-btn:hover {
     background: #ffffff;
     color: var(--fly-navy-deep);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   2. MAIN WORKSPACE & TOPBAR
+   2. MAIN WORKSPACE & FROSTED TOPBAR
    ========================================================================== */
 .fly-main {
     margin-left: 250px;
@@ -278,44 +382,47 @@ body.fly-dashboard-body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background-color: var(--fly-bg);
+    background-color: transparent;
     transition: margin-left 0.3s ease;
-    box-sizing: border-box;
     overflow-x: hidden;
 }
 
 .fly-topbar {
-    height: 72px;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--fly-border);
+    height: 70px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2.25rem;
+    padding: 0 1.75rem;
     position: sticky;
     top: 0;
     z-index: 1020;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .fly-search-box {
     position: relative;
-    max-width: 440px;
+    max-width: 380px;
     width: 100%;
 }
 
 .fly-search-input {
     width: 100%;
-    height: 44px;
+    height: 42px;
     border-radius: var(--fly-radius-pill);
     background-color: #f8fafc;
     border: 1.5px solid var(--fly-border);
-    padding: 0 4.5rem 0 2.75rem;
+    padding: 0 4.25rem 0 2.75rem;
     font-size: 0.85rem;
     color: var(--fly-text-main);
     outline: none;
-    transition: all 0.2s ease;
+    transition: all 0.22s ease;
 }
 
 .fly-search-input:focus {
@@ -336,36 +443,39 @@ body.fly-dashboard-body {
 
 .fly-search-shortcut {
     position: absolute;
-    right: 0.85rem;
+    right: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
     background: #ffffff;
     border: 1px solid var(--fly-border);
     border-radius: 6px;
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-family: var(--fly-font-mono);
     color: var(--fly-text-muted);
-    padding: 2px 6px;
+    padding: 2px 5px;
     font-weight: 600;
 }
 
 .fly-topbar-actions {
     display: flex;
     align-items: center;
-    gap: 1.15rem;
+    gap: 1rem;
+    flex-shrink: 0;
 }
 
 .fly-status-beacon {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 6px 14px;
+    padding: 6px 13px;
     background: #ecfdf5;
     border: 1px solid #a7f3d0;
     border-radius: var(--fly-radius-pill);
-    font-size: 0.775rem;
+    font-size: 0.765rem;
     font-weight: 600;
     color: #065f46;
+    box-shadow: var(--fly-shadow-xs);
+    white-space: nowrap;
 }
 
 .fly-pulse-dot {
@@ -376,6 +486,7 @@ body.fly-dashboard-body {
     position: relative;
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
     animation: flyPulse 2s infinite;
+    flex-shrink: 0;
 }
 
 @keyframes flyPulse {
@@ -387,30 +498,32 @@ body.fly-dashboard-body {
 .fly-icon-btn {
     background: #ffffff;
     border: 1px solid var(--fly-border);
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #475569;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     cursor: pointer;
     position: relative;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: var(--fly-shadow-xs);
+    flex-shrink: 0;
 }
 
 .fly-icon-btn:hover {
     background-color: #f8fafc;
     color: var(--fly-blue);
     border-color: #cbd5e1;
+    transform: translateY(-1px);
 }
 
 .fly-icon-badge {
     position: absolute;
-    top: 7px;
-    right: 7px;
+    top: 6px;
+    right: 6px;
     width: 8px;
     height: 8px;
     background-color: var(--fly-red);
@@ -421,30 +534,26 @@ body.fly-dashboard-body {
 .fly-user-profile-badge {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.65rem;
     cursor: pointer;
-    padding: 4px 12px 4px 6px;
+    padding: 3px 10px 3px 5px;
     border: 1px solid var(--fly-border);
     border-radius: var(--fly-radius-pill);
     background: #ffffff;
     transition: all 0.2s ease;
     text-decoration: none;
     box-shadow: var(--fly-shadow-xs);
-}
-
-.fly-user-profile-badge:hover {
-    background-color: #f8fafc;
-    border-color: #cbd5e1;
+    flex-shrink: 0;
 }
 
 .fly-user-avatar {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
     color: #ffffff;
     font-weight: 700;
-    font-size: 0.825rem;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -457,87 +566,115 @@ body.fly-dashboard-body {
 
 .fly-user-name {
     font-weight: 700;
-    font-size: 0.825rem;
+    font-size: 0.8rem;
     color: var(--fly-text-main);
 }
 
 .fly-user-role {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     color: var(--fly-text-muted);
     font-weight: 500;
 }
 
 /* ==========================================================================
-   3. DASHBOARD CONTENT & HERO GREETING
+   3. DASHBOARD CONTENT AREA & HERO GREETING
    ========================================================================== */
 .fly-content-area {
-    padding: 1.75rem 2rem;
+    padding: 1.5rem 1.75rem;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
     flex: 1;
+    overflow-x: hidden;
 }
 
 .fly-greeting-wrap {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
     flex-wrap: wrap;
     gap: 1rem;
+    width: 100%;
 }
 
 .fly-greeting-head {
     font-size: 1.85rem;
     font-weight: 800;
     color: var(--fly-text-main);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
     margin-bottom: 0.25rem;
     line-height: 1.2;
 }
 
+.fly-greeting-head-gradient {
+    background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .fly-greeting-sub {
-    font-size: 0.925rem;
+    font-size: 0.9rem;
     color: var(--fly-text-muted);
     margin: 0;
+    max-width: 700px;
+    line-height: 1.4;
 }
 
 .fly-date-pill {
     background: #ffffff;
     border: 1px solid var(--fly-border);
-    border-radius: var(--fly-radius-md);
-    padding: 8px 16px;
+    border-radius: var(--fly-radius-pill);
+    padding: 7px 16px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.825rem;
+    gap: 7px;
+    font-size: 0.8rem;
     color: var(--fly-text-main);
     font-weight: 600;
-    box-shadow: var(--fly-shadow-xs);
+    box-shadow: var(--fly-shadow-sm);
+    white-space: nowrap;
 }
 
 /* ==========================================================================
-   4. TOP 4 METRIC KPI CARDS
+   4. TOP 4 METRIC KPI CARDS (FLUID, RESPONSIVE & NEVER OVERFLOWING)
    ========================================================================== */
 .fly-metrics-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2rem;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    width: 100%;
+}
+
+@media (max-width: 1350px) {
+    .fly-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575px) {
+    .fly-metrics-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .fly-metric-card {
     background: var(--fly-card-bg);
     border: 1px solid var(--fly-border);
     border-radius: var(--fly-radius-xl);
-    padding: 1.35rem 1.4rem;
+    padding: 1.15rem 1.25rem;
     display: flex;
     align-items: center;
-    gap: 1.25rem;
-    box-shadow: var(--fly-shadow-sm);
+    gap: 1rem;
+    box-shadow: var(--fly-shadow-card);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .fly-metric-card:hover {
@@ -547,81 +684,118 @@ body.fly-dashboard-body {
 }
 
 .fly-metric-icon-wrap {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.45rem;
+    font-size: 1.35rem;
     flex-shrink: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.fly-icon-blue { background-color: var(--fly-blue); color: #ffffff; }
-.fly-icon-green { background-color: var(--fly-green); color: #ffffff; }
-.fly-icon-purple { background-color: var(--fly-purple); color: #ffffff; }
-.fly-icon-orange { background-color: var(--fly-orange); color: #ffffff; }
+.fly-icon-blue { 
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+.fly-icon-green { 
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+.fly-icon-purple { 
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+.fly-icon-orange { 
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
 
 .fly-metric-info {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    flex: 1;
+    overflow: hidden;
 }
 
 .fly-metric-label {
-    font-size: 0.825rem;
+    font-size: 0.785rem;
     font-weight: 600;
     color: var(--fly-text-muted);
     margin-bottom: 2px;
-    white-space: nowrap;
+    word-break: break-word;
 }
 
 .fly-metric-value {
-    font-size: 1.75rem;
+    font-size: 1.7rem;
     font-weight: 800;
     color: var(--fly-text-main);
     line-height: 1.1;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     letter-spacing: -0.02em;
 }
 
 .fly-metric-subtext {
-    font-size: 0.75rem;
+    font-size: 0.725rem;
     color: var(--fly-text-subtle);
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    white-space: nowrap;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    word-break: break-word;
 }
 
 .fly-dot-green { color: var(--fly-green); font-size: 0.65rem; }
 .fly-dot-orange { color: var(--fly-orange); font-size: 0.65rem; }
 
 /* ==========================================================================
-   5. DATA VISUALIZATION ROW (ACTIVITY CHART & DOUGHNUT BREAKDOWN)
+   5. DATA VISUALIZATION ROW (ACTIVITY CHART & STATUS DOUGHNUT)
    ========================================================================== */
 .fly-charts-row {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+    width: 100%;
+}
+
+@media (max-width: 1200px) {
+    .fly-charts-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 .fly-chart-card {
     background-color: var(--fly-card-bg);
     border: 1px solid var(--fly-border);
     border-radius: var(--fly-radius-xl);
-    padding: 1.5rem 1.65rem;
-    box-shadow: var(--fly-shadow-sm);
+    padding: 1.35rem 1.5rem;
+    box-shadow: var(--fly-shadow-card);
+    transition: box-shadow 0.25s ease;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.fly-chart-card:hover {
+    box-shadow: var(--fly-shadow-md);
 }
 
 .fly-chart-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .fly-chart-title-left {
@@ -631,18 +805,20 @@ body.fly-dashboard-body {
 }
 
 .fly-chart-title-icon {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
 }
 
 .fly-chart-title {
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--fly-text-main);
     margin: 0;
@@ -659,9 +835,9 @@ body.fly-dashboard-body {
 .fly-toggle-pill {
     border: none;
     background: transparent;
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 7px;
+    font-size: 0.735rem;
     font-weight: 600;
     color: var(--fly-text-muted);
     cursor: pointer;
@@ -677,11 +853,13 @@ body.fly-dashboard-body {
 .fly-canvas-box-lg {
     height: 220px;
     position: relative;
+    width: 100%;
 }
 
 .fly-canvas-box-sm {
     height: 180px;
     position: relative;
+    width: 100%;
 }
 
 /* ==========================================================================
@@ -689,7 +867,7 @@ body.fly-dashboard-body {
    ========================================================================== */
 .fly-workspace-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 1.5rem;
     align-items: start;
     margin-bottom: 2rem;
@@ -697,314 +875,11 @@ body.fly-dashboard-body {
     box-sizing: border-box;
 }
 
-/* Service Mode Toggle Cards - Full Width Stacked (Prevents card overflow) */
-.fly-service-toggle-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 0.85rem;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.fly-service-pill-btn {
-    border: 1.5px solid var(--fly-border);
-    background: #ffffff;
-    border-radius: var(--fly-radius-md);
-    padding: 0.55rem 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    text-align: left;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    user-select: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.fly-service-pill-btn:hover {
-    border-color: #cbd5e1;
-    background-color: #f8fafc;
-}
-
-.fly-service-pill-btn.active {
-    border-color: var(--fly-blue);
-    background-color: #eff6ff;
-    box-shadow: 0 0 0 1px var(--fly-blue), 0 2px 8px rgba(37, 99, 235, 0.12);
-}
-
-.fly-service-pill-btn.active.is-success {
-    border-color: var(--fly-green);
-    background-color: #ecfdf5;
-    box-shadow: 0 0 0 1px var(--fly-green), 0 2px 8px rgba(16, 185, 129, 0.12);
-}
-
-.fly-service-pill-btn.active.is-danger {
-    border-color: #ef4444;
-    background-color: #fef2f2;
-    box-shadow: 0 0 0 1px var(--fly-red), 0 2px 8px rgba(239, 68, 68, 0.12);
-}
-
-.fly-service-pill-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: #f1f5f9;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-}
-
-.fly-service-pill-btn.active .fly-service-pill-icon {
-    background: var(--fly-blue);
-    color: #ffffff;
-}
-
-.fly-service-pill-btn.active.is-success .fly-service-pill-icon {
-    background: var(--fly-green);
-    color: #ffffff;
-}
-
-.fly-service-pill-btn.active.is-danger .fly-service-pill-icon {
-    background: #ef4444;
-    color: #ffffff;
-}
-
-.fly-service-pill-text {
-    flex: 1;
-    min-width: 0;
-}
-
-.fly-service-pill-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--fly-text-main);
-    display: block;
-    margin-bottom: 1px;
-    line-height: 1.25;
-    white-space: normal;
-}
-
-.fly-service-pill-desc {
-    font-size: 0.68rem;
-    color: var(--fly-text-muted);
-    display: block;
-    line-height: 1.2;
-    white-space: normal;
-}
-
-.fly-service-pill-radio {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1.5px solid #cbd5e1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    color: transparent;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-}
-
-.fly-service-pill-btn.active.is-success .fly-service-pill-radio {
-    border-color: var(--fly-green);
-    background-color: var(--fly-green);
-    color: #ffffff;
-}
-
-.fly-service-pill-btn.active.is-danger .fly-service-pill-radio {
-    border-color: #ef4444;
-    background-color: #ef4444;
-    color: #ffffff;
-}
-
-.fly-service-pill-btn.active:not(.is-success):not(.is-danger) .fly-service-pill-radio {
-    border-color: var(--fly-blue);
-    background-color: var(--fly-blue);
-    color: #ffffff;
-}
-
-/* Delivery Type / Speed Priority Cards */
-.fly-speed-card {
-    border: 1.5px solid var(--fly-border);
-    background: #ffffff;
-    border-radius: var(--fly-radius-md);
-    padding: 0.8rem 0.95rem;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    user-select: none;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-}
-
-.fly-speed-card:hover {
-    border-color: #cbd5e1;
-    background-color: #f8fafc;
-    transform: translateY(-2px);
-    box-shadow: var(--fly-shadow-sm);
-}
-
-.fly-speed-card.active {
-    border-color: var(--fly-blue);
-    background-color: #eff6ff;
-    box-shadow: 0 0 0 1px var(--fly-blue), 0 3px 12px rgba(37, 99, 235, 0.14);
-}
-
-.fly-speed-title {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: var(--fly-text-main);
-}
-
-.fly-speed-badge {
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: var(--fly-radius-pill);
-}
-
-.fly-speed-badge.badge-normal {
-    background-color: #dbeafe;
-    color: #1e40af;
-}
-
-.fly-speed-badge.badge-fast {
-    background-color: #fef3c7;
-    color: #92400e;
-}
-
-.fly-speed-badge.badge-express {
-    background-color: #fee2e2;
-    color: #991b1b;
-}
-
-.fly-speed-days {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin: 4px 0 2px 0;
-    letter-spacing: -0.01em;
-}
-
-.fly-speed-sub {
-    font-size: 0.7rem;
-    color: var(--fly-text-muted);
-    line-height: 1.25;
-}
-
-.fly-speed-radio {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1.5px solid #cbd5e1;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    color: #ffffff;
-    background: transparent;
-}
-
-.fly-speed-card.active .fly-speed-radio {
-    display: flex;
-    border-color: var(--fly-blue);
-    background-color: var(--fly-blue);
-}
-
-.fly-conditional-box {
-    transition: all 0.25s ease;
-}
-
-/* Dedicated Auto-Calculated Totals Box */
-.fly-totals-box {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1.5px solid #cbd5e1;
-    border-radius: var(--fly-radius-lg);
-    padding: 1rem 1.25rem;
-    margin-top: 0.85rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.fly-totals-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 0.65rem;
-    margin-bottom: 0.75rem;
-    border-bottom: 1px dashed #cbd5e1;
-}
-
-.fly-totals-header-title {
-    font-size: 0.825rem;
-    font-weight: 700;
-    color: var(--fly-text-main);
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-}
-
-.fly-totals-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.fly-totals-col {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: var(--fly-radius-md);
-    padding: 0.75rem 0.95rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    transition: all 0.2s ease;
-}
-
-.fly-totals-col:hover {
-    border-color: #94a3b8;
-    box-shadow: var(--fly-shadow-xs);
-}
-
-.fly-totals-col-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--fly-text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.fly-totals-col-val {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--fly-text-main);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-}
-
-.fly-totals-col-sub {
-    font-size: 0.72rem;
-    color: var(--fly-text-subtle);
-    font-family: var(--fly-font-mono);
-}
-
-@media (max-width: 767.98px) {
-    .fly-totals-grid {
+/* Stack into 1 generous column on Laptops/Tablets for absolute breathing space */
+@media (max-width: 1300px) {
+    .fly-workspace-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }
 
@@ -1012,15 +887,26 @@ body.fly-dashboard-body {
     background-color: var(--fly-card-bg);
     border: 1px solid var(--fly-border);
     border-radius: var(--fly-radius-xl);
-    box-shadow: var(--fly-shadow-sm);
+    box-shadow: var(--fly-shadow-card);
     overflow: hidden;
+    transition: box-shadow 0.25s ease;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.fly-card:hover {
+    box-shadow: var(--fly-shadow-md);
 }
 
 .fly-card-header {
-    padding: 1.5rem 1.65rem 0.5rem 1.65rem;
+    padding: 1.35rem 1.5rem 0.5rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .fly-card-title-group {
@@ -1048,18 +934,22 @@ body.fly-dashboard-body {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    box-shadow: var(--fly-shadow-xs);
+    white-space: nowrap;
 }
 
 .fly-card-caption {
     font-size: 0.825rem;
     color: var(--fly-text-muted);
     margin: 0.25rem 0 1.25rem 0;
-    padding: 0 1.65rem;
+    padding: 0 1.5rem;
+    line-height: 1.4;
 }
 
-/* Form Styles */
 .fly-form-body {
-    padding: 0 1.65rem 1.65rem 1.65rem;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .fly-form-section-title {
@@ -1070,6 +960,21 @@ body.fly-dashboard-body {
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.75rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--fly-border-subtle);
+}
+
+.fly-label {
+    font-size: 0.785rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.35rem;
+    display: block;
+}
+
+.fly-req { 
+    color: var(--fly-red); 
+    font-weight: 700;
 }
 
 .fly-input-box {
@@ -1079,21 +984,29 @@ body.fly-dashboard-body {
     background: #ffffff;
     border: 1.5px solid var(--fly-border);
     border-radius: var(--fly-radius-md);
-    height: 48px;
+    height: 46px;
     padding: 0 0.85rem;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fly-input-box:hover {
+    border-color: #cbd5e1;
 }
 
 .fly-input-box:focus-within {
     border-color: var(--fly-blue);
+    background-color: #ffffff;
     box-shadow: 0 0 0 3px var(--fly-blue-glow);
 }
 
 .fly-input-icon {
     color: var(--fly-text-subtle);
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin-right: 0.65rem;
     flex-shrink: 0;
+    transition: color 0.2s ease;
 }
 
 .fly-input-box:focus-within .fly-input-icon {
@@ -1105,15 +1018,17 @@ body.fly-dashboard-body {
     outline: none !important;
     background: transparent !important;
     width: 100%;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--fly-text-main);
     padding: 0;
+    min-width: 0;
 }
 
 .fly-control::placeholder {
     color: var(--fly-text-subtle);
     font-weight: 400;
+    font-size: 0.825rem;
 }
 
 .fly-select {
@@ -1121,34 +1036,27 @@ body.fly-dashboard-body {
     outline: none !important;
     background: transparent !important;
     width: 100%;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--fly-text-main);
     cursor: pointer;
+    min-width: 0;
 }
-
-.fly-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 0.35rem;
-    display: block;
-}
-
-.fly-req { color: var(--fly-red); }
 
 .fly-textarea {
     width: 100%;
     border: 1.5px solid var(--fly-border);
     border-radius: var(--fly-radius-md);
     padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--fly-text-main);
     outline: none;
     resize: none;
     height: 75px;
     transition: all 0.2s ease;
+    background: #ffffff;
+    box-sizing: border-box;
 }
 
 .fly-textarea:focus {
@@ -1156,120 +1064,475 @@ body.fly-dashboard-body {
     box-shadow: 0 0 0 3px var(--fly-blue-glow);
 }
 
+/* Dedicated Auto-Calculated Totals Box */
+.fly-totals-box {
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--fly-radius-lg);
+    padding: 1rem 1.15rem;
+    margin-top: 1rem;
+    box-shadow: var(--fly-shadow-sm);
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.fly-totals-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px dashed #cbd5e1;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.fly-totals-header-title {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: var(--fly-text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fly-totals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .fly-totals-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fly-totals-col {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--fly-radius-md);
+    padding: 0.75rem 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: var(--fly-shadow-xs);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.fly-totals-col:hover {
+    border-color: #94a3b8;
+    box-shadow: var(--fly-shadow-sm);
+}
+
+.fly-totals-col-label {
+    font-size: 0.735rem;
+    font-weight: 600;
+    color: var(--fly-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.fly-totals-col-val {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--fly-text-main);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.fly-totals-col-sub {
+    font-size: 0.72rem;
+    color: var(--fly-text-subtle);
+    font-family: var(--fly-font-mono);
+    word-break: break-word;
+}
+
+#calcHomeRateBadge {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+    padding: 4px 10px;
+}
+
+/* Delivery Type / Speed Priority Cards */
+.fly-speed-card {
+    border: 1.5px solid var(--fly-border);
+    background: #ffffff;
+    border-radius: var(--fly-radius-md);
+    padding: 0.75rem 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fly-speed-card:hover {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+    transform: translateY(-2px);
+    box-shadow: var(--fly-shadow-sm);
+}
+
+.fly-speed-card.active {
+    border-color: var(--fly-blue);
+    background-color: #eff6ff;
+    box-shadow: 0 0 0 1px var(--fly-blue), 0 4px 14px rgba(37, 99, 235, 0.15);
+}
+
+.fly-speed-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--fly-text-main);
+}
+
+.fly-speed-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: var(--fly-radius-pill);
+    white-space: nowrap;
+}
+
+.fly-speed-badge.badge-normal {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.fly-speed-badge.badge-fast {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.fly-speed-badge.badge-express {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.fly-speed-days {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 3px 0 1px 0;
+    letter-spacing: -0.01em;
+}
+
+.fly-speed-sub {
+    font-size: 0.685rem;
+    color: var(--fly-text-muted);
+    line-height: 1.25;
+}
+
+.fly-speed-radio {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid #cbd5e1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: #ffffff;
+    background: transparent;
+}
+
+.fly-speed-card.active .fly-speed-radio {
+    display: flex;
+    border-color: var(--fly-blue);
+    background-color: var(--fly-blue);
+}
+
+/* Service Boxes & Toggle Cards */
+.fly-service-box-pickup {
+    background: linear-gradient(135deg, rgba(236, 253, 245, 0.5) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-color: #a7f3d0 !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fly-service-box-delivery {
+    background: linear-gradient(135deg, rgba(254, 242, 242, 0.5) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border-color: #fecdd3 !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.05);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fly-service-toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+    width: 100%;
+}
+
+.fly-service-pill-btn {
+    border: 1.5px solid var(--fly-border);
+    background: #ffffff;
+    border-radius: var(--fly-radius-md);
+    padding: 0.55rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: left;
+    width: 100%;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.fly-service-pill-btn:hover {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+}
+
+.fly-service-pill-btn.active.is-success {
+    border-color: var(--fly-green);
+    background-color: #ecfdf5;
+    box-shadow: 0 0 0 1px var(--fly-green), 0 3px 10px rgba(16, 185, 129, 0.12);
+}
+
+.fly-service-pill-btn.active.is-danger {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+    box-shadow: 0 0 0 1px var(--fly-red), 0 3px 10px rgba(239, 68, 68, 0.12);
+}
+
+.fly-service-pill-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.fly-service-pill-btn.active.is-success .fly-service-pill-icon {
+    background: var(--fly-green);
+    color: #ffffff;
+}
+
+.fly-service-pill-btn.active.is-danger .fly-service-pill-icon {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.fly-service-pill-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.fly-service-pill-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--fly-text-main);
+    display: block;
+    margin-bottom: 1px;
+    line-height: 1.25;
+}
+
+.fly-service-pill-desc {
+    font-size: 0.685rem;
+    color: var(--fly-text-muted);
+    display: block;
+    line-height: 1.2;
+}
+
+.fly-service-pill-radio {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: transparent;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.fly-service-pill-btn.active.is-success .fly-service-pill-radio {
+    border-color: var(--fly-green);
+    background-color: var(--fly-green);
+    color: #ffffff;
+}
+
+.fly-service-pill-btn.active.is-danger .fly-service-pill-radio {
+    border-color: #ef4444;
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.fly-conditional-box {
+    transition: all 0.25s ease;
+    width: 100%;
+}
+
+/* Submit Delivery Request Button */
 .fly-btn-submit {
     width: 100%;
     height: 52px;
-    border-radius: var(--fly-radius-md);
+    border-radius: var(--fly-radius-lg);
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 0.95rem;
+    letter-spacing: 0.02em;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.65rem;
-    box-shadow: 0 8px 20px -3px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 8px 22px -4px rgba(37, 99, 235, 0.4);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
 .fly-btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px -3px rgba(37, 99, 235, 0.5);
+    box-shadow: 0 12px 28px -4px rgba(37, 99, 235, 0.5);
     background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+.fly-btn-submit:active {
+    transform: translateY(0);
 }
 
 /* ==========================================================================
    7. RIGHT COLUMN CARDS (SUMMARY, LIVE MAP & SAFETY)
    ========================================================================== */
 .fly-summary-box {
-    background-color: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
     border-radius: var(--fly-radius-lg);
-    padding: 1.25rem 1.5rem;
+    padding: 1.15rem 1.35rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--fly-shadow-xs);
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
 .fly-route-city-text {
     font-size: 0.95rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--fly-text-main);
-    line-height: 1.1;
+    line-height: 1.15;
 }
 
 .fly-route-city-tag {
     font-size: 0.7rem;
     color: var(--fly-text-muted);
+    font-weight: 500;
 }
 
 .fly-route-connector {
-    color: #94a3b8;
-    font-size: 0.85rem;
-    letter-spacing: 2px;
-    font-weight: bold;
-}
-
-.fly-stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    text-align: center;
-}
-
-.fly-stat-cell {
-    padding: 0.65rem 0.5rem;
-    border-radius: 10px;
-    background: #f8fafc;
-    border: 1px solid var(--fly-border-subtle);
-}
-
-.fly-stat-cell-label {
-    font-size: 0.72rem;
-    color: var(--fly-text-muted);
+    flex: 1;
+    min-width: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    margin-bottom: 0.25rem;
+    padding: 0 0.5rem;
 }
 
-.fly-stat-cell-val {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: var(--fly-text-main);
-}
-
-#routeLiveMap {
+.fly-route-track {
     width: 100%;
-    height: 280px;
-    border-radius: 0;
-    z-index: 1;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, #94a3b8, #94a3b8 6px, transparent 6px, transparent 12px);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fly-route-truck-icon {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.4);
+    animation: flyTruckMove 3.2s infinite ease-in-out;
+}
+
+@keyframes flyTruckMove {
+    0% { transform: translateX(-16px); }
+    50% { transform: translateX(16px); }
+    100% { transform: translateX(-16px); }
+}
+
+@media (max-width: 480px) {
+    .fly-summary-box {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .fly-route-connector {
+        width: 100%;
+        padding: 0.5rem 0;
+    }
 }
 
 .fly-legs-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.85rem;
-    padding-top: 0.85rem;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
     border-top: 1px dashed var(--fly-border);
+    width: 100%;
 }
 
 .fly-leg-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     padding: 4px 10px;
     background: #ffffff;
     border: 1px solid var(--fly-border);
     border-radius: var(--fly-radius-pill);
-    font-size: 0.735rem;
+    font-size: 0.725rem;
     color: var(--fly-text-muted);
     font-weight: 600;
+    box-shadow: var(--fly-shadow-xs);
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .fly-leg-chip strong {
@@ -1304,6 +1567,133 @@ body.fly-dashboard-body {
     color: #38bdf8;
 }
 
+.fly-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    text-align: center;
+    width: 100%;
+}
+
+.fly-stat-cell {
+    padding: 0.65rem 0.35rem;
+    border-radius: var(--fly-radius-md);
+    background: #f8fafc;
+    border: 1px solid var(--fly-border-subtle);
+    transition: all 0.2s ease;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.fly-stat-cell:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.fly-stat-cell-label {
+    font-size: 0.72rem;
+    color: var(--fly-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fly-stat-cell-val {
+    font-size: 0.885rem;
+    font-weight: 800;
+    color: var(--fly-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#summaryEstCost {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.15rem;
+    font-weight: 800;
+    display: inline-block;
+}
+
+#summaryCostBreakdown {
+    background: #ffffff;
+    border: 1px solid var(--fly-border);
+    border-radius: var(--fly-radius-md);
+    padding: 8px 12px;
+    margin-top: 8px;
+    box-shadow: var(--fly-shadow-xs);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+    .fly-stats-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Multi-Leg Route Live Map & Markers */
+.custom-map-marker div {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+.custom-map-marker:hover div {
+    transform: scale(1.15);
+}
+.custom-truck-marker div {
+    animation: truckRadarPulse 2s infinite;
+}
+@keyframes truckRadarPulse {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.15) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    font-family: var(--fly-font) !important;
+}
+.leaflet-popup-content {
+    font-size: 0.825rem !important;
+    line-height: 1.4 !important;
+}
+
+#pickupLegDistanceTag, #deliveryLegDistanceTag {
+    padding: 3px 8px;
+    font-size: 0.735rem;
+    font-weight: 600;
+    border-radius: var(--fly-radius-pill);
+    transition: all 0.2s ease;
+    white-space: normal;
+}
+
+#pickupLegFeeBadge, #deliveryLegFeeBadge {
+    padding: 3px 8px;
+    font-size: 0.735rem;
+    font-weight: 700;
+    border-radius: var(--fly-radius-pill);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+/* Live Map Container */
+#routeLiveMap {
+    width: 100%;
+    height: 290px;
+    max-width: 100%;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
 .fly-map-legs-bar {
     background: #f8fafc;
     border-bottom: 1px solid var(--fly-border);
@@ -1313,15 +1703,19 @@ body.fly-dashboard-body {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .fly-safety-strip {
     background-color: #ffffff;
-    padding: 1rem 1.25rem;
+    padding: 0.85rem 1.15rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-top: 1px solid var(--fly-border);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .fly-safety-title {
@@ -1332,7 +1726,7 @@ body.fly-dashboard-body {
 }
 
 .fly-safety-sub {
-    font-size: 0.725rem;
+    font-size: 0.715rem;
     color: var(--fly-text-muted);
     margin: 0;
 }
@@ -1342,35 +1736,41 @@ body.fly-dashboard-body {
    ========================================================================== */
 .fly-table-wrap {
     overflow-x: auto;
+    border-radius: var(--fly-radius-lg);
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 .fly-table {
     width: 100%;
+    min-width: 680px;
     border-collapse: separate;
     border-spacing: 0;
 }
 
 .fly-table th {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.735rem;
+    font-weight: 700;
     color: var(--fly-text-muted);
-    text-transform: capitalize;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     padding: 12px 14px;
-    border-bottom: 1px solid var(--fly-border);
-    background: transparent;
+    border-bottom: 1.5px solid var(--fly-border);
+    background: #f8fafc;
     white-space: nowrap;
 }
 
 .fly-table td {
-    padding: 13px 14px;
+    padding: 12px 14px;
     font-size: 0.825rem;
     color: #334155;
     border-bottom: 1px solid var(--fly-border-subtle);
     vertical-align: middle;
     white-space: nowrap;
+    transition: background 0.15s ease;
 }
 
-.fly-table tbody tr:hover {
+.fly-table tbody tr:hover td {
     background-color: #f8fafc;
 }
 
@@ -1384,6 +1784,8 @@ body.fly-dashboard-body {
     padding: 3px 8px;
     border-radius: 6px;
     transition: all 0.2s ease;
+    border: 1px solid #bfdbfe;
+    display: inline-block;
 }
 
 .fly-tracking-badge:hover {
@@ -1398,12 +1800,25 @@ body.fly-dashboard-body {
     padding: 4px 10px;
     border-radius: var(--fly-radius-pill);
     font-size: 0.725rem;
-    font-weight: 600;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
-.fly-status-transit { background: #e0f2fe; color: #0369a1; }
-.fly-status-delivered { background: #dcfce7; color: #15803d; }
-.fly-status-pending { background: #fef3c7; color: #b45309; }
+.fly-status-transit { 
+    background: #e0f2fe; 
+    color: #0369a1; 
+    border: 1px solid #bae6fd;
+}
+.fly-status-delivered { 
+    background: #dcfce7; 
+    color: #15803d; 
+    border: 1px solid #bbf7d0;
+}
+.fly-status-pending { 
+    background: #fef3c7; 
+    color: #b45309; 
+    border: 1px solid #fde68a;
+}
 
 /* ==========================================================================
    9. FOOTER
@@ -1411,23 +1826,28 @@ body.fly-dashboard-body {
 .fly-footer {
     background-color: #060d21;
     color: #ffffff;
-    padding: 1.25rem 2.25rem;
+    padding: 1.25rem 1.75rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     margin-top: auto;
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .fly-footer-links {
     display: flex;
     align-items: center;
-    gap: 1.75rem;
+    gap: 1.5rem;
+    flex-wrap: wrap;
 }
 
 .fly-footer-link {
     color: #94a3b8;
-    font-size: 0.85rem;
+    font-size: 0.825rem;
     text-decoration: none;
     transition: color 0.2s ease;
 }
@@ -1439,14 +1859,15 @@ body.fly-dashboard-body {
 .fly-footer-social {
     display: flex;
     align-items: center;
-    gap: 1.15rem;
+    gap: 1rem;
     color: #94a3b8;
+    flex-wrap: wrap;
 }
 
 .fly-social-icon {
     color: #94a3b8;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 0.95rem;
     transition: color 0.2s ease;
 }
 
@@ -1455,48 +1876,73 @@ body.fly-dashboard-body {
 }
 
 /* ==========================================================================
-   10. RESPONSIVE BREAKPOINTS
+   10. RESPONSIVE BREAKPOINTS (TABLET, MOBILE, NARROW LAPTOPS)
    ========================================================================== */
 @media (max-width: 1200px) {
-    .fly-metrics-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .fly-topbar {
+        padding: 0 1.25rem;
     }
-    .fly-charts-row {
-        grid-template-columns: 1fr;
-    }
-    .fly-workspace-grid {
-        grid-template-columns: 1fr;
+}
+
+@media (max-width: 1100px) {
+    .fly-status-beacon {
+        display: none !important;
     }
 }
 
 @media (max-width: 991.98px) {
     .fly-sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 250px;
+        z-index: 1060;
         transform: translateX(-100%);
+        box-shadow: 0 0 35px rgba(0, 0, 0, 0.5);
     }
     .fly-sidebar.show {
         transform: translateX(0);
     }
     .fly-main {
-        margin-left: 0;
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
     .fly-content-area {
-        padding: 1.5rem 1rem;
+        padding: 1.25rem 1rem;
     }
     .fly-topbar {
         padding: 0 1rem;
     }
     .fly-footer {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
         text-align: center;
+        padding: 1.25rem 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .fly-search-box {
+        display: none;
     }
 }
 
 @media (max-width: 575.98px) {
-    .fly-metrics-grid {
-        grid-template-columns: 1fr;
+    .fly-greeting-head {
+        font-size: 1.45rem;
     }
-    .fly-search-box {
-        display: none;
+    .fly-content-area {
+        padding: 1rem 0.65rem;
+    }
+    .fly-card-header {
+        padding: 1rem 1rem 0.35rem 1rem;
+    }
+    .fly-card-caption {
+        padding: 0 1rem;
+    }
+    .fly-form-body {
+        padding: 0 1rem 1rem 1rem;
     }
 }

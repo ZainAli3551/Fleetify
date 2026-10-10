@@ -59,6 +59,8 @@ namespace Fleetify.Models.ViewModels
         public double PickupDoorstepSurcharge { get; set; } = 0.0;
         public double DeliveryDoorstepSurcharge { get; set; } = 0.0;
         public double TotalDoorstepSurcharge { get; set; } = 0.0;
+        public double HomeServiceRatePerKm { get; set; } = 50.0;
+        public double HomeServiceDistanceKm { get; set; } = 0.0;
 
         public string OriginCity { get; set; } = string.Empty;
         public string DestinationCity { get; set; } = string.Empty;

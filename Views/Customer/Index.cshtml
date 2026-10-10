@@ -52,6 +52,10 @@
                 <div class="fly-brand-badge">
                     <img src="~/images/fleetify-icon.png?v=20261009" asp-append-version="true" alt="Fleetify" class="fly-brand-logo-img" />
                 </div>
+                <div class="fly-brand-info">
+                    <span class="fly-brand-name">FLEETFLY</span>
+                    <span class="fly-brand-tagline">EXPRESS LOGISTICS</span>
+                </div>
             </a>
 
             <!-- Navigation Links -->
@@ -210,10 +214,18 @@
                 <!-- 1. GREETING HEADER & DATE PILL -->
                 <div class="fly-greeting-wrap">
                     <div>
-                        <h1 class="fly-greeting-head">Welcome back, @firstName! 👋</h1>
-                        <p class="fly-greeting-sub">Send your parcel request and track your deliveries easily.</p>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small fw-bold">
+                                <i class="bi bi-shield-check me-1"></i>Verified Shipper Portal
+                            </span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold">
+                                <span class="fly-dot-green me-1">●</span>Live Dispatch Active
+                            </span>
+                        </div>
+                        <h1 class="fly-greeting-head"><span class="fly-greeting-head-gradient">Welcome back, @firstName!</span> 👋</h1>
+                        <p class="fly-greeting-sub">Book fast express shipments, calculate multi-leg doorstep logistics, and track parcels in real-time.</p>
                     </div>
-                    <div>
+                    <div class="d-flex align-items-center gap-2">
                         <div class="fly-date-pill">
                             <i class="bi bi-calendar3 text-primary"></i>
                             <span>Today &bull; @DateTime.UtcNow.ToString("MMM dd, yyyy")</span>
@@ -379,21 +391,21 @@
                                         <span>Sender Information</span>
                                     </div>
                                     <div class="row g-2">
-                                        <div class="col-md-4">
+                                        <div class="col-lg-4 col-sm-6 col-12">
                                             <label class="fly-label">Full Name <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-person fly-input-icon"></i>
                                                 <input type="text" name="SenderName" class="fly-control" value="@userName" required />
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-lg-4 col-sm-6 col-12">
                                             <label class="fly-label">Phone Number <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-telephone fly-input-icon"></i>
                                                 <input type="tel" name="SenderPhone" class="fly-control" placeholder="+92 300 1234567" value="+92 300 1234567" required />
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-lg-4 col-sm-12 col-12">
                                             <label class="fly-label">Email Address <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-envelope fly-input-icon"></i>
@@ -410,21 +422,21 @@
                                         <span>Receiver Information</span>
                                     </div>
                                     <div class="row g-2">
-                                        <div class="col-md-4">
+                                        <div class="col-lg-4 col-sm-6 col-12">
                                             <label class="fly-label">Full Name <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-person fly-input-icon"></i>
                                                 <input type="text" name="ReceiverName" class="fly-control" placeholder="Ahmed Khan" value="Ahmed Khan" required />
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-lg-4 col-sm-6 col-12">
                                             <label class="fly-label">Phone Number <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-telephone fly-input-icon"></i>
                                                 <input type="tel" name="ReceiverPhone" class="fly-control" placeholder="+92 321 7654321" value="+92 321 7654321" required />
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-lg-4 col-sm-12 col-12">
                                             <label class="fly-label">Address <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-geo-alt fly-input-icon"></i>
@@ -441,7 +453,7 @@
                                         <span>Parcel Details &amp; Quantity Specification</span>
                                     </div>
                                     <div class="row g-2 mb-2">
-                                        <div class="col-md-3">
+                                        <div class="col-xl-3 col-sm-6 col-12">
                                             <label class="fly-label">Package Category <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-box-seam fly-input-icon"></i>
@@ -455,21 +467,21 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-xl-3 col-sm-6 col-12">
                                             <label class="fly-label">Single Item Weight (kg) <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-speedometer2 fly-input-icon"></i>
                                                 <input type="number" step="0.1" min="0" name="NewDelivery.SingleItemWeight" id="inputSingleWeight" class="fly-control" value="0" placeholder="0" oninput="onParcelParamsChanged()" required />
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-xl-3 col-sm-6 col-12">
                                             <label class="fly-label">Single Dimensions (L × W × H) <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-box fly-input-icon"></i>
                                                 <input type="text" id="inputSingleDimensions" name="SingleDimensionsInput" class="fly-control" value="40 × 30 × 20" placeholder="e.g. 40 × 30 × 20 or 40*211*2" oninput="onParcelParamsChanged()" required />
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-xl-3 col-sm-6 col-12">
                                             <label class="fly-label">Quantity (Items) <span class="fly-req">*</span></label>
                                             <div class="fly-input-box">
                                                 <i class="bi bi-stack fly-input-icon"></i>
@@ -526,6 +538,9 @@
                                                 <div class="fly-totals-col-sub" id="calcDimBreakdown">
                                                     Single: <span id="calcSingleCft">24,000</span> CFT &bull; <span id="calcDimL">40</span>&times;<span id="calcDimW">30</span>&times;<span id="calcDimH">20</span> &times; <span id="calcQty">1</span> qty
                                                 </div>
+                                                <div class="mt-1 d-flex gap-1 flex-wrap align-items-center">
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small font-mono" id="calcHomeRateBadge"><i class="bi bi-truck me-1"></i>Doorstep Rate: Rs. 50 / Km</span>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -546,7 +561,7 @@
                                         <span>Delivery Type &amp; Priority Speed</span>
                                     </div>
                                     <div class="row g-2">
-                                        <div class="col-md-4">
+                                        <div class="col-md-4 col-sm-6 col-12">
                                             <div class="fly-speed-card active" id="cardSpeedNormal" onclick="selectDeliverySpeed('Normal')">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <span class="fly-speed-title"><i class="bi bi-clock me-1 text-primary"></i>Normal</span>
@@ -557,7 +572,7 @@
                                                 <div class="fly-speed-radio"><i class="bi bi-check2"></i></div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4 col-sm-6 col-12">
                                             <div class="fly-speed-card" id="cardSpeedFast" onclick="selectDeliverySpeed('Fast')">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <span class="fly-speed-title"><i class="bi bi-lightning-fill me-1 text-warning"></i>Express</span>
@@ -568,7 +583,7 @@
                                                 <div class="fly-speed-radio"><i class="bi bi-check2"></i></div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4 col-sm-12 col-12">
                                             <div class="fly-speed-card" id="cardSpeedExpress" onclick="selectDeliverySpeed('Express')">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <span class="fly-speed-title"><i class="bi bi-rocket-takeoff-fill me-1 text-danger"></i>Urgent</span>
@@ -591,8 +606,8 @@
 
                                     <div class="row g-3">
                                         <!-- LEFT: ORIGIN / PICKUP -->
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded-4 bg-light-subtle border">
+                                        <div class="col-xl-6 col-12">
+                                            <div class="p-3 rounded-4 fly-service-box-pickup border">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <span class="small fw-bold text-dark"><i class="bi bi-box-arrow-up text-success me-1"></i>Pickup Service</span>
                                                     <span class="badge bg-success-subtle text-success small" id="badgePickupMode">Home Pickup</span>
@@ -645,9 +660,12 @@
                                                         <i class="bi bi-house-door fly-input-icon text-success"></i>
                                                         <input type="text" name="NewDelivery.PickupLocation" id="inputPickupAddress" class="fly-control" placeholder="House #, Street Address, Area..." value="House 14, Street 5, Model Town, Gujranwala" oninput="onDoorstepAddressChanged('pickup')" required />
                                                     </div>
-                                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                                    <div class="d-flex justify-content-between align-items-center mt-1 flex-wrap gap-1">
                                                         <span class="x-small text-muted"><i class="bi bi-info-circle me-1"></i>Driver dispatched to your doorstep</span>
-                                                        <span class="x-small text-success fw-semibold font-mono" id="pickupLegDistanceTag">~9.2 km to Hub</span>
+                                                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                            <span class="badge bg-success-subtle text-success border border-success-subtle small font-mono" id="pickupLegDistanceTag"><i class="bi bi-geo-alt me-1"></i>~2.4 km to Hub</span>
+                                                            <span class="badge bg-success text-white small font-mono" id="pickupLegFeeBadge">+Rs. 120</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -666,8 +684,8 @@
                                         </div>
 
                                         <!-- RIGHT: DESTINATION / DELIVERY -->
-                                        <div class="col-md-6">
-                                            <div class="p-3 rounded-4 bg-light-subtle border">
+                                        <div class="col-xl-6 col-12">
+                                            <div class="p-3 rounded-4 fly-service-box-delivery border">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <span class="small fw-bold text-dark"><i class="bi bi-box-arrow-in-down text-danger me-1"></i>Delivery Service</span>
                                                     <span class="badge bg-danger-subtle text-danger small" id="badgeDeliveryMode">Home Delivery</span>
@@ -720,9 +738,12 @@
                                                         <i class="bi bi-house-door fly-input-icon text-danger"></i>
                                                         <input type="text" name="NewDelivery.DropoffLocation" id="inputDropoffAddress" class="fly-control" placeholder="House #, Street Address, Area..." value="Flat 4B, Gulberg III, Lahore" oninput="onDoorstepAddressChanged('dropoff')" required />
                                                     </div>
-                                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                                    <div class="d-flex justify-content-between align-items-center mt-1 flex-wrap gap-1">
                                                         <span class="x-small text-muted"><i class="bi bi-info-circle me-1"></i>Delivered directly to the recipient</span>
-                                                        <span class="x-small text-danger fw-semibold font-mono" id="deliveryLegDistanceTag">~14.5 km from Hub</span>
+                                                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle small font-mono" id="deliveryLegDistanceTag"><i class="bi bi-geo-alt me-1"></i>~14.9 km from Hub</span>
+                                                            <span class="badge bg-danger text-white small font-mono" id="deliveryLegFeeBadge">+Rs. 745</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -783,7 +804,9 @@
                                 </div>
                                 
                                 <div class="fly-route-connector">
-                                    <span>------&gt;</span>
+                                    <div class="fly-route-track">
+                                        <span class="fly-route-truck-icon" title="Express Route Transit"><i class="bi bi-truck"></i></span>
+                                    </div>
                                 </div>
 
                                 <div class="d-flex align-items-center gap-2">
@@ -833,6 +856,9 @@
                                     <div class="fly-stat-cell-val" id="summaryServiceType">Normal</div>
                                 </div>
                             </div>
+
+                            <!-- Dedicated Full-Width Cost Breakdown Container -->
+                            <div class="mt-2" id="summaryCostBreakdown"></div>
                         </div>
 
                         <!-- CARD 2: LIVE LOCATION PREVIEW (LEAFLET MAP) -->
@@ -1370,7 +1396,9 @@
             }
         }
 
-        recalculateAll();
+        livePickupDistKm = null;
+        livePickupCoords = null;
+        onDoorstepAddressChanged('pickup');
     }
 
     function onDeliveryCityChanged() {
@@ -1391,7 +1419,9 @@
             }
         }
 
-        recalculateAll();
+        liveDropoffDistKm = null;
+        liveDropoffCoords = null;
+        onDoorstepAddressChanged('dropoff');
     }
 
     function onOriginWarehouseSelectChanged() {
@@ -1542,120 +1572,203 @@
     }
 
     // =========================================================================
-    // RECALCULATE LEGS, PRICING & ROUTE MAP
+    // PAKISTAN LOCALITY COORDINATES MATRIX & LIVE GEODISTANCE ENGINE
     // =========================================================================
-    function recalculateAll() {
-        const pCity = document.getElementById('selectPickupCity').value;
-        const dCity = document.getElementById('selectDeliveryCity').value;
-        const pHub = getHub(pCity);
-        const dHub = getHub(dCity);
+    const PAKISTAN_LOCALITIES = {
+        // Gujranwala
+        "model town": [32.1877, 74.1945],
+        "satellite town": [32.1645, 74.1950],
+        "rahwali": [32.2350, 74.2150],
+        "cantt gujranwala": [32.2150, 74.2050],
+        "peoples colony": [32.1580, 74.1750],
+        "dc colony": [32.2280, 74.2250],
+        "wapda town gujranwala": [32.2450, 74.2380],
+        "master city": [32.2050, 74.2350],
+        "citi housing": [32.2350, 74.1350],
+        "shaheenabad": [32.1765, 74.1755],
+        // Lahore
+        "gulberg iii": [31.5120, 74.3540],
+        "gulberg": [31.5120, 74.3540],
+        "model town lahore": [31.4826, 74.3184],
+        "dha phase 5": [31.4550, 74.4150],
+        "dha phase 6": [31.4420, 74.4550],
+        "dha phase": [31.4697, 74.3986],
+        "dha": [31.4697, 74.3986],
+        "defence": [31.4697, 74.3986],
+        "johar town": [31.4697, 74.2728],
+        "bahria town": [31.3688, 74.1804],
+        "wapda town": [31.4335, 74.2586],
+        "faisal town": [31.4756, 74.3056],
+        "allama iqbal town": [31.5126, 74.2874],
+        "shadman": [31.5412, 74.3315],
+        "cavalry ground": [31.5035, 74.3725],
+        "township": [31.4425, 74.3075],
+        "valencia": [31.4050, 74.2550],
+        "thokar niaz baig": [31.4707, 74.2415],
+        // Islamabad & Rawalpindi
+        "blue area": [33.7125, 73.0650],
+        "f-6": [33.7295, 73.0760], "f-7": [33.7215, 73.0550], "f-8": [33.7115, 73.0350], "f-10": [33.6935, 73.0050], "f-11": [33.6835, 72.9850],
+        "g-6": [33.7055, 73.0850], "g-7": [33.6985, 73.0650], "g-8": [33.6895, 73.0450], "g-9": [33.6825, 73.0250], "g-10": [33.6755, 73.0050], "g-11": [33.6685, 72.9850],
+        "i-8": [33.6705, 73.0750], "i-9": [33.6653, 73.0535], "i-10": [33.6555, 73.0350],
+        "saddar rawalpindi": [33.5950, 73.0550],
+        "westridge": [33.6050, 73.0250],
+        "commercial market": [33.6380, 73.0720],
+        // Faisalabad
+        "d ground": [31.4085, 73.1050],
+        "madina town": [31.4285, 73.1250],
+        // Multan
+        "gulgasht": [30.2280, 71.4750],
+        "bosan road": [30.2350, 71.4650],
+        // Karachi
+        "clifton": [24.8150, 67.0450],
+        "gulshan-e-iqbal": [24.9250, 67.0950],
+        "north nazimabad": [24.9450, 67.0450],
+        "hayatabad": [33.9788, 71.4282]
+    };
 
-        // 1. Calculate Leg Distances
-        const isHomePickup = currentOriginMode === "DoorstepPickup";
-        const isHomeDelivery = currentDestinationMode === "DoorstepDelivery";
+    let livePickupDistKm = null;
+    let liveDropoffDistKm = null;
+    let livePickupCoords = null;
+    let liveDropoffCoords = null;
+    let pickupDebounceTimer = null;
+    let dropoffDebounceTimer = null;
 
-        const pLegKm = isHomePickup ? pHub.doorstepDistKm : 0.0;
-        const mainKm = calculateInterHubDistance(pCity, dCity);
-        const dLegKm = isHomeDelivery ? dHub.doorstepDistKm : 0.0;
+    function calcHaversineKm(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return Math.round((R * c * 1.28) * 10) / 10;
+    }
 
-        let totalKm = 0.0;
-        if (isHomePickup && isHomeDelivery) {
-            totalKm = Math.round((pLegKm + mainKm + dLegKm) * 10) / 10;
-        } else if (isHomePickup) {
-            totalKm = Math.round((pLegKm + mainKm) * 10) / 10;
-        } else if (isHomeDelivery) {
-            totalKm = Math.round((mainKm + dLegKm) * 10) / 10;
-        } else {
-            // Neither selected: "default to showing the distance between the pickup and drop-off warehouses"
-            totalKm = Math.round(mainKm * 10) / 10;
+    function resolveAddressCoords(city, addressText) {
+        const text = (addressText || '').toLowerCase();
+        for (const [key, coords] of Object.entries(PAKISTAN_LOCALITIES)) {
+            if (text.includes(key)) {
+                return coords;
+            }
+        }
+        const hub = getHub(city);
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) hash = ((hash << 5) - hash) + text.charCodeAt(i);
+        const offLat = ((Math.abs(hash) % 40) - 20) * 0.0012;
+        const offLng = ((Math.abs(hash * 3) % 40) - 20) * 0.0012;
+        return [hub.hubCoords[0] + offLat, hub.hubCoords[1] + offLng];
+    }
+
+    function resolveLocalFallback(city, addressText) {
+        const hub = getHub(city);
+        const coords = resolveAddressCoords(city, addressText);
+        const km = calcHaversineKm(coords[0], coords[1], hub.hubCoords[0], hub.hubCoords[1]);
+        return {
+            coords: coords,
+            distKm: Math.max(1.5, Math.min(65.0, km))
+        };
+    }
+
+    function onDoorstepAddressChanged(leg) {
+        if (leg === 'pickup' || leg === 'both') {
+            const pCity = document.getElementById('selectPickupCity').value;
+            const pAddr = (document.getElementById('inputPickupAddress').value || '').trim();
+
+            if (pAddr.length > 2) {
+                const localEst = resolveLocalFallback(pCity, pAddr);
+                if (livePickupDistKm === null) {
+                    livePickupDistKm = localEst.distKm;
+                    livePickupCoords = localEst.coords;
+                    recalculateAll();
+                }
+
+                const tag = document.getElementById('pickupLegDistanceTag');
+                if (tag) {
+                    tag.innerHTML = `<span class="spinner-border spinner-border-sm me-1" style="width:0.7rem;height:0.7rem;" role="status"></span>Live measuring...`;
+                }
+
+                clearTimeout(pickupDebounceTimer);
+                pickupDebounceTimer = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/Customer/MeasureAddressDistance?city=${encodeURIComponent(pCity)}&address=${encodeURIComponent(pAddr)}&legType=pickup`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data && data.success && data.distanceKm > 0) {
+                                livePickupDistKm = data.distanceKm;
+                                if (data.coords && data.coords.length === 2) {
+                                    livePickupCoords = data.coords;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Live pickup measurement fallback:", e);
+                    } finally {
+                        recalculateAll();
+                    }
+                }, 300);
+            }
         }
 
-        // 2. Update Summary Badges & Tags
-        document.getElementById('summaryPickupCity').innerText = pCity;
-        document.getElementById('summaryDropoffCity').innerText = dCity;
-        document.getElementById('summaryPickupTag').innerText = isHomePickup ? 'Home Pickup' : 'Warehouse Hub';
-        document.getElementById('summaryDropoffTag').innerText = isHomeDelivery ? 'Home Delivery' : 'Warehouse Hub';
+        if (leg === 'dropoff' || leg === 'both') {
+            const dCity = document.getElementById('selectDeliveryCity').value;
+            const dAddr = (document.getElementById('inputDropoffAddress').value || '').trim();
 
-        document.getElementById('pickupLegDistanceTag').innerText = `~${pHub.doorstepDistKm} km to Hub`;
-        document.getElementById('deliveryLegDistanceTag').innerText = `~${dHub.doorstepDistKm} km from Hub`;
+            if (dAddr.length > 2) {
+                const localEst = resolveLocalFallback(dCity, dAddr);
+                if (liveDropoffDistKm === null) {
+                    liveDropoffDistKm = localEst.distKm;
+                    liveDropoffCoords = localEst.coords;
+                    recalculateAll();
+                }
 
-        // Update Leg Breakdown Chips
-        const chipPickup = document.getElementById('chipPickupLeg');
-        const chipMain = document.getElementById('chipMainLeg');
-        const chipDelivery = document.getElementById('chipDeliveryLeg');
+                const tag = document.getElementById('deliveryLegDistanceTag');
+                if (tag) {
+                    tag.innerHTML = `<span class="spinner-border spinner-border-sm me-1" style="width:0.7rem;height:0.7rem;" role="status"></span>Live measuring...`;
+                }
 
-        document.getElementById('lblPickupLeg').innerText = `${pLegKm.toFixed(1)} km`;
-        document.getElementById('lblMainLeg').innerText = `${mainKm.toFixed(1)} km`;
-        document.getElementById('lblDeliveryLeg').innerText = `${dLegKm.toFixed(1)} km`;
-        document.getElementById('lblTotalDist').innerText = `${totalKm.toFixed(1)} km`;
-
-        if (isHomePickup && isHomeDelivery) {
-            chipPickup.style.display = 'inline-flex';
-            chipDelivery.style.display = 'inline-flex';
-            document.getElementById('summaryServiceBadge').innerText = 'Home ➔ Home Express';
-            document.getElementById('mapLegsModeTag').innerText = '3 Legs Active';
-            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-success fw-bold">Pickup Leg (${pLegKm}km)</span> &rarr; <span class="text-primary fw-bold">Hub Route (${mainKm}km)</span> &rarr; <span class="text-danger fw-bold">Delivery Leg (${dLegKm}km)</span>`;
-        } else if (isHomePickup) {
-            chipPickup.style.display = 'inline-flex';
-            chipDelivery.style.display = 'none';
-            document.getElementById('summaryServiceBadge').innerText = 'Home ➔ Warehouse';
-            document.getElementById('mapLegsModeTag').innerText = '2 Legs Active';
-            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-success fw-bold">Pickup Leg (${pLegKm}km)</span> &rarr; <span class="text-primary fw-bold">Inter-Hub Route (${mainKm}km)</span>`;
-        } else if (isHomeDelivery) {
-            chipPickup.style.display = 'none';
-            chipDelivery.style.display = 'inline-flex';
-            document.getElementById('summaryServiceBadge').innerText = 'Warehouse ➔ Home';
-            document.getElementById('mapLegsModeTag').innerText = '2 Legs Active';
-            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-primary fw-bold">Inter-Hub Route (${mainKm}km)</span> &rarr; <span class="text-danger fw-bold">Delivery Leg (${dLegKm}km)</span>`;
-        } else {
-            // Neither selected (Warehouse-to-Warehouse)
-            chipPickup.style.display = 'none';
-            chipDelivery.style.display = 'none';
-            document.getElementById('summaryServiceBadge').innerText = 'Warehouse-to-Warehouse';
-            document.getElementById('mapLegsModeTag').innerText = 'Direct Hub Route';
-            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-primary fw-bold">Origin Hub (${pCity})</span> &rarr; <span class="text-primary fw-bold">Destination Hub (${dCity})</span>: <strong>${mainKm} km</strong>`;
+                clearTimeout(dropoffDebounceTimer);
+                dropoffDebounceTimer = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/Customer/MeasureAddressDistance?city=${encodeURIComponent(dCity)}&address=${encodeURIComponent(dAddr)}&legType=dropoff`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data && data.success && data.distanceKm > 0) {
+                                liveDropoffDistKm = data.distanceKm;
+                                if (data.coords && data.coords.length === 2) {
+                                    liveDropoffCoords = data.coords;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Live dropoff measurement fallback:", e);
+                    } finally {
+                        recalculateAll();
+                    }
+                }, 300);
+            }
         }
+    }
 
-        document.getElementById('mapLiveTotalDist').innerText = `${totalKm.toFixed(1)} km Total`;
-        document.getElementById('hiddenDistanceKm').value = Math.round(totalKm);
-
-        // 3. Exact Excel Rate Calculation Formula
-        // Total Weight (Cell B2) & Total Cubic Feet (Cell D2) from the dedicated calculation box
-        const wtVal = document.getElementById('hiddenTotalWeight')?.value;
-        const wt = (wtVal !== undefined && wtVal !== null && wtVal !== '') ? (parseFloat(wtVal) || 0) : 0;
-
-        const cftVal = document.getElementById('hiddenTotalCubicFeet')?.value;
-        const volumeCft = (cftVal !== undefined && cftVal !== null && cftVal !== '') ? (parseFloat(cftVal) || 0) : 0;
-
-        const calculatedPrice = calculateAccuratePrice(totalKm, wt, volumeCft, currentRouteType);
-        document.getElementById('summaryEstCost').innerText = `PKR ${calculatedPrice.toLocaleString()}`;
-
-        // 4. Update Estimated Delivery Time based on Delivery Type selection
-        let estTime = "5 - 6 Days";
-        let serviceDisplayName = "Normal";
-        if (currentRouteType === "Fast") {
-            estTime = "3 - 4 Days";
-            serviceDisplayName = "Express";
-        } else if (currentRouteType === "Express" || currentRouteType === "Urgent") {
-            estTime = "1 - 2 Days";
-            serviceDisplayName = "Urgent";
-        }
-        document.getElementById('summaryEstTime').innerText = estTime;
-        document.getElementById('summaryServiceType').innerText = serviceDisplayName;
-
-        // 5. Update Leaflet Multi-Leg Route Map
-        updateMultiLegMap(pCity, dCity, isHomePickup, isHomeDelivery, pLegKm, mainKm, dLegKm);
+    function getHomeServiceRatePerKm(d2) {
+        // Distance-Based Rate Tiers (based on Parcel Size in D2):
+        // If D2 is less than 300: 50 per Km
+        // If D2 is less than 1000: 150 per Km
+        // If D2 is less than 2000: 250 per Km
+        // If D2 is less than 3000: 400 per Km
+        // If D2 is 3000 or greater: 500 per Km
+        if (d2 < 300) return 50;
+        if (d2 < 1000) return 150;
+        if (d2 < 2000) return 250;
+        if (d2 < 3000) return 400;
+        return 500;
     }
 
     // Exact Excel Rate Calculation Formula:
+    // 1. Base Warehouse-to-Warehouse Cost:
     // =((IF(B2<1000, B2*2, ((B2-MOD(B2,1000))/1000*200) + (MOD(B2,1000)*2)))+IFS(A2<50,1500,A2<150,2500,A2<250,4000,A2<500,7000,A2<1000,12000,A2<1500,18000))*SWITCH(C2,"Normal",1,"Fast",1.75,"Express",2.5,1)*IFS(D2<1000,1,D2<2000,1.25,D2<3000,1.40,D2>=3000,1.50)
-    function calculateAccuratePrice(totalKm, weight, volumeCft, routeType) {
-        // Distance (Km) is in cell A2
-        // Weight (Kg) is in cell B2
-        // Delivery Type (Normal, Fast, Express) is in cell C2
-        // Total parcel size in cubic feet is in cell D2
-
-        // Weight Part: IF(B2<1000, B2*2, ((B2-MOD(B2,1000))/1000*200) + (MOD(B2,1000)*2))
+    // 2. Additional Home Service Fee:
+    // Distance (A2) * Rate (determined by D2)
+    function calculateAccuratePrice(mainKm, pLegKm, dLegKm, weight, volumeCft, routeType, isHomePickup, isHomeDelivery) {
         const b2 = Math.max(0, weight || 0);
         let weightPart = 0;
         if (b2 <= 0) {
@@ -1668,8 +1781,7 @@
             weightPart = (fullTons * 200) + (modB2 * 2);
         }
 
-        // Distance Part: IFS(A2<50,1500,A2<150,2500,A2<250,4000,A2<500,7000,A2<1000,12000,A2<1500,18000)
-        const a2 = totalKm;
+        const a2 = mainKm || 15.0;
         let distPart = 18000;
         if (a2 < 50) distPart = 1500;
         else if (a2 < 150) distPart = 2500;
@@ -1678,14 +1790,12 @@
         else if (a2 < 1000) distPart = 12000;
         else distPart = 18000;
 
-        // Delivery Type Multiplier: SWITCH(C2,"Normal",1,"Fast",1.75,"Express",2.5,1)
         let c2Multiplier = 1.0;
         const c2 = (routeType || currentRouteType || "Normal").toLowerCase();
         if (c2 === "fast") c2Multiplier = 1.75;
         else if (c2 === "express" || c2 === "urgent") c2Multiplier = 2.5;
         else c2Multiplier = 1.0;
 
-        // Volume Multiplier: IFS(D2<1000,1,D2<2000,1.25,D2<3000,1.40,D2>=3000,1.50)
         const d2 = volumeCft || 0;
         let d2Multiplier = 1.0;
         if (d2 < 1000) d2Multiplier = 1.0;
@@ -1693,9 +1803,188 @@
         else if (d2 < 3000) d2Multiplier = 1.40;
         else d2Multiplier = 1.50;
 
-        // Exactly: ((WeightPart + DistPart)) * C2Multiplier * D2Multiplier
-        const total = (weightPart + distPart) * c2Multiplier * d2Multiplier;
-        return Math.floor(total);
+        const baseCost = (weightPart + distPart) * c2Multiplier * d2Multiplier;
+
+        const homeRate = getHomeServiceRatePerKm(d2);
+        const pickupFee = isHomePickup ? (pLegKm * homeRate) : 0;
+        const deliveryFee = isHomeDelivery ? (dLegKm * homeRate) : 0;
+        const totalHomeFee = pickupFee + deliveryFee;
+
+        const grandTotal = Math.floor(baseCost + totalHomeFee);
+
+        return {
+            baseCost: Math.floor(baseCost),
+            homeRate: homeRate,
+            pickupFee: Math.round(pickupFee),
+            deliveryFee: Math.round(deliveryFee),
+            totalHomeFee: Math.round(totalHomeFee),
+            grandTotal: grandTotal
+        };
+    }
+
+    // =========================================================================
+    // RECALCULATE LEGS, PRICING & ROUTE MAP
+    // =========================================================================
+    function recalculateAll() {
+        const pCity = document.getElementById('selectPickupCity').value;
+        const dCity = document.getElementById('selectDeliveryCity').value;
+        const pHub = getHub(pCity);
+        const dHub = getHub(dCity);
+
+        const isHomePickup = currentOriginMode === "DoorstepPickup";
+        const isHomeDelivery = currentDestinationMode === "DoorstepDelivery";
+
+        const pLegKm = isHomePickup ? (livePickupDistKm !== null ? livePickupDistKm : (pHub.doorstepDistKm || 5.0)) : 0.0;
+        const mainKm = calculateInterHubDistance(pCity, dCity);
+        const dLegKm = isHomeDelivery ? (liveDropoffDistKm !== null ? liveDropoffDistKm : (dHub.doorstepDistKm || 10.0)) : 0.0;
+
+        let totalKm = 0.0;
+        if (isHomePickup && isHomeDelivery) {
+            totalKm = Math.round((pLegKm + mainKm + dLegKm) * 10) / 10;
+        } else if (isHomePickup) {
+            totalKm = Math.round((pLegKm + mainKm) * 10) / 10;
+        } else if (isHomeDelivery) {
+            totalKm = Math.round((mainKm + dLegKm) * 10) / 10;
+        } else {
+            totalKm = Math.round(mainKm * 10) / 10;
+        }
+
+        // Summary Badges & Tags
+        document.getElementById('summaryPickupCity').innerText = pCity;
+        document.getElementById('summaryDropoffCity').innerText = dCity;
+        document.getElementById('summaryPickupTag').innerText = isHomePickup ? 'Home Pickup' : 'Warehouse Hub';
+        document.getElementById('summaryDropoffTag').innerText = isHomeDelivery ? 'Home Delivery' : 'Warehouse Hub';
+
+        // Parcel Weight & Dimensions (Cell B2 & Cell D2)
+        const wtVal = document.getElementById('hiddenTotalWeight')?.value;
+        const wt = (wtVal !== undefined && wtVal !== null && wtVal !== '') ? (parseFloat(wtVal) || 0) : 0;
+
+        const cftVal = document.getElementById('hiddenTotalCubicFeet')?.value;
+        const volumeCft = (cftVal !== undefined && cftVal !== null && cftVal !== '') ? (parseFloat(cftVal) || 0) : 0;
+
+        // Calculate Pricing
+        const pricing = calculateAccuratePrice(mainKm, pLegKm, dLegKm, wt, volumeCft, currentRouteType, isHomePickup, isHomeDelivery);
+
+        // Update Doorstep Badges & Fees in Input Groups
+        const pickupTag = document.getElementById('pickupLegDistanceTag');
+        const pickupFeeBadge = document.getElementById('pickupLegFeeBadge');
+        if (pickupTag) {
+            if (isHomePickup) {
+                pickupTag.innerHTML = `<i class="bi bi-geo-alt me-1"></i>~${pLegKm.toFixed(1)} km to Hub`;
+                if (pickupFeeBadge) {
+                    pickupFeeBadge.innerText = `+Rs. ${pricing.pickupFee.toLocaleString()}`;
+                    pickupFeeBadge.style.display = 'inline-block';
+                }
+            } else {
+                pickupTag.innerHTML = `<span class="text-muted"><i class="bi bi-building me-1"></i>Hub drop-off</span>`;
+                if (pickupFeeBadge) pickupFeeBadge.style.display = 'none';
+            }
+        }
+
+        const deliveryTag = document.getElementById('deliveryLegDistanceTag');
+        const deliveryFeeBadge = document.getElementById('deliveryLegFeeBadge');
+        if (deliveryTag) {
+            if (isHomeDelivery) {
+                deliveryTag.innerHTML = `<i class="bi bi-geo-alt me-1"></i>~${dLegKm.toFixed(1)} km from Hub`;
+                if (deliveryFeeBadge) {
+                    deliveryFeeBadge.innerText = `+Rs. ${pricing.deliveryFee.toLocaleString()}`;
+                    deliveryFeeBadge.style.display = 'inline-block';
+                }
+            } else {
+                deliveryTag.innerHTML = `<span class="text-muted"><i class="bi bi-building me-1"></i>Hub pickup</span>`;
+                if (deliveryFeeBadge) deliveryFeeBadge.style.display = 'none';
+            }
+        }
+
+        // Update Doorstep Rate Badge in Volume Card
+        const elHomeRateBadge = document.getElementById('calcHomeRateBadge');
+        if (elHomeRateBadge) {
+            elHomeRateBadge.innerHTML = `<i class="bi bi-truck me-1"></i>Doorstep Rate: Rs. ${pricing.homeRate} / Km (Size: ${volumeCft.toFixed(0)} CFT)`;
+        }
+
+        // Update Leg Breakdown Chips above the map
+        const chipPickup = document.getElementById('chipPickupLeg');
+        const chipMain = document.getElementById('chipMainLeg');
+        const chipDelivery = document.getElementById('chipDeliveryLeg');
+
+        document.getElementById('lblPickupLeg').innerText = `${pLegKm.toFixed(1)} km (+Rs. ${pricing.pickupFee.toLocaleString()})`;
+        document.getElementById('lblMainLeg').innerText = `${mainKm.toFixed(1)} km`;
+        document.getElementById('lblDeliveryLeg').innerText = `${dLegKm.toFixed(1)} km (+Rs. ${pricing.deliveryFee.toLocaleString()})`;
+        document.getElementById('lblTotalDist').innerText = `${totalKm.toFixed(1)} km`;
+
+        if (isHomePickup && isHomeDelivery) {
+            chipPickup.style.display = 'inline-flex';
+            chipDelivery.style.display = 'inline-flex';
+            document.getElementById('summaryServiceBadge').innerText = 'Home ➔ Home Express';
+            document.getElementById('mapLegsModeTag').innerText = '3 Legs Active';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-success fw-bold">Pickup Leg (${pLegKm.toFixed(1)}km)</span> &rarr; <span class="text-primary fw-bold">Hub Route (${mainKm.toFixed(1)}km)</span> &rarr; <span class="text-danger fw-bold">Delivery Leg (${dLegKm.toFixed(1)}km)</span>`;
+        } else if (isHomePickup) {
+            chipPickup.style.display = 'inline-flex';
+            chipDelivery.style.display = 'none';
+            document.getElementById('summaryServiceBadge').innerText = 'Home ➔ Warehouse';
+            document.getElementById('mapLegsModeTag').innerText = '2 Legs Active';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-success fw-bold">Pickup Leg (${pLegKm.toFixed(1)}km)</span> &rarr; <span class="text-primary fw-bold">Inter-Hub Route (${mainKm.toFixed(1)}km)</span>`;
+        } else if (isHomeDelivery) {
+            chipPickup.style.display = 'none';
+            chipDelivery.style.display = 'inline-flex';
+            document.getElementById('summaryServiceBadge').innerText = 'Warehouse ➔ Home';
+            document.getElementById('mapLegsModeTag').innerText = '2 Legs Active';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-primary fw-bold">Inter-Hub Route (${mainKm.toFixed(1)}km)</span> &rarr; <span class="text-danger fw-bold">Delivery Leg (${dLegKm.toFixed(1)}km)</span>`;
+        } else {
+            chipPickup.style.display = 'none';
+            chipDelivery.style.display = 'none';
+            document.getElementById('summaryServiceBadge').innerText = 'Warehouse-to-Warehouse';
+            document.getElementById('mapLegsModeTag').innerText = 'Direct Hub Route';
+            document.getElementById('mapLegsDescription').innerHTML = `<span class="text-primary fw-bold">Origin Hub (${pCity})</span> &rarr; <span class="text-primary fw-bold">Destination Hub (${dCity})</span>: <strong>${mainKm.toFixed(1)} km</strong>`;
+        }
+
+        document.getElementById('mapLiveTotalDist').innerText = `${totalKm.toFixed(1)} km Total`;
+        const hiddenDist = document.getElementById('hiddenDistanceKm');
+        if (hiddenDist) hiddenDist.value = Math.round(totalKm);
+
+        // Update Estimated Cost & Structured Breakdown
+        document.getElementById('summaryEstCost').innerText = `PKR ${pricing.grandTotal.toLocaleString()}`;
+
+        const elBreakdown = document.getElementById('summaryCostBreakdown');
+        if (elBreakdown) {
+            if (pricing.totalHomeFee > 0) {
+                elBreakdown.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between text-muted" style="font-size:0.75rem;">
+                        <span><i class="bi bi-building me-1"></i>Hub Base Cost:</span>
+                        <strong class="text-dark">PKR ${pricing.baseCost.toLocaleString()}</strong>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-success mt-1" style="font-size:0.75rem;">
+                        <span><i class="bi bi-house-door me-1"></i>Home Services:</span>
+                        <strong class="text-success">+PKR ${pricing.totalHomeFee.toLocaleString()}</strong>
+                    </div>
+                    <div class="text-muted mt-0.5" style="font-size:0.70rem;">
+                        (${((isHomePickup ? pLegKm : 0) + (isHomeDelivery ? dLegKm : 0)).toFixed(1)} km @@ Rs. ${pricing.homeRate}/km)
+                    </div>
+                `;
+            } else {
+                elBreakdown.innerHTML = `
+                    <div class="text-muted" style="font-size:0.75rem;">
+                        <i class="bi bi-building me-1 text-primary"></i>Standard Hub-to-Hub Base
+                    </div>
+                `;
+            }
+        }
+
+        // Update Estimated Delivery Time
+        let estTime = "5 - 6 Days";
+        let serviceDisplayName = "Normal";
+        if (currentRouteType === "Fast") {
+            estTime = "3 - 4 Days";
+            serviceDisplayName = "Express";
+        } else if (currentRouteType === "Express" || currentRouteType === "Urgent") {
+            estTime = "1 - 2 Days";
+            serviceDisplayName = "Urgent";
+        }
+        document.getElementById('summaryEstTime').innerText = estTime;
+        document.getElementById('summaryServiceType').innerText = serviceDisplayName;
+
+        // Update Leaflet Multi-Leg Route Map
+        updateMultiLegMap(pCity, dCity, isHomePickup, isHomeDelivery, pLegKm, mainKm, dLegKm, pricing);
     }
 
     // =========================================================================
@@ -1740,7 +2029,7 @@
         });
     }
 
-    function updateMultiLegMap(pCity, dCity, isHomePickup, isHomeDelivery, pLegKm, mainKm, dLegKm) {
+    function updateMultiLegMap(pCity, dCity, isHomePickup, isHomeDelivery, pLegKm, mainKm, dLegKm, pricing) {
         if (!liveRouteMap || !mapLayersGroup) return;
 
         mapLayersGroup.clearLayers();
@@ -1751,12 +2040,13 @@
 
         // 1. Pickup Doorstep Marker & Leg Polyline (if Home Pickup)
         if (isHomePickup) {
-            const pDoorstepCoords = pHub.doorstepCoords;
+            const pAddr = (document.getElementById('inputPickupAddress')?.value || '').trim();
+            const pDoorstepCoords = livePickupCoords || resolveAddressCoords(pCity, pAddr) || pHub.hubCoords;
             boundsPoints.push(pDoorstepCoords);
 
             const mPickup = L.marker(pDoorstepCoords, {
                 icon: createCustomPin('#10b981', 'bi bi-house-door-fill')
-            }).bindPopup(`<b>Home Pickup Location:</b><br>${document.getElementById('inputPickupAddress').value}<br><span class="badge bg-success-subtle text-success mt-1">Pickup Leg: ${pLegKm.toFixed(1)} km to Hub</span>`);
+            }).bindPopup(`<b>Doorstep Pickup Location:</b><br>${pAddr}<br><span class="badge bg-success text-white mt-1">Live Leg: ${pLegKm.toFixed(1)} km to Hub • +Rs. ${(pricing ? pricing.pickupFee : 0)}</span>`);
             mapLayersGroup.addLayer(mPickup);
 
             // Polyline: Doorstep -> Origin Hub (Green dashed)
@@ -1800,12 +2090,13 @@
 
         // 5. Delivery Doorstep Marker & Leg Polyline (if Home Delivery)
         if (isHomeDelivery) {
-            const dDoorstepCoords = dHub.doorstepCoords;
+            const dAddr = (document.getElementById('inputDropoffAddress')?.value || '').trim();
+            const dDoorstepCoords = liveDropoffCoords || resolveAddressCoords(dCity, dAddr) || dHub.hubCoords;
             boundsPoints.push(dDoorstepCoords);
 
             const mDelivery = L.marker(dDoorstepCoords, {
                 icon: createCustomPin('#ef4444', 'bi bi-geo-alt-fill')
-            }).bindPopup(`<b>Home Delivery Location:</b><br>${document.getElementById('inputDropoffAddress').value}<br><span class="badge bg-danger-subtle text-danger mt-1">Delivery Leg: ${dLegKm.toFixed(1)} km from Hub</span>`);
+            }).bindPopup(`<b>Doorstep Delivery Location:</b><br>${dAddr}<br><span class="badge bg-danger text-white mt-1">Live Leg: ${dLegKm.toFixed(1)} km from Hub • +Rs. ${(pricing ? pricing.deliveryFee : 0)}</span>`);
             mapLayersGroup.addLayer(mDelivery);
 
             // Polyline: Destination Hub -> Doorstep (Red dashed)
@@ -2030,6 +2321,7 @@
         initCustomerCharts();
         onParcelParamsChanged(false);
         setTimeout(initLeafletRouteMap, 200);
+        setTimeout(() => onDoorstepAddressChanged('both'), 250);
     });
 </script>
 </body>

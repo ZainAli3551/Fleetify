@@ -53,6 +53,66 @@ namespace Fleetify.Services.Implementations
             { "military road", (27.7120, 68.8450) }, // Sukkur Special Delivery
             { "sukkur bypass", (27.7120, 68.8450) },
 
+            // Major Neighborhoods & Sectors for Doorstep Delivery Resolution
+            { "model town gujranwala", (32.1725, 74.1950) },
+            { "satellite town gujranwala", (32.1645, 74.2085) },
+            { "peoples colony gujranwala", (32.1485, 74.2050) },
+            { "dc colony", (32.2285, 74.1520) },
+            { "rahwali cantt", (32.2450, 74.1380) },
+            { "rahwali", (32.2450, 74.1380) },
+            { "citi housing gujranwala", (32.2350, 74.1350) },
+            { "master city", (32.1250, 74.2250) },
+            { "fazaia housing", (32.2650, 74.1250) },
+            { "civil lines gujranwala", (32.1550, 74.1880) },
+            { "wapda town gujranwala", (32.2050, 74.1550) },
+            { "gulberg", (31.5135, 74.3444) },
+            { "model town lahore", (31.4826, 74.3184) },
+            { "model town", (31.4826, 74.3184) },
+            { "dha phase 5", (31.4550, 74.4150) },
+            { "dha phase 6", (31.4420, 74.4550) },
+            { "dha phase", (31.4697, 74.3986) },
+            { "dha", (31.4697, 74.3986) },
+            { "defence", (31.4697, 74.3986) },
+            { "johar town", (31.4697, 74.2728) },
+            { "bahria town lahore", (31.3688, 74.1804) },
+            { "bahria town", (31.3688, 74.1804) },
+            { "wapda town", (31.4335, 74.2586) },
+            { "faisal town", (31.4756, 74.3056) },
+            { "allama iqbal town", (31.5126, 74.2874) },
+            { "iqbal town", (31.5126, 74.2874) },
+            { "shadman", (31.5412, 74.3315) },
+            { "cavalry ground", (31.5035, 74.3725) },
+            { "township", (31.4425, 74.3075) },
+            { "valencia", (31.4050, 74.2550) },
+            { "garden town", (31.5050, 74.3250) },
+            { "raiwind road", (31.3850, 74.2050) },
+            { "blue area", (33.7125, 73.0650) },
+            { "f-6", (33.7295, 73.0760) },
+            { "f-7", (33.7215, 73.0550) },
+            { "f-8", (33.7115, 73.0350) },
+            { "f-10", (33.6935, 73.0050) },
+            { "f-11", (33.6835, 72.9850) },
+            { "g-6", (33.7055, 73.0850) },
+            { "g-7", (33.6985, 73.0650) },
+            { "g-8", (33.6895, 73.0450) },
+            { "g-9", (33.6825, 73.0250) },
+            { "g-10", (33.6755, 73.0050) },
+            { "g-11", (33.6685, 72.9850) },
+            { "i-8", (33.6705, 73.0750) },
+            { "i-10", (33.6555, 73.0350) },
+            { "saddar rawalpindi", (33.5950, 73.0550) },
+            { "westridge", (33.6050, 73.0250) },
+            { "commercial market", (33.6380, 73.0720) },
+            { "d ground", (31.4085, 73.1050) },
+            { "madina town", (31.4285, 73.1250) },
+            { "gulgasht", (30.2280, 71.4750) },
+            { "bosan road", (30.2350, 71.4650) },
+            { "clifton", (24.8150, 67.0450) },
+            { "dha karachi", (24.8150, 67.0650) },
+            { "gulshan-e-iqbal", (24.9250, 67.0950) },
+            { "north nazimabad", (24.9450, 67.0450) },
+            { "korangi", (24.8350, 67.1350) },
+
             // City Centers
             { "lahore", (31.5204, 74.3587) },
             { "karachi", (24.8607, 67.0011) },
@@ -419,14 +479,14 @@ namespace Fleetify.Services.Implementations
             if (km <= 0)
             {
                 double haversine = CalculateHaversineDistance(originCoord.Lat, originCoord.Lng, destCoord.Lat, destCoord.Lng);
-                if (haversine > 1.0)
+                if (haversine > 0.1)
                 {
-                    km = Math.Round(haversine * 1.25, 1); // 25% road curvature
+                    km = Math.Round(haversine * 1.28, 1); // 28% road curvature
                 }
                 else
                 {
                     int seed = Math.Abs((p + "|" + d).GetHashCode());
-                    km = 12.0 + (seed % 45);
+                    km = 2.5 + (seed % 10);
                 }
             }
 

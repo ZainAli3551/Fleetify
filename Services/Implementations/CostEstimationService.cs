@@ -41,16 +41,24 @@ namespace Fleetify.Services.Implementations
             return CalculateDistanceCharge(distanceKm);
         }
 
+        public static double GetHomeServiceRatePerKm(double totalCubicFeet)
+        {
+            // Distance-Based Rate Tiers (based on Parcel Size in D2):
+            // If D2 is less than 300: 50 per Km
+            // If D2 is less than 1000: 150 per Km
+            // If D2 is less than 2000: 250 per Km
+            // If D2 is less than 3000: 400 per Km
+            // If D2 is 3000 or greater: 500 per Km
+            if (totalCubicFeet < 300.0) return 50.0;
+            if (totalCubicFeet < 1000.0) return 150.0;
+            if (totalCubicFeet < 2000.0) return 250.0;
+            if (totalCubicFeet < 3000.0) return 400.0;
+            return 500.0;
+        }
+
         public static double CalculateDoorstepFuelSurcharge(double totalCubicFeet)
         {
-            // Up to 300 cubic feet: Rs. 1,000 per doorstep trip
-            // Over 300 to 1,200 cubic feet: Rs. 2,000 per doorstep trip
-            // Over 1,200 to 3,500 cubic feet: Rs. 4,000 per doorstep trip
-            // Over 3,500 cubic feet: Rs. 5,000 per doorstep trip
-            if (totalCubicFeet <= 300.0) return 1000.0;
-            if (totalCubicFeet <= 1200.0) return 2000.0;
-            if (totalCubicFeet <= 3500.0) return 4000.0;
-            return 5000.0;
+            return GetHomeServiceRatePerKm(totalCubicFeet);
         }
 
         public static double CalculateWeightCharge(double weightKg)
@@ -226,10 +234,24 @@ namespace Fleetify.Services.Implementations
             bool isDeliveryDoorstep = request.DestinationType?.Equals("DoorstepDelivery", StringComparison.OrdinalIgnoreCase) == true;
 
             // Accurate Leg Distances: Between Warehouse Hub and Selected Doorstep Location
-            double pickupLegDistanceKm = isPickupDoorstep ? GetDoorstepHubDistance(originCity, request.PickupLocation) : 0.0;
-            double deliveryLegDistanceKm = isDeliveryDoorstep ? GetDoorstepHubDistance(destCity, request.DropoffLocation) : 0.0;
+            double pickupLegDistanceKm = 0.0;
+            if (isPickupDoorstep && !string.IsNullOrWhiteSpace(request.PickupLocation))
+            {
+                var pRoute = await _mapRoutingService.GetDrivingDistanceAsync(request.PickupLocation, mainOrigin);
+                pickupLegDistanceKm = pRoute.Success && pRoute.DistanceKm > 0 ? pRoute.DistanceKm : GetDoorstepHubDistance(originCity, request.PickupLocation);
+            }
+
+            double deliveryLegDistanceKm = 0.0;
+            if (isDeliveryDoorstep && !string.IsNullOrWhiteSpace(request.DropoffLocation))
+            {
+                var dRoute = await _mapRoutingService.GetDrivingDistanceAsync(mainDest, request.DropoffLocation);
+                deliveryLegDistanceKm = dRoute.Success && dRoute.DistanceKm > 0 ? dRoute.DistanceKm : GetDoorstepHubDistance(destCity, request.DropoffLocation);
+            }
+
             double flooredDistance = Math.Floor(distanceKm);
-            double totalDrivingDistanceKm = Math.Round(flooredDistance + pickupLegDistanceKm + deliveryLegDistanceKm, 1);
+            double totalDrivingDistanceKm = request.DistanceKm > 0 
+                ? request.DistanceKm 
+                : Math.Round(flooredDistance + pickupLegDistanceKm + deliveryLegDistanceKm, 1);
 
             double totalCft = request.TotalCubicFeet;
             if (totalCft <= 0 && request.Length > 0 && request.Width > 0 && request.Height > 0)
@@ -243,22 +265,32 @@ namespace Fleetify.Services.Implementations
             }
             double volumeMultiplier = GetVolumeMultiplier(totalCft);
 
-            // Exact Excel Rate Calculation Formula:
+            // 1. Warehouse-to-Warehouse Base Cost (calculated on warehouse line-haul distance):
             // =((IF(B2<1000, B2*2, ((B2-MOD(B2,1000))/1000*200) + (MOD(B2,1000)*2)))+IFS(A2<50,1500,A2<150,2500,A2<250,4000,A2<500,7000,A2<1000,12000,A2<1500,18000))*SWITCH(C2,"Normal",1,"Fast",1.75,"Express",2.5,1)*IFS(D2<1000,1,D2<2000,1.25,D2<3000,1.40,D2>=3000,1.50)
+            double warehouseDistanceKm = flooredDistance > 0 ? flooredDistance : 15.0;
             double weightCharge = CalculateWeightCharge(weight);
-            double distanceCharge = CalculateDistanceCharge(totalDrivingDistanceKm > 0 ? totalDrivingDistanceKm : flooredDistance);
-            double subtotal = (weightCharge + distanceCharge) * deliveryMultiplier * volumeMultiplier;
-            double typeSurcharge = subtotal - (weightCharge + distanceCharge);
+            double distanceCharge = CalculateDistanceCharge(warehouseDistanceKm);
+            double baseWarehouseCost = (weightCharge + distanceCharge) * deliveryMultiplier * volumeMultiplier;
+            double typeSurcharge = baseWarehouseCost - (weightCharge + distanceCharge);
             double specialDeliverySurcharge = 0.0;
-            double total = Math.Floor(subtotal);
+
+            // 2. Additional Home Service Fee for Home Pickup and Home Delivery:
+            // Distance (A2) * Rate (determined by D2):
+            // If D2 < 300: 50 per Km
+            // If D2 < 1000: 150 per Km
+            // If D2 < 2000: 250 per Km
+            // If D2 < 3000: 400 per Km
+            // If D2 >= 3000: 500 per Km
+            double homeServiceRate = GetHomeServiceRatePerKm(totalCft);
+            double pickupHomeFee = isPickupDoorstep ? Math.Round(pickupLegDistanceKm * homeServiceRate, 2) : 0.0;
+            double deliveryHomeFee = isDeliveryDoorstep ? Math.Round(deliveryLegDistanceKm * homeServiceRate, 2) : 0.0;
+            double totalHomeServiceFee = pickupHomeFee + deliveryHomeFee;
+            double homeServiceDistanceKm = (isPickupDoorstep ? pickupLegDistanceKm : 0.0) + (isDeliveryDoorstep ? deliveryLegDistanceKm : 0.0);
+
+            // 3. Final Total Cost = Warehouse-to-Warehouse Base Cost + Additional Home Service Fee
+            double total = Math.Floor(baseWarehouseCost + totalHomeServiceFee);
 
             int doorstepLegCount = (isPickupDoorstep ? 1 : 0) + (isDeliveryDoorstep ? 1 : 0);
-            double doorstepFuelSurcharge = CalculateDoorstepFuelSurcharge(totalCft);
-            double doorstepWeightSurcharge = CalculateDoorstepWeightSurcharge(weight);
-            double doorstepSurchargePerLeg = doorstepFuelSurcharge + doorstepWeightSurcharge;
-            double pickupDoorstepSurcharge = isPickupDoorstep ? doorstepSurchargePerLeg : 0.0;
-            double deliveryDoorstepSurcharge = isDeliveryDoorstep ? doorstepSurchargePerLeg : 0.0;
-            double totalDoorstepSurcharge = pickupDoorstepSurcharge + deliveryDoorstepSurcharge;
 
             string deliveryDays = "5 - 6 Days";
             if (deliveryType.Equals("Fast", StringComparison.OrdinalIgnoreCase))
@@ -283,7 +315,7 @@ namespace Fleetify.Services.Implementations
                 TotalCubicFeet = totalCft,
                 VolumeMultiplier = volumeMultiplier,
                 RatePerKmKg = 2.0,
-                BaseCost = weightCharge,
+                BaseCost = Math.Floor(baseWarehouseCost),
                 BaseRate = 0.00,
                 WeightCharge = weightCharge,
                 DistanceCharge = distanceCharge,
@@ -296,14 +328,16 @@ namespace Fleetify.Services.Implementations
                 IsSpecialDelivery = isSpecialDelivery,
                 SpecialDeliverySurcharge = specialDeliverySurcharge,
 
-                // Doorstep Surcharges
+                // Doorstep / Home Service Fees
                 DoorstepLegCount = doorstepLegCount,
-                DoorstepFuelSurchargePerLeg = doorstepFuelSurcharge,
-                DoorstepWeightSurchargePerLeg = doorstepWeightSurcharge,
-                DoorstepSurchargePerLeg = doorstepSurchargePerLeg,
-                PickupDoorstepSurcharge = pickupDoorstepSurcharge,
-                DeliveryDoorstepSurcharge = deliveryDoorstepSurcharge,
-                TotalDoorstepSurcharge = totalDoorstepSurcharge,
+                DoorstepFuelSurchargePerLeg = homeServiceRate,
+                DoorstepWeightSurchargePerLeg = 0.0,
+                DoorstepSurchargePerLeg = homeServiceRate,
+                PickupDoorstepSurcharge = pickupHomeFee,
+                DeliveryDoorstepSurcharge = deliveryHomeFee,
+                TotalDoorstepSurcharge = totalHomeServiceFee,
+                HomeServiceRatePerKm = homeServiceRate,
+                HomeServiceDistanceKm = homeServiceDistanceKm,
 
                 OriginCity = originCity,
                 DestinationCity = destCity,
@@ -381,21 +415,25 @@ namespace Fleetify.Services.Implementations
                 }
                 double volumeMultiplier = GetVolumeMultiplier(totalCft);
 
-                // Exact Excel Rate Calculation Formula:
+                // 1. Existing Warehouse-to-Warehouse Base Cost Formula:
+                double warehouseDist = flooredDistance > 0 ? flooredDistance : 15.0;
                 double weightCharge = CalculateWeightCharge(weight);
-                double distanceCharge = CalculateDistanceCharge(totalDrivingDist > 0 ? totalDrivingDist : flooredDistance);
-                double subtotal = (weightCharge + distanceCharge) * deliveryMultiplier * volumeMultiplier;
-                double typeSurcharge = subtotal - (weightCharge + distanceCharge);
+                double distanceCharge = CalculateDistanceCharge(warehouseDist);
+                double baseWarehouseCost = (weightCharge + distanceCharge) * deliveryMultiplier * volumeMultiplier;
+                double typeSurcharge = baseWarehouseCost - (weightCharge + distanceCharge);
                 double specialDeliverySurcharge = 0.0;
-                double total = Math.Floor(subtotal);
+
+                // 2. Additional Home Service Fee for Home Pickup and Home Delivery:
+                double homeServiceRate = GetHomeServiceRatePerKm(totalCft);
+                double pickupHomeFee = isPickupDoorstep ? Math.Round(pickupLegDist * homeServiceRate, 2) : 0.0;
+                double deliveryHomeFee = isDeliveryDoorstep ? Math.Round(deliveryLegDist * homeServiceRate, 2) : 0.0;
+                double totalHomeServiceFee = pickupHomeFee + deliveryHomeFee;
+                double homeServiceDistKm = (isPickupDoorstep ? pickupLegDist : 0.0) + (isDeliveryDoorstep ? deliveryLegDist : 0.0);
+
+                // 3. Final Total Cost = Warehouse-to-Warehouse Base Cost + Additional Home Service Fee
+                double total = Math.Floor(baseWarehouseCost + totalHomeServiceFee);
 
                 int legCount = (isPickupDoorstep ? 1 : 0) + (isDeliveryDoorstep ? 1 : 0);
-                double doorstepFuel = CalculateDoorstepFuelSurcharge(totalCft);
-                double doorstepWeight = CalculateDoorstepWeightSurcharge(weight);
-                double doorstepPerLeg = doorstepFuel + doorstepWeight;
-                double pickupSurcharge = isPickupDoorstep ? doorstepPerLeg : 0.0;
-                double deliverySurcharge = isDeliveryDoorstep ? doorstepPerLeg : 0.0;
-                double totalDoorstep = pickupSurcharge + deliverySurcharge;
 
                 var pCoord = MapRoutingService.ResolveCityCoordinates(mainOrigin);
                 var dCoord = MapRoutingService.ResolveCityCoordinates(mainDest);
@@ -423,7 +461,7 @@ namespace Fleetify.Services.Implementations
                     TotalCubicFeet = totalCft,
                     VolumeMultiplier = volumeMultiplier,
                     RatePerKmKg = 2.0,
-                    BaseCost = weightCharge,
+                    BaseCost = Math.Floor(baseWarehouseCost),
                     BaseRate = 0.00,
                     WeightCharge = weightCharge,
                     DistanceCharge = distanceCharge,
@@ -438,12 +476,14 @@ namespace Fleetify.Services.Implementations
                     SpecialDeliverySurcharge = specialDeliverySurcharge,
 
                     DoorstepLegCount = legCount,
-                    DoorstepFuelSurchargePerLeg = doorstepFuel,
-                    DoorstepWeightSurchargePerLeg = doorstepWeight,
-                    DoorstepSurchargePerLeg = doorstepPerLeg,
-                    PickupDoorstepSurcharge = pickupSurcharge,
-                    DeliveryDoorstepSurcharge = deliverySurcharge,
-                    TotalDoorstepSurcharge = totalDoorstep,
+                    DoorstepFuelSurchargePerLeg = homeServiceRate,
+                    DoorstepWeightSurchargePerLeg = 0.0,
+                    DoorstepSurchargePerLeg = homeServiceRate,
+                    PickupDoorstepSurcharge = pickupHomeFee,
+                    DeliveryDoorstepSurcharge = deliveryHomeFee,
+                    TotalDoorstepSurcharge = totalHomeServiceFee,
+                    HomeServiceRatePerKm = homeServiceRate,
+                    HomeServiceDistanceKm = homeServiceDistKm,
 
                     OriginCity = originCity,
                     DestinationCity = destCity,

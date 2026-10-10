@@ -20,15 +20,18 @@ namespace Fleetify.Controllers
         private readonly FleetifyDbContext _context;
         private readonly ICostEstimationService _costService;
         private readonly INotificationService _notificationService;
+        private readonly IMapRoutingService _mapRoutingService;
 
         public CustomerController(
             FleetifyDbContext context,
             ICostEstimationService costService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IMapRoutingService mapRoutingService)
         {
             _context = context;
             _costService = costService;
             _notificationService = notificationService;
+            _mapRoutingService = mapRoutingService;
         }
 
         // GET: /Customer (Figure 23: Customer Portal)
@@ -560,6 +563,35 @@ namespace Fleetify.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /Customer/MeasureAddressDistance
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> MeasureAddressDistance(string city, string address, string legType)
+        {
+            if (string.IsNullOrWhiteSpace(city) || string.IsNullOrWhiteSpace(address))
+            {
+                return Json(new { success = false, distanceKm = 0.0 });
+            }
+
+            var hub = WarehouseNetworkService.GetWarehouse(city);
+            string hubAddress = hub?.Address ?? $"{city} Central Hub, Pakistan";
+
+            var routeResult = await _mapRoutingService.GetDrivingDistanceAsync(address, hubAddress);
+            double dist = routeResult.Success && routeResult.DistanceKm > 0 ? routeResult.DistanceKm : 0.0;
+
+            return Json(new
+            {
+                success = true,
+                distanceKm = Math.Round(dist, 1),
+                durationMinutes = routeResult.DurationMinutes,
+                hubAddress = hubAddress,
+                coords = routeResult.OriginLat.HasValue && routeResult.OriginLng.HasValue 
+                    ? new[] { routeResult.OriginLat.Value, routeResult.OriginLng.Value } 
+                    : null,
+                provider = routeResult.Provider
+            });
         }
 
         // GET: /Customer/Track
