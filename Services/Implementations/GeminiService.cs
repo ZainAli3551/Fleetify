@@ -31,7 +31,15 @@ namespace Fleetify.Services.Implementations
                 _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
             }
 
-            _model = configuration["Gemini:Model"] ?? "gemini-3.5-flash-lite";
+            var cfgModel = configuration["Gemini:Model"];
+            if (string.IsNullOrWhiteSpace(cfgModel) || cfgModel.Equals("gemini-3.5-flash-lite", StringComparison.OrdinalIgnoreCase))
+            {
+                _model = "gemini-1.5-flash";
+            }
+            else
+            {
+                _model = cfgModel;
+            }
         }
 
         public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey) && !_apiKey.Equals("YOUR_GEMINI_API_KEY", StringComparison.OrdinalIgnoreCase);
@@ -43,9 +51,29 @@ namespace Fleetify.Services.Implementations
                 return null;
             }
 
+            // List of models to try in case of deprecation or 404
+            var modelsToTry = new List<string> { _model };
+            if (!_model.Equals("gemini-1.5-flash", StringComparison.OrdinalIgnoreCase)) modelsToTry.Add("gemini-1.5-flash");
+            if (!_model.Equals("gemini-2.0-flash", StringComparison.OrdinalIgnoreCase)) modelsToTry.Add("gemini-2.0-flash");
+            if (!_model.Equals("gemini-2.5-flash", StringComparison.OrdinalIgnoreCase)) modelsToTry.Add("gemini-2.5-flash");
+
+            foreach (var currentModel in modelsToTry)
+            {
+                var result = await TryGenerateContentAsync(currentModel, userMessage, conversationHistory, liveContext);
+                if (!string.IsNullOrWhiteSpace(result))
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<string?> TryGenerateContentAsync(string modelName, string userMessage, List<SupportMessage>? conversationHistory, string? liveContext)
+        {
             try
             {
-                string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+                string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{modelName}:generateContent?key={_apiKey}";
 
                 // Build System Instructions
                 var systemInstructionText = new StringBuilder();

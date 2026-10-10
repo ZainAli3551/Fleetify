@@ -16,6 +16,7 @@
         }
 
         let conversationId = null;
+        let currentStatus = 'BotHandled';
         let isOpen = false;
         let isSending = false;
         let isEscalating = false;
@@ -237,6 +238,10 @@
         // Escalate to Human Admin / Contact Admin
         async function escalateToAdmin() {
             if (isEscalating) return;
+            if (currentStatus === 'NeedsAdmin' || currentStatus === 'InProgress') {
+                return;
+            }
+
             isEscalating = true;
             if (escalateBtn) {
                 escalateBtn.disabled = true;
@@ -279,7 +284,8 @@
                             messageText: '🚨 **Escalated to Admin!** Your inquiry has been sent to our administrator via email notification. An admin will review and reply here shortly.'
                         });
                     }
-                    updateStatus(data.status || 'NeedsAdmin');
+                    currentStatus = data.status || 'NeedsAdmin';
+                    updateStatus(currentStatus);
                 } else {
                     alert('Could not escalate ticket: ' + (data?.message || 'Unknown error'));
                 }
@@ -288,10 +294,7 @@
                 alert('Network error while connecting to administrator. Please try again.');
             } finally {
                 isEscalating = false;
-                if (escalateBtn) {
-                    escalateBtn.disabled = false;
-                    escalateBtn.innerHTML = '<i class="bi bi-person-fill me-1"></i>Contact Admin';
-                }
+                updateStatus(currentStatus);
             }
         }
 
@@ -413,19 +416,42 @@
         }
 
         function updateStatus(status) {
-            if (!statusBadge) return;
-            if (status === 'NeedsAdmin') {
-                statusBadge.className = 'badge bg-danger rounded-pill px-2 py-1';
-                statusBadge.innerHTML = '<i class="bi bi-person-fill me-1"></i>Admin Assigned';
-            } else if (status === 'InProgress') {
-                statusBadge.className = 'badge bg-warning text-dark rounded-pill px-2 py-1';
-                statusBadge.innerHTML = '<i class="bi bi-headset me-1"></i>Live Admin Chat';
-            } else if (status === 'Resolved') {
-                statusBadge.className = 'badge bg-success rounded-pill px-2 py-1';
-                statusBadge.innerHTML = '<i class="bi bi-check2 me-1"></i>Resolved';
-            } else {
-                statusBadge.className = 'badge bg-info text-white rounded-pill px-2 py-1';
-                statusBadge.innerHTML = '<i class="bi bi-robot me-1"></i>AI Online';
+            if (!status) return;
+            currentStatus = status;
+
+            if (statusBadge) {
+                if (status === 'NeedsAdmin') {
+                    statusBadge.className = 'badge bg-danger rounded-pill px-2 py-1';
+                    statusBadge.innerHTML = '<i class="bi bi-person-fill me-1"></i>Admin Assigned';
+                } else if (status === 'InProgress') {
+                    statusBadge.className = 'badge bg-warning text-dark rounded-pill px-2 py-1';
+                    statusBadge.innerHTML = '<i class="bi bi-headset me-1"></i>Live Admin Chat';
+                } else if (status === 'Resolved') {
+                    statusBadge.className = 'badge bg-success rounded-pill px-2 py-1';
+                    statusBadge.innerHTML = '<i class="bi bi-check2 me-1"></i>Resolved';
+                } else {
+                    statusBadge.className = 'badge bg-info text-white rounded-pill px-2 py-1';
+                    statusBadge.innerHTML = '<i class="bi bi-robot me-1"></i>AI Online';
+                }
+            }
+
+            if (escalateBtn && !isEscalating) {
+                if (status === 'NeedsAdmin') {
+                    escalateBtn.disabled = true;
+                    escalateBtn.className = 'btn btn-sm btn-outline-light rounded-pill px-2 py-0 opacity-75';
+                    escalateBtn.innerHTML = '<i class="bi bi-shield-check me-1"></i>Admin Alerted';
+                    escalateBtn.title = 'Administrator has been notified via email';
+                } else if (status === 'InProgress') {
+                    escalateBtn.disabled = true;
+                    escalateBtn.className = 'btn btn-sm btn-outline-light rounded-pill px-2 py-0 opacity-75';
+                    escalateBtn.innerHTML = '<i class="bi bi-headset me-1"></i>Admin Connected';
+                    escalateBtn.title = 'Administrator has joined this chat';
+                } else {
+                    escalateBtn.disabled = false;
+                    escalateBtn.className = 'btn btn-sm btn-outline-light rounded-pill px-2 py-0';
+                    escalateBtn.innerHTML = '<i class="bi bi-person-fill me-1"></i>Contact Admin';
+                    escalateBtn.title = 'Contact Human Administrator';
+                }
             }
         }
 

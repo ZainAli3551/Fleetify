@@ -88,9 +88,21 @@ namespace Fleetify.Controllers.Api
                 return BadRequest(new { success = false, message = "Invalid message payload." });
             }
 
+            int? currentUserId = null;
+            string? currentUserName = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(idStr, out int id))
+                {
+                    currentUserId = id;
+                }
+                currentUserName = User.Identity.Name;
+            }
+
             try
             {
-                var botReply = await _supportService.ProcessUserMessageAsync(req.ConversationId, req.Message);
+                var botReply = await _supportService.ProcessUserMessageAsync(req.ConversationId, req.Message, currentUserId, currentUserName);
                 var conv = await _supportService.GetConversationDetailsAsync(req.ConversationId);
 
                 var userMsg = conv?.Messages

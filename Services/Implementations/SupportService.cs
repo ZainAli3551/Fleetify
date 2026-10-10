@@ -100,7 +100,7 @@ namespace Fleetify.Services.Implementations
             return conversation;
         }
 
-        public async Task<SupportMessage> ProcessUserMessageAsync(int conversationId, string userMessage)
+        public async Task<SupportMessage> ProcessUserMessageAsync(int conversationId, string userMessage, int? currentUserId = null, string? currentUserName = null)
         {
             var conversation = await _context.SupportConversations
                 .Include(c => c.Messages)
@@ -109,6 +109,16 @@ namespace Fleetify.Services.Implementations
             if (conversation == null)
             {
                 throw new ArgumentException("Conversation not found.");
+            }
+
+            // Sync user claims if authenticated
+            if (currentUserId.HasValue && !conversation.UserID.HasValue)
+            {
+                conversation.UserID = currentUserId.Value;
+            }
+            if (!string.IsNullOrWhiteSpace(currentUserName) && (conversation.UserName == "Guest Customer" || string.IsNullOrWhiteSpace(conversation.UserName)))
+            {
+                conversation.UserName = currentUserName;
             }
 
             // 1. Record user's incoming message
@@ -224,148 +234,8 @@ namespace Fleetify.Services.Implementations
             }
             else
             {
-                // Deterministic Rule-Based Fallback
-                string cleanText = userMessage.ToLower().Trim();
-
-                // A. Check for Order Tracking
-                if (trackingMatch.Success || cleanText.Contains("flt-") || cleanText.Contains("track"))
-                {
-                    string trackingNumber = trackingMatch.Success ? trackingMatch.Value : string.Empty;
-                    if (!string.IsNullOrEmpty(trackingNumber))
-                    {
-                        var order = await _context.DeliveryRequests
-                            .Include(d => d.Assignment)
-                                .ThenInclude(a => a!.Driver)
-                            .FirstOrDefaultAsync(d => d.TrackingNumber == trackingNumber);
-
-                        if (order != null)
-                        {
-                            string driverInfo = order.Assignment?.Driver != null
-                                ? $"{order.Assignment.Driver.FullName} ({order.Assignment.Driver.PhoneNumber})"
-                                : "Awaiting Driver Dispatch";
-
-                            botReplyText = $"📦 **Shipment Found: {order.TrackingNumber}**\n" +
-                                           $"• **Current Status:** {order.RequestedStatus}\n" +
-                                           $"• **Route:** {order.PickupLocation} ➔ {order.DropoffLocation}\n" +
-                                           $"• **Assigned Driver:** {driverInfo}\n" +
-                                           $"• **Estimated Fare:** ${order.EstimatedCost:F2}\n" +
-                                           $"• **Vehicle Required:** {order.VehicleType}";
-                        }
-                        else
-                        {
-                            botReplyText = $"🔍 I searched our database for tracking code **{trackingNumber}**, but could not locate an active order. Please verify the code or ask for Administrator assistance.";
-                        }
-                    }
-                    else
-                    {
-                        botReplyText = "📦 To track a delivery, please provide your **Tracking Number** (e.g., `FLT-2026-302107`). I will pull up the live status immediately!";
-                    }
-                }
-                // B. Check for Escalation / Human Agent
-                else if (cleanText.Contains("admin") || cleanText.Contains("human") || cleanText.Contains("agent") ||
-                         cleanText.Contains("person") || cleanText.Contains("representative") || cleanText.Contains("operator") ||
-                         cleanText.Contains("shikayat") || cleanText.Contains("complaint") || cleanText.Contains("damaged") ||
-                         cleanText.Contains("broken") || cleanText.Contains("refund") || cleanText.Contains("lost") ||
-                         cleanText.Contains("urgent") || cleanText.Contains("fraud") || cleanText.Contains("kharab"))
-                {
-                    await EscalateToAdminAsync(conversationId, userMessage);
-                    botReplyText = "🚨 **Connecting with Fleetify Administrator...**\n\n" +
-                                   "I have flagged this ticket for **Human Administrator Intervention**. An admin has been notified and will review this chat thread and intervene directly here shortly. You can continue sending details below.";
-                }
-                // C. Cost Estimation & Rates
-                else if (cleanText.Contains("cost") || cleanText.Contains("price") || cleanText.Contains("rate") ||
-                         cleanText.Contains("fare") || cleanText.Contains("calculate") || cleanText.Contains("kitna") ||
-                         cleanText.Contains("pricing") || cleanText.Contains("kharcha") || detectedMapRoute != null)
-                {
-                    if (detectedMapRoute != null && detectedMapRoute.Success)
-                    {
-                        var kgMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
-                        double wtVal = kgMatch.Success && double.TryParse(kgMatch.Groups[1].Value, out double w) ? w : 1.0;
-                        double distCharge = CostEstimationService.CalculateDistanceCharge(detectedMapRoute.DistanceKm);
-                        double totalEst = Math.Floor((2.0 * wtVal) + distCharge);
-
-                        botReplyText = $"🗺️ **Verified Route Distance & Cost ({detectedMapRoute.Provider}):**\n\n" +
-                                       $"• **Pickup:** {detectedMapRoute.Origin}\n" +
-                                       $"• **Drop-off:** {detectedMapRoute.Destination}\n" +
-                                       $"• **Real Road Distance:** **{detectedMapRoute.DistanceKm} km** (~{detectedMapRoute.DurationMinutes} mins drive)\n" +
-                                       $"• **Package Weight:** {wtVal:F1} kg\n" +
-                                       $"• **Distance Tier Charge:** Rs. {distCharge}\n" +
-                                       $"• **Weight Charge (2×):** Rs. {2.0 * wtVal:F0}\n\n" +
-                                       $"💰 **Cost Calculation (Normal Delivery):**\n" +
-                                       $"• `((2 × {wtVal:F1} kg) + Rs. {distCharge}) × 1.0 = Rs. {totalEst}`\n" +
-                                       $"-------------------------------------\n" +
-                                       $"• **Total Estimated Cost:** **Rs. {totalEst}**";
-                    }
-                    else
-                    {
-                        // Check if message provides distance and weight to calculate dynamically
-                        var kmMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(km|kilometer)");
-                        var kgMatch = Regex.Match(cleanText, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
-
-                        if (kmMatch.Success && kgMatch.Success &&
-                            double.TryParse(kmMatch.Groups[1].Value, out double distVal) &&
-                            double.TryParse(kgMatch.Groups[1].Value, out double wtVal))
-                        {
-                            double distCharge = CostEstimationService.CalculateDistanceCharge(distVal);
-                            double totalEst = Math.Floor((2.0 * wtVal) + distCharge);
-
-                            botReplyText = $"💰 **Calculated Delivery Cost Estimate:**\n\n" +
-                                           $"• **Distance:** {distVal:F1} km (Tier Charge: Rs. {distCharge})\n" +
-                                           $"• **Weight:** {wtVal:F1} kg (Weight Charge: Rs. {2.0 * wtVal:F0})\n" +
-                                           $"• **Formula:** `((2 × {wtVal:F1}) + {distCharge}) × Multiplier`\n" +
-                                           $"-------------------------------------\n" +
-                                           $"• **Total Estimated Cost (Normal):** **Rs. {totalEst}**\n" +
-                                           $"• *Fast Delivery (1.75×): Rs. {Math.Floor(((2.0 * wtVal) + distCharge) * 1.75)}*\n" +
-                                           $"• *Express Delivery (2.5×): Rs. {Math.Floor(((2.0 * wtVal) + distCharge) * 2.5)}*";
-                        }
-                        else
-                        {
-                            botReplyText = "💰 **Fleetify Delivery Cost Calculation Formula:**\n\n" +
-                                           "• **Formula:** `Total = ( (2 × Weight_kg) + Distance_Tier_Charge ) × Speed_Multiplier`\n" +
-                                           "• **Distance Tiers:** <50km: Rs. 1500 | <150km: Rs. 2500 | <250km: Rs. 4000 | <500km: Rs. 7000 | <1000km: Rs. 12000 | 1000km+: Rs. 18000\n" +
-                                           "• **Speed Multipliers:** Normal: 1.0× | Fast: 1.75× | Express: 2.5×\n\n" +
-                                           "Aap apna **Pickup & Drop-off locations** aur parcel weight (kg) bataiye, main exact Google Maps verified distance se calculation kar ke bata doonga!";
-                        }
-                    }
-                }
-                // D. Fleet Vehicles & Capacities
-                else if (cleanText.Contains("vehicle") || cleanText.Contains("bike") || cleanText.Contains("van") ||
-                         cleanText.Contains("truck") || cleanText.Contains("capacity") || cleanText.Contains("wazan") ||
-                         cleanText.Contains("gaari"))
-                {
-                    botReplyText = "🚚 **Fleetify Vehicle Types & Capacity Limits:**\n" +
-                                   "• 🏍️ **Bike:** Up to 40 kg (Best for letters, legal documents, small parcels)\n" +
-                                   "• 🛻 **Pickup:** Up to 800 kg (Tools, equipment, hardware & medium freight)\n" +
-                                   "• 🚐 **Delivery Van:** Up to 1,500 kg (Cartons, appliances, mid-sized shipments)\n" +
-                                   "• 🚛 **Heavy Truck:** Up to 5,000 kg (Industrial goods, pallets & heavy bulk freight)";
-                }
-                // E. How to Book
-                else if (cleanText.Contains("book") || cleanText.Contains("kaise") || cleanText.Contains("order") ||
-                         cleanText.Contains("send") || cleanText.Contains("deliver"))
-                {
-                    botReplyText = "📋 **Steps to Book a Delivery:**\n" +
-                                   "1. Sign in to your Customer Account.\n" +
-                                   "2. Go to **Customer Dashboard ➔ New Delivery Booking**.\n" +
-                                   "3. Enter pickup & drop-off locations, parcel weight, and vehicle.\n" +
-                                   "4. View the instant AI cost calculation and confirm booking.\n" +
-                                   "5. Once submitted, our Admin team assigns a nearby driver and vehicle!";
-                }
-                // F. Greetings
-                else if (cleanText.Contains("hello") || cleanText.Contains("hi") || cleanText.Contains("hey") ||
-                         cleanText.Contains("salam") || cleanText.Contains("aoa"))
-                {
-                    botReplyText = "👋 Hello! I am here to help. You can ask me:\n" +
-                                   "• *\"Track FLT-2026-XXXXXX\"* to check order status\n" +
-                                   "• *\"How is price calculated?\"*\n" +
-                                   "• *\"What is the capacity of a Van or Truck?\"*\n" +
-                                   "• *\"Talk to Admin\"* if you need human agent support.";
-                }
-                // G. Fallback
-                else
-                {
-                    botReplyText = "🤖 I'm Fleetify's AI assistant. I can help answer common questions about tracking, rates, and fleet bookings.\n\n" +
-                                   "If you have a complex inquiry or need special help, type **'Talk to Admin'** or click below, and an administrator will personally assist you!";
-                }
+                // Deep, Contextual Natural Language Question Answering Engine
+                botReplyText = await GenerateSmartBotReplyAsync(conversation, userMessage, trackingMatch, detectedMapRoute);
             }
 
             var botMsg = new SupportMessage
@@ -505,21 +375,38 @@ namespace Fleetify.Services.Implementations
             // Automatically send email notification to admin containing the user's message
             try
             {
-                var adminEmails = await _context.Admins
+                var allAdminEmails = new List<string>();
+
+                // 1. Emails from Admins table
+                var dbAdmins = await _context.Admins
                     .Where(a => !string.IsNullOrWhiteSpace(a.Email))
                     .Select(a => a.Email.Trim())
-                    .Distinct()
                     .ToListAsync();
+                allAdminEmails.AddRange(dbAdmins);
 
-                if (!adminEmails.Any())
+                // 2. Emails from Users table where Role == 'Admin'
+                var dbUserAdmins = await _context.Users
+                    .Where(u => u.Role == "Admin" && !string.IsNullOrWhiteSpace(u.Email))
+                    .Select(u => u.Email.Trim())
+                    .ToListAsync();
+                allAdminEmails.AddRange(dbUserAdmins);
+
+                // 3. Always include the primary admin email explicitly
+                if (!allAdminEmails.Contains("zainibutt242@gmail.com", StringComparer.OrdinalIgnoreCase))
                 {
-                    adminEmails.Add("admin@fleetify.com");
+                    allAdminEmails.Add("zainibutt242@gmail.com");
                 }
 
-                var senderEmail = _config["EmailSettings:SenderEmail"] ?? "fypfleetify@gmail.com";
-                if (!string.IsNullOrWhiteSpace(senderEmail) && !adminEmails.Contains(senderEmail, StringComparer.OrdinalIgnoreCase))
+                // 4. Prioritize real deliverable email addresses, filter out fake/local placeholders
+                var deliverableAdminEmails = allAdminEmails
+                    .Where(e => !e.EndsWith("@fleetify.com", StringComparison.OrdinalIgnoreCase) &&
+                                !e.EndsWith("@fleetify.local", StringComparison.OrdinalIgnoreCase))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                if (!deliverableAdminEmails.Any())
                 {
-                    adminEmails.Add(senderEmail);
+                    deliverableAdminEmails = allAdminEmails.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 }
 
                 string emailSubject = $"[Fleetify Support] Contact Admin: Message from {conversation.UserName} (Ticket #{conversation.ConversationID})";
@@ -553,17 +440,21 @@ ACTION REQUIRED:
 Please log in to the Fleetify Admin Portal to reply to this customer ticket:
 http://localhost:5000/Admin/Support?conversationId={conversation.ConversationID}";
 
-                foreach (var email in adminEmails)
+                // Fire-and-forget in background Task so the HTTP endpoint returns in <10ms and the UI never freezes on 'Connecting...'
+                _ = Task.Run(async () =>
                 {
-                    try
+                    foreach (var email in deliverableAdminEmails)
                     {
-                        await _emailService.SendEmailAsync(email, emailSubject, emailBody);
+                        try
+                        {
+                            await _emailService.SendEmailAsync(email, emailSubject, emailBody);
+                        }
+                        catch
+                        {
+                            // Handled by EmailService logger
+                        }
                     }
-                    catch
-                    {
-                        // Logging handled by EmailService
-                    }
-                }
+                });
             }
             catch
             {
@@ -606,6 +497,422 @@ http://localhost:5000/Admin/Support?conversationId={conversation.ConversationID}
             return val.Length <= maxLength ? val : val.Substring(0, maxLength) + "...";
         }
 
+                private async Task<string> GenerateSmartBotReplyAsync(
+            SupportConversation conversation,
+            string userMessage,
+            Match trackingMatch,
+            RouteDistanceResult? detectedMapRoute)
+        {
+            string clean = userMessage.ToLower().Trim();
+            clean = Regex.Replace(clean, @"\s+", " ");
+
+            // 1. City Compliment / Casual Remark about cities (e.g. "sheikho kitna payara ha", "lahore kaisa hai")
+            bool mentionsCity = clean.Contains("sheikho") || clean.Contains("sheikhupura") || clean.Contains("lahore") ||
+                                clean.Contains("karachi") || clean.Contains("islamabad") || clean.Contains("pindi") ||
+                                clean.Contains("rawalpindi") || clean.Contains("gujranwala") || clean.Contains("faisalabad") ||
+                                clean.Contains("multan") || clean.Contains("peshawar") || clean.Contains("sialkot") ||
+                                clean.Contains("quetta") || clean.Contains("gujrat") || clean.Contains("sargodha") || clean.Contains("kasur");
+
+            bool isCityPraiseOrCasual = mentionsCity && (clean.Contains("payara") || clean.Contains("pyara") ||
+                                        clean.Contains("khoobsurat") || clean.Contains("khubsurat") ||
+                                        clean.Contains("achha") || clean.Contains("acha") || clean.Contains("kaisa") ||
+                                        clean.Contains("beautiful") || clean.Contains("kesa") || clean.Contains("best"));
+
+            bool isExplicitPricing = clean.Contains("cost") || clean.Contains("price") || clean.Contains("rate") ||
+                                     clean.Contains("fare") || clean.Contains("charge") || clean.Contains("kharcha") ||
+                                     clean.Contains("pesay") || clean.Contains("rupay") || clean.Contains("pricing") ||
+                                     clean.Contains("bill") || clean.Contains("kitne paise") || clean.Contains("kitna lagega") ||
+                                     (clean.Contains("kitna") && (clean.Contains("hoga") || clean.Contains("lagega") || clean.Contains("rupee") || clean.Contains("rs")));
+
+            if (isCityPraiseOrCasual && !isExplicitPricing)
+            {
+                string cityName = (clean.Contains("sheikho") || clean.Contains("sheikhupura")) ? "Sheikhupura (Sheikho)" :
+                                  clean.Contains("lahore") ? "Lahore" :
+                                  clean.Contains("karachi") ? "Karachi" :
+                                  clean.Contains("islamabad") ? "Islamabad" :
+                                  (clean.Contains("pindi") || clean.Contains("rawalpindi")) ? "Rawalpindi" :
+                                  clean.Contains("gujranwala") ? "Gujranwala" :
+                                  clean.Contains("faisalabad") ? "Faisalabad" :
+                                  clean.Contains("multan") ? "Multan" :
+                                  clean.Contains("peshawar") ? "Peshawar" :
+                                  clean.Contains("sialkot") ? "Sialkot" :
+                                  clean.Contains("quetta") ? "Quetta" : "Pakistan";
+
+                return $"Haha, bilkul! **{cityName}** waqai bohat pyara aur ahem tareekhi shehar hai! â¤ï¸\n\n" +
+                       $"Aur khushkhabri yeh hai ke **Fleetify** is shehar aur us ke gird-o-nawwah ke tamam ilaqon mein fast door-to-door courier aur commercial freight delivery provide karta hai.\n\n" +
+                       $"Kya aap ko {cityName} se ya wahan koi parcel bhejna ya mangwana hai? Main aap ko foran rates aur delivery time bata sakta hoon! ðŸ˜Š";
+            }
+
+            // 2. Delivery Request / Booking Intent (e.g. "ma deliver request kasay dal sakta hon?", "booking kaise hoti hai")
+            bool isBookingIntent = clean.Contains("deliver request") || clean.Contains("delivery request") ||
+                                   clean.Contains("kasay dal") || clean.Contains("kaise dal") || clean.Contains("kesay dal") ||
+                                   clean.Contains("kasay bhej") || clean.Contains("kaise bhej") || clean.Contains("kesay bhej") ||
+                                   clean.Contains("parcel bhejna") || clean.Contains("order kaise") || clean.Contains("order kasay") ||
+                                   clean.Contains("booking kaise") || clean.Contains("booking kasay") || clean.Contains("book kaise") ||
+                                   clean.Contains("book kasay") || clean.Contains("bhejna hai") || clean.Contains("new booking") ||
+                                   clean.Contains("how to book") || clean.Contains("send parcel") || clean.Contains("order book") ||
+                                   clean.Contains("delivery book");
+
+            if (isBookingIntent)
+            {
+                return "ðŸ“¦ **Fleetify Par Delivery Request Dalnay Ka Aasan Tareeqa:**\n\n" +
+                       "1. **Login Karein:** Apne Customer Account mein sign in karein (`/Account/Login`).\n" +
+                       "2. **New Booking:** Customer Dashboard par **'New Delivery Booking'** button dabayein.\n" +
+                       "3. **Locations & Weight:** Pickup city/address, Drop-off address aur parcel ka wazan (kg) enter karein.\n" +
+                       "4. **Vehicle & Speed:** Munasib gaari (Bike, Pickup, Van, ya Truck) aur speed (Normal ya Express) select karein.\n" +
+                       "5. **Instant Cost:** Screen par verified road distance aur instant fare dekh kar **Confirm Booking** karein!\n\n" +
+                       "Aap ki request submit hote hi hamara system qareebi driver assign kar dega aur live tracking shuru ho jaye gi! ðŸššâœ¨";
+            }
+
+            // 3. Order Tracking / My Shipment / Status
+            bool isTrackingQuery = trackingMatch.Success || clean.Contains("flt-") || clean.Contains("track") ||
+                                   clean.Contains("mera parcel") || clean.Contains("mera order") || clean.Contains("mera package") ||
+                                   clean.Contains("meri delivery") || clean.Contains("shipment kahan") || clean.Contains("parcel kahan") ||
+                                   clean.Contains("order kahan") || clean.Contains("kahan pohncha") || clean.Contains("kahan pohoncha") ||
+                                   clean.Contains("kahan poncha") || clean.Contains("kab deliver") || clean.Contains("kab pohnche") ||
+                                   clean.Contains("kab mile") || clean.Contains("order status") || clean.Contains("delivery status") ||
+                                   clean.Contains("parcel status") || clean.Contains("where is my order") || clean.Contains("where is my parcel");
+
+            if (isTrackingQuery)
+            {
+                string trackingNumber = trackingMatch.Success ? trackingMatch.Value : string.Empty;
+                if (string.IsNullOrEmpty(trackingNumber))
+                {
+                    var fltInline = Regex.Match(userMessage.ToUpper(), @"FLT[A-Z0-9\-]+");
+                    if (fltInline.Success) trackingNumber = fltInline.Value;
+                }
+
+                if (!string.IsNullOrEmpty(trackingNumber))
+                {
+                    var order = await _context.DeliveryRequests
+                        .Include(d => d.Assignment)
+                            .ThenInclude(a => a!.Driver)
+                        .FirstOrDefaultAsync(d => d.TrackingNumber == trackingNumber);
+
+                    if (order != null)
+                    {
+                        string driverInfo = order.Assignment?.Driver != null
+                            ? $"{order.Assignment.Driver.FullName} (ðŸ“ž {order.Assignment.Driver.PhoneNumber})"
+                            : "Awaiting Driver Dispatch";
+
+                        string statusUrdu = order.RequestedStatus switch
+                        {
+                            "Pending" => "â³ Pending (Admin approval aur driver dispatch jari hai)",
+                            "Assigned" => "ðŸšš Assigned (Driver assign ho chuka hai, pickup ke liye rawana)",
+                            "In Transit" => "ðŸ›£ï¸ In Transit (Parcel raste mein hai aur jald delivery address par pohnche ga)",
+                            "Delivered" => "âœ… Delivered (Kamyabi se deliver ho chuka hai)",
+                            "Cancelled" => "âŒ Cancelled",
+                            _ => order.RequestedStatus
+                        };
+
+                        return $"ðŸ“¦ **Shipment Found: `{order.TrackingNumber}`**\n\n" +
+                               $"â€¢ **Current Status:** **{statusUrdu}**\n" +
+                               $"â€¢ **Route:** {order.PickupLocation} âž” {order.DropoffLocation}\n" +
+                               $"â€¢ **Assigned Driver:** {driverInfo}\n" +
+                               $"â€¢ **Vehicle:** {order.VehicleType}\n" +
+                               $"â€¢ **Fare:** Rs. {order.EstimatedCost:F0}\n" +
+                               $"â€¢ **Date:** {order.RequestDate:dd MMM yyyy, hh:mm tt} UTC\n\n" +
+                               $"Aap apne Customer Portal par is shipment ka live GPS route bhi dekh sakte hain!";
+                    }
+                    else
+                    {
+                        return $"ðŸ” Database mein tracking code **{trackingNumber}** ka koi active order nahi mila.\n\n" +
+                               $"Barah-e-karam apna code dobara check karein (maslan `FLT-2026-302107`) ya apne Customer Dashboard par ja kar orders check karein.";
+                    }
+                }
+                else if (conversation.UserID.HasValue)
+                {
+                    var userOrders = await _context.DeliveryRequests
+                        .Include(d => d.Assignment)
+                            .ThenInclude(a => a!.Driver)
+                        .Where(d => d.UserID == conversation.UserID.Value)
+                        .OrderByDescending(d => d.RequestDate)
+                        .Take(2)
+                        .ToListAsync();
+
+                    if (userOrders.Any())
+                    {
+                        var latest = userOrders.First();
+                        string driverInfo = latest.Assignment?.Driver != null
+                            ? $"{latest.Assignment.Driver.FullName} (ðŸ“ž {latest.Assignment.Driver.PhoneNumber})"
+                            : "Awaiting Driver Dispatch";
+
+                        return $"ðŸ“¦ **Aap Ke Latest Order Ki Live Maloomat:**\n\n" +
+                               $"â€¢ **Tracking Number:** `{latest.TrackingNumber}`\n" +
+                               $"â€¢ **Status:** **{latest.RequestedStatus}**\n" +
+                               $"â€¢ **Route:** {latest.PickupLocation} âž” {latest.DropoffLocation}\n" +
+                               $"â€¢ **Driver:** {driverInfo}\n" +
+                               $"â€¢ **Gaari (Vehicle):** {latest.VehicleType}\n" +
+                               $"â€¢ **Fare:** Rs. {latest.EstimatedCost:F0}\n\n" +
+                               $"Aap is order ka live tracking map apne **Customer Dashboard** par bhi dekh sakte hain!";
+                    }
+                    else
+                    {
+                        return "ðŸ“¦ Aap ke account par filhal koi active delivery request nazar nahi aa rahi.\n\n" +
+                               "â€¢ Agar aap ke paas kisi specific parcel ka **Tracking Number** hai (maslan `FLT-2026-302107`), to woh yahan type karein.\n" +
+                               "â€¢ Naya parcel book karne ke liye **Customer Dashboard âž” New Delivery Booking** par jayein.";
+                    }
+                }
+                else
+                {
+                    return "ðŸ“¦ Parcel track karne ke liye apna **Tracking Code** (maslan `FLT-2026-302107`) yahan type karein.\n\n" +
+                           "Ya apne **Customer Account** mein sign in karein jahan aap ke tamam orders ka live status aur driver GPS location show hota hai.";
+                }
+            }
+
+            // 4. Driver / Rider Queries
+            bool isDriverQuery = clean.Contains("driver") || clean.Contains("rider") || clean.Contains("delivery boy");
+            if (isDriverQuery)
+            {
+                if (conversation.UserID.HasValue)
+                {
+                    var activeOrder = await _context.DeliveryRequests
+                        .Include(d => d.Assignment)
+                            .ThenInclude(a => a!.Driver)
+                        .Where(d => d.UserID == conversation.UserID.Value && d.RequestedStatus != "Delivered" && d.RequestedStatus != "Cancelled")
+                        .OrderByDescending(d => d.RequestDate)
+                        .FirstOrDefaultAsync();
+
+                    if (activeOrder?.Assignment?.Driver != null)
+                    {
+                        var drv = activeOrder.Assignment.Driver;
+                        return $"ðŸšš **Aap Ke Assigned Driver Ki Details:**\n\n" +
+                               $"â€¢ **Driver Name:** **{drv.FullName}**\n" +
+                               $"â€¢ **Phone Number:** ðŸ“ž **{drv.PhoneNumber}**\n" +
+                               $"â€¢ **Order Tracking:** `{activeOrder.TrackingNumber}`\n" +
+                               $"â€¢ **Delivery Route:** {activeOrder.PickupLocation} âž” {activeOrder.DropoffLocation}\n\n" +
+                               $"Aap is number par driver se seedha call kar ke rabta kar sakte hain ya live map par unki location dekh sakte hain!";
+                    }
+                    else if (activeOrder != null)
+                    {
+                        return $"ðŸšš Aap ka order `{activeOrder.TrackingNumber}` abhi driver assignment queue mein hai. Jald hi nazdeeki driver assign ho jaye ga aur unka direct phone number yahan show hoga.";
+                    }
+                }
+
+                return "ðŸšš **Fleetify Drivers & Live Dispatch System:**\n\n" +
+                       "Jab aap koi delivery request submit karte hain, to hamara system qareeb tareen verified driver assign karta hai. Driver ka naam, live moving location, aur direct mobile number aap ke **Customer Dashboard âž” Live Tracking** par nazar aata hai jahan se aap unhein direct call bhi kar sakte hain!";
+            }
+
+            // 5. Admin Escalation / Complaints / Urgent / Lost / Damaged
+            bool isEscalation = clean.Contains("admin") || clean.Contains("human") || clean.Contains("agent") ||
+                                clean.Contains("manager") || clean.Contains("representative") || clean.Contains("operator") ||
+                                clean.Contains("shikayat") || clean.Contains("complaint") || clean.Contains("damaged") ||
+                                clean.Contains("broken") || clean.Contains("refund") || clean.Contains("lost") ||
+                                clean.Contains("urgent") || clean.Contains("fraud") || clean.Contains("dhoka") ||
+                                clean.Contains("kharab") || clean.Contains("helpdesk");
+
+            if (isEscalation)
+            {
+                await EscalateToAdminAsync(conversation.ConversationID, userMessage);
+                return "ðŸš¨ **Connecting with Fleetify Administrator...**\n\n" +
+                       "Aap ki inquiry ko **Human Administrator Intervention** ke liye mark kar diya gaya hai. Hamari fleet operations team ko email aur live notification send ho chuki hai. Administrator jald hi is chat thread mein review kar ke intervene karega.\n\n" +
+                       "Aap mazeed details yahan bhej sakte hain ya hamari official helpline `fypfleetify@gmail.com` par email kar sakte hain.";
+            }
+
+            // 6. Pricing & Rate Calculation
+            if (isExplicitPricing || detectedMapRoute != null)
+            {
+                if (detectedMapRoute != null && detectedMapRoute.Success)
+                {
+                    var kgMatch = Regex.Match(clean, @"(\d+(\.\d+)?)\s*(kg|kilo|gram)");
+                    double wtVal = kgMatch.Success && double.TryParse(kgMatch.Groups[1].Value, out double w) ? w : 1.0;
+                    double distCharge = CostEstimationService.CalculateDistanceCharge(detectedMapRoute.DistanceKm);
+                    double normalCost = Math.Floor((2.0 * wtVal) + distCharge);
+                    double fastCost = Math.Floor(((2.0 * wtVal) + distCharge) * 1.75);
+                    double expressCost = Math.Floor(((2.0 * wtVal) + distCharge) * 2.5);
+
+                    return $"ðŸ—ºï¸ **Verified Route Distance & Cost ({detectedMapRoute.Provider}):**\n\n" +
+                           $"â€¢ **Pickup:** {detectedMapRoute.Origin}\n" +
+                           $"â€¢ **Drop-off:** {detectedMapRoute.Destination}\n" +
+                           $"â€¢ **Real Road Distance:** **{detectedMapRoute.DistanceKm} km** (~{detectedMapRoute.DurationMinutes} mins drive)\n" +
+                           $"â€¢ **Package Weight:** {wtVal:F1} kg (Weight fee: Rs. {2.0 * wtVal:F0})\n" +
+                           $"â€¢ **Distance Tier Charge:** Rs. {distCharge}\n\n" +
+                           $"ðŸ’° **Calculated Delivery Fares:**\n" +
+                           $"â€¢ ðŸ“¦ **Normal Delivery (4â€“6 din):** **Rs. {normalCost}**\n" +
+                           $"â€¢ ðŸš€ **Fast Delivery (2â€“3 din):** **Rs. {fastCost}**\n" +
+                           $"â€¢ âš¡ **Express Delivery (1â€“2 din):** **Rs. {expressCost}**\n\n" +
+                           $"Aap foran Customer Portal par ja kar is route ki booking confirm kar sakte hain!";
+                }
+                else
+                {
+                    return "ðŸ’° **Fleetify Delivery Rates & Calculation Formula:**\n\n" +
+                           "Hamara pricing model nihayat transparent hai:\n" +
+                           "1. **Wazan (Weight):** Rs. 2 fee per kg (2 Ã— Total Weight)\n" +
+                           "2. **Distance Tiers (Road Distance):**\n" +
+                           "   â€¢ 50 km se kam: Rs. 1,500\n" +
+                           "   â€¢ 150 km se kam: Rs. 2,500\n" +
+                           "   â€¢ 250 km se kam: Rs. 4,000\n" +
+                           "   â€¢ 500 km se kam: Rs. 7,000\n" +
+                           "   â€¢ 1,000 km se kam: Rs. 12,000\n" +
+                           "   â€¢ 1,000 km se zyada: Rs. 18,000\n" +
+                           "3. **Speed Multipliers:** Normal = 1.0x | Fast = 1.75x | Express = 2.5x\n\n" +
+                           "ðŸ‘‰ Aap apna **Pickup City**, **Drop-off City**, aur **Wazan (kg)** batayein (maslan: *'Lahore to Islamabad 5kg'*), main foran exact bill calculate kar ke bata doonga!";
+                }
+            }
+
+            // 7. Transit Speed & Delivery Time
+            bool isTimeQuery = clean.Contains("kitna time") || clean.Contains("kitne din") || clean.Contains("kab pohnche") ||
+                               clean.Contains("delivery time") || clean.Contains("express delivery") || clean.Contains("fast delivery") ||
+                               clean.Contains("transit time") || clean.Contains("speed") || clean.Contains("urgently") ||
+                               clean.Contains("emergency") || clean.Contains("same day") || clean.Contains("kitni der");
+
+            if (isTimeQuery)
+            {
+                return "â±ï¸ **Fleetify Delivery Timings & Speeds:**\n\n" +
+                       "â€¢ âš¡ **Express Delivery:** 1 se 2 business days (Urgent aur emergency shipments ke liye, priority routing)\n" +
+                       "â€¢ ðŸš€ **Fast Delivery:** 2 se 3 business days (Standard se tez delivery)\n" +
+                       "â€¢ ðŸ“¦ **Normal Delivery:** 4 se 6 business days (Standard economical rate)\n\n" +
+                       "Delivery fleet Monday to Saturday active rehti hai aur live GPS tracking 24/7 online dastiab hai!";
+            }
+
+            // 8. Vehicles & Capacities
+            bool isVehicleQuery = clean.Contains("vehicle") || clean.Contains("gaari") || clean.Contains("bike") ||
+                                  clean.Contains("pickup") || clean.Contains("van") || clean.Contains("truck") ||
+                                  clean.Contains("capacity") || clean.Contains("wazan limit") || clean.Contains("heavy cargo") ||
+                                  clean.Contains("kitna wazan") || clean.Contains("motorcycle");
+
+            if (isVehicleQuery)
+            {
+                return "ðŸšš **Fleetify Vehicles & Wazan (Capacity) Limits:**\n\n" +
+                       "â€¢ ðŸï¸ **Bike:** 40 kg tak (Envelopes, legal documents, food aur chotay parcels)\n" +
+                       "â€¢ ðŸ›» **Pickup:** 800 kg tak (Tools, equipment, hardware aur medium freight)\n" +
+                       "â€¢ ðŸš **Delivery Van:** 1,500 kg tak (Cartons, appliances, mid-sized commercial freight)\n" +
+                       "â€¢ ðŸš› **Heavy Truck:** 5,000 kg tak (Industrial machinery, pallets aur bulk cargo)\n\n" +
+                       "Booking ke waqt aap ke wazan ke mutabiq best vehicle automatically suggest ho jati hai!";
+            }
+
+            // 9. Offices, Hubs, Warehouses & Cities
+            bool isLocationQuery = clean.Contains("office") || clean.Contains("head office") || clean.Contains("branch") ||
+                                   clean.Contains("warehouse") || clean.Contains("hubs") || clean.Contains("hub") ||
+                                   clean.Contains("cities") || clean.Contains("kahan kahan service") || clean.Contains("address") ||
+                                   clean.Contains("location") || clean.Contains("markaz");
+
+            if (isLocationQuery)
+            {
+                return "ðŸ“ **Fleetify Network, Hubs & Warehouses:**\n\n" +
+                       "Fleetify Pakistan ke tamam baray commercial marakiz mein faal hai:\n" +
+                       "â€¢ ðŸ¢ **Head Office & Main Hub:** Shaheenabad, near Gulshan Park / GT Road, **Gujranwala**\n" +
+                       "â€¢ ðŸ›ï¸ **Lahore Hub:** Thokar Niaz Baig, Multan Road Bypass\n" +
+                       "â€¢ ðŸ›ï¸ **Islamabad Hub:** Sector I-9 Industrial Area\n" +
+                       "â€¢ ðŸ›ï¸ **Rawalpindi Hub:** Murree Road / Faizabad Interchange\n" +
+                       "â€¢ ðŸ›ï¸ **Faisalabad Hub:** Sargodha Road, Millat Chowk\n" +
+                       "â€¢ ðŸ›ï¸ **Multan Hub:** Khanewal Road Industrial Estate\n" +
+                       "â€¢ ðŸ›ï¸ **Peshawar Hub:** Hayatabad Industrial Estate, Phase 7\n" +
+                       "â€¢ ðŸ›ï¸ **Sialkot Hub:** Wazirabad Road / Sambrial\n" +
+                       "â€¢ ðŸ›ï¸ **Karachi Hub:** S.I.T.E. Industrial Area, Habib Bank Chowrangi\n" +
+                       "â€¢ ðŸ›ï¸ **Quetta Hub:** Zarghoon Road Cantt\n\n" +
+                       "Tamam shehron mein **Doorstep Pickup** aur **Doorstep Delivery** ki mukammal sahulat dastiab hai!";
+            }
+
+            // 10. Payment Methods / COD
+            bool isPaymentQuery = clean.Contains("cash on delivery") || clean.Contains("cod") || clean.Contains("payment") ||
+                                  clean.Contains("pesay kaise") || clean.Contains("paise kaise") || clean.Contains("card payment") ||
+                                  clean.Contains("bank transfer") || clean.Contains("online pay") || clean.Contains("pesay kab");
+
+            if (isPaymentQuery)
+            {
+                return "ðŸ’³ **Fleetify Payment Methods:**\n\n" +
+                       "â€¢ ðŸ’µ **Cash on Delivery (COD):** Aap parcel received hone par driver ko naqad (cash) ada kar sakte hain.\n" +
+                       "â€¢ ðŸ¦ **Direct Bank Transfer:** Online bank account ke zariye digital payment.\n" +
+                       "â€¢ ðŸ’³ **Debit / Credit Card:** Booking ke waqt secure card checkout.\n\n" +
+                       "Har delivery ki digital receipt aap ke Customer Dashboard par mehfooz rehti hai.";
+            }
+
+            // 11. Account, Login, Password & Registration
+            bool isAccountQuery = clean.Contains("login") || clean.Contains("sign in") || clean.Contains("password") ||
+                                  clean.Contains("forgot password") || clean.Contains("register") || clean.Contains("account") ||
+                                  clean.Contains("bhool gya") || clean.Contains("bhool gaya") || clean.Contains("otp") ||
+                                  clean.Contains("admin login");
+
+            if (isAccountQuery)
+            {
+                return "ðŸ” **Fleetify Account & Login Rahnumai:**\n\n" +
+                       "â€¢ **Customer Login:** `/Account/Login` par apna email aur password enter karein.\n" +
+                       "â€¢ **Forgot Password:** Login page par **'Forgot Password?'** par click karein. Aap ke registered email par foran OTP reset code bhej diya jaye ga.\n" +
+                       "â€¢ **Naya Account:** Naya Customer account banane ke liye `/Account/Register` par jayein.\n" +
+                       "â€¢ **Admin Login:** Agar aap Administrator hain, to login page ke bilkul nichay **'ðŸ›¡ï¸ Sign in as an Admin'** link par click karein (`/Account/Login?role=Admin`).";
+            }
+
+            // 12. Cancellation & Modifications
+            bool isCancelQuery = clean.Contains("cancel") || clean.Contains("radd") || clean.Contains("tabdeel") ||
+                                 clean.Contains("change address") || clean.Contains("pata badal") || clean.Contains("return") ||
+                                 clean.Contains("wapsi");
+
+            if (isCancelQuery)
+            {
+                return "ðŸ”„ **Order Cancellation & Address Changes:**\n\n" +
+                       "â€¢ **Cancel:** Jab tak order 'Pending' ya 'Assigned' status mein ho, aap **Customer Dashboard âž” My Orders** se direct cancel kar sakte hain.\n" +
+                       "â€¢ **Address Change:** Agar dispatch ho chuka ho ya address update karna ho, to foran yahan **'Contact Admin'** button dabayein taake hamari team driver ko naya drop-off communicate kar sakay.";
+            }
+
+            // 13. Identity & Platform Description
+            bool isIdentityQuery = clean.Contains("tum kon ho") || clean.Contains("who are you") || clean.Contains("kaun ho") ||
+                                   clean.Contains("what is fleetify") || clean.Contains("fleetify kya hai") || clean.Contains("fleetify kia hai") ||
+                                   clean.Contains("app kis cheez") || clean.Contains("website kya karti") || clean.Contains("tumhara naam") ||
+                                   clean.Contains("aap ka naam");
+
+            if (isIdentityQuery)
+            {
+                return "Main **Fleetify Virtual AI Assistant** hoon! ðŸš›âœ¨\n\n" +
+                       "**Fleetify** Pakistan ka smart digital logistics aur fleet management platform hai. Hum pooray mulk mein tez aur safe parcel deliveries, live GPS driver tracking, aur cargo freight provide karte hain.\n\nAap mujh se tracking status, delivery rates, vehicle booking, ya administration support ke baray mein kuch bhi pooch sakte hain!";
+            }
+
+            // 14. Greetings & Casual Well-being
+            bool isGreeting = clean.Contains("salam") || clean.Contains("aoa") || clean.Contains("assalam") ||
+                              clean.Contains("asalam") || clean.Contains("hello") || clean.Contains("hi") ||
+                              clean.Contains("hey") || clean.Contains("kya hal") || clean.Contains("kia hal") ||
+                              clean.Contains("kaise ho") || clean.Contains("kese ho") || clean.Contains("how are you") ||
+                              clean.Contains("mizaj") || clean.Contains("mizaaj") || clean.Contains("whats up") || clean.Contains("kya chal");
+
+            if (isGreeting)
+            {
+                return "Walaikum Assalam! Alhamdulillah main bilkul theek hoon. Main Fleetify ka AI Assistant hoon. ðŸ˜Š\n\n" +
+                       "Aap sunayein, aaj aap ki parcel delivery, cost calculation ya booking ke silsilay mein kya madad kar sakta hoon? Aap mujh se parcel track karne, rates maloom karne, ya booking ka tareeqa pooch sakte hain!";
+            }
+
+            // 15. Gratitude & Politeness
+            bool isThanks = clean.Contains("shukriya") || clean.Contains("thanks") || clean.Contains("thank you") ||
+                            clean.Contains("jazakallah") || clean.Contains("jazak allah") || clean.Contains("zabardast") ||
+                            clean.Contains("good job") || clean.Contains("great");
+
+            if (isThanks)
+            {
+                return "Bohat shukriya! Khushi hui ke main aap ki madad kar saka. Agar koi aur sawaal ho ya delivery book karni ho to bejhiijhak poochein. Fleetify aap ki khidmat ke liye hamesha tayyar hai! ðŸ˜Šâœ¨";
+            }
+
+            // 16. Acknowledgements
+            bool isAck = clean == "ok" || clean == "okay" || clean == "theek hai" || clean == "acha" ||
+                         clean == "achha" || clean == "sahi" || clean == "thk hai" || clean == "jee" ||
+                         clean == "ji" || clean.StartsWith("ok ") || clean.StartsWith("theek hai");
+
+            if (isAck)
+            {
+                return "Ji behtareen! Agar koi aur sawaal ya help chahiye ho to zaroor batayein.";
+            }
+
+            // 17. Fragile, Packaging, Sundays
+            if (clean.Contains("fragile") || clean.Contains("toot") || clean.Contains("glass") || clean.Contains("sheesha"))
+            {
+                return "ðŸ›¡ï¸ **Fragile Items Handling:**\n\nFleetify fragile saman (sheesha, electronics, sensitive cargo) ke liye safe handling provide karta hai. Booking karte waqt description mein zaroor likhein taake driver extra care aur secure placement kare.";
+            }
+
+            if (clean.Contains("packaging") || clean.Contains("dabba") || clean.Contains("box") || clean.Contains("pack"))
+            {
+                return "ðŸ“¦ **Packaging Guidelines:**\n\nParcels ko standard carton box ya bubble wrap mein pack karna behtar hota hai. Chotay parcels ke liye waterproof packaging use karein.";
+            }
+
+            if (clean.Contains("sunday") || clean.Contains("itwar") || clean.Contains("timing") || clean.Contains("hours") || clean.Contains("khula"))
+            {
+                return "ðŸ•’ **Timings & Operations:**\n\nFleetify delivery fleet Monday to Saturday subah 8 baje se raat 8 baje tak operate karti hai. System booking aur AI support desk 24 ghante (24/7) online faal rehti hai.";
+            }
+
+            // 18. Contextual Intelligent Fallback
+            return $"Aap ke sawaal ke mutabiq, Fleetify logistics platform par hum har qisam ki fast courier delivery, freight logistics aur parcel tracking provide karte hain.\n\n" +
+                   $"â€¢ Agar aap kisi parcel ka status check karna chahte hain, to **Tracking Code** (maslan `FLT-2026-302107`) yahan likhein.\n" +
+                   $"â€¢ Agar kisi route ki delivery cost janni hai, to **Pickup City**, **Drop-off City** aur **Wazan (kg)** batayein.\n" +
+                   $"â€¢ Agar aap ko kisi khas maslay mein human assistance chahiye, to **'Contact Admin'** par click karein aur hamara administrator foran aap ki madad karega! ðŸ˜Š";
+        }
+
         private (string origin, string destination)? ExtractRouteLocations(string message)
         {
             if (string.IsNullOrWhiteSpace(message)) return null;
@@ -640,6 +947,46 @@ http://localhost:5000/Admin/Support?conversationId={conversation.ConversationID}
                 {
                     return (o, d);
                 }
+            }
+
+            // 4. Known Pakistani City Pairs in text
+            var knownCities = new[] { "gujranwala", "lahore", "islamabad", "rawalpindi", "pindi", "faisalabad", "multan", "peshawar", "sialkot", "karachi", "quetta", "sheikhupura", "sheikho", "gujrat", "kasur", "sargodha" };
+            string lower = message.ToLower();
+            string? firstCity = null;
+            string? secondCity = null;
+            int firstIdx = int.MaxValue;
+            int secondIdx = int.MaxValue;
+
+            foreach (var city in knownCities)
+            {
+                int idx = lower.IndexOf(city);
+                if (idx >= 0)
+                {
+                    if (idx < firstIdx)
+                    {
+                        secondCity = firstCity;
+                        secondIdx = firstIdx;
+                        firstCity = city;
+                        firstIdx = idx;
+                    }
+                    else if (idx < secondIdx && city != firstCity)
+                    {
+                        secondCity = city;
+                        secondIdx = idx;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(firstCity) && !string.IsNullOrEmpty(secondCity) && firstCity != secondCity)
+            {
+                string mapCity(string c) => c switch
+                {
+                    "sheikho" => "Sheikhupura",
+                    "sheikhupura" => "Sheikhupura",
+                    "pindi" => "Rawalpindi",
+                    _ => char.ToUpper(c[0]) + c.Substring(1)
+                };
+                return (mapCity(firstCity), mapCity(secondCity));
             }
 
             return null;

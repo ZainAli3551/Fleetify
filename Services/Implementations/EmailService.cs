@@ -41,7 +41,8 @@ namespace Fleetify.Services.Implementations
             if (!string.IsNullOrWhiteSpace(password))
             {
                 var cleanPassword = password.Replace(" ", "").Trim();
-                var hostsToTry = new[] { smtpServer, "smtp.googlemail.com" };
+                var cleanServer = (smtpServer ?? "smtp.gmail.com").Trim();
+                var hostsToTry = new[] { cleanServer, "smtp.googlemail.com" };
 
                 foreach (var host in hostsToTry)
                 {
@@ -54,7 +55,7 @@ namespace Fleetify.Services.Implementations
                                 Credentials = new NetworkCredential(senderEmail, cleanPassword),
                                 EnableSsl = enableSsl,
                                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                                Timeout = 15000
+                                Timeout = 8000
                             };
 
                             using var mailMessage = new MailMessage
@@ -76,7 +77,7 @@ namespace Fleetify.Services.Implementations
                             _logger.LogWarning(ex, "SMTP attempt {Attempt} on {Host} failed for {ToEmail}: {Error}", attempt, host, toEmail, ex.Message);
                             if (attempt < 2)
                             {
-                                await Task.Delay(1000);
+                                await Task.Delay(500);
                             }
                         }
                     }
